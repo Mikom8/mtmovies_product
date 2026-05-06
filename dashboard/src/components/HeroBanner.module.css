@@ -1,0 +1,266 @@
+.hero {
+  position: relative;
+  height: 90vh;
+  min-height: 540px;
+  background-size: cover;
+  background-position: center top;
+  display: flex;
+  align-items: flex-end;
+}
+
+.gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,
+      rgba(10, 10, 11, 0.1) 0%,
+      rgba(10, 10, 11, 0.2) 40%,
+      rgba(10, 10, 11, 0.75) 70%,
+      #0a0a0b 100%);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  padding: 0 4% 5rem;
+  max-width: 900px;
+  width: clamp(300px, 45vw, 900px);
+}
+
+.newBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
+  background: rgba(229, 9, 20, 0.85);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 1rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(229, 9, 20, 0);
+  }
+}
+
+.title {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 900;
+  line-height: 1.05;
+  margin-bottom: 6px;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+  font-family: 'Bebas Neue', cursive;
+  letter-spacing: 2px;
+}
+
+.titleAmharic {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.rating {
+  color: #ffd700;
+  font-weight: 700;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.quality {
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.amharicBadge {
+  padding: 2px 10px;
+  border-radius: 6px;
+  background: rgba(229, 9, 20, 0.25);
+  border: 1px solid rgba(229, 9, 20, 0.5);
+  color: #ff6666;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.description {
+  font-size: clamp(0.95rem, 1.2vw, 1.3rem);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1.8rem;
+  max-width: 95%;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.playBtn {
+  padding: 13px 32px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #e50914, #c00710);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(229, 9, 20, 0.5);
+}
+
+.playBtn:hover {
+  transform: scale(1.04) translateY(-2px);
+  box-shadow: 0 8px 30px rgba(229, 9, 20, 0.6);
+}
+
+.myListBtn {
+  padding: 11px 24px;
+  border-radius: 10px;
+  background: rgba(109, 109, 110, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.myListBtn:hover {
+  background: rgba(109, 109, 110, 0.9);
+  transform: translateY(-2px);
+}
+
+.infoBtn {
+  padding: 11px 32px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.infoBtn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-2px);
+}
+
+.genre {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 600px) {
+  .content {
+    padding: 0 5% 4rem;
+    max-width: 100%;
+  }
+
+  .title {
+    font-size: 2.2rem;
+  }
+
+  .description {
+    font-size: 0.875rem;
+    line-clamp: 2;
+  }
+
+  .playBtn,
+  .infoBtn {
+    padding: 11px 22px;
+    font-size: 0.9rem;
+  }
+}
+
+/* ── Cinematic Transition Overlay ── */
+.expansionOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  z-index: 99999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  clip-path: circle(0px at var(--origin-x) var(--origin-y));
+  animation: expandCircle 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes expandCircle {
+  0% {
+    clip-path: circle(0px at var(--origin-x) var(--origin-y));
+  }
+
+  100% {
+    clip-path: circle(150vmax at var(--origin-x) var(--origin-y));
+  }
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(229, 9, 20, 0.2);
+  border-top-color: #e50914;
+  border-radius: 50%;
+  animation: spin 1s linear infinite, fadeInSpinner 0.3s ease forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInSpinner {
+  to {
+    opacity: 1;
+  }
+}

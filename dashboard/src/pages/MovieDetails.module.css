@@ -1,0 +1,301 @@
+.page {
+  min-height: 100vh;
+  background-color: #141414;
+  color: #fff;
+  padding-bottom: 50px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hero {
+  height: 70vh;
+  /* slightly taller for movies to emphasize poster */
+  background-size: cover;
+  background-position: center 20%;
+  position: relative;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(20, 20, 20, 1) 0%, rgba(20, 20, 20, 0.7) 40%, transparent 100%),
+    linear-gradient(to top, rgba(20, 20, 20, 1) 0%, transparent 50%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 4% 4rem;
+}
+
+.backBtn {
+  position: absolute;
+  top: 90px;
+  left: 4%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.backBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.heroContent {
+  width: 100%;
+  max-width: 800px;
+  width: clamp(300px, 45%, 800px);
+}
+
+.title {
+  font-size: clamp(2.5rem, 3.2vw, 4.5rem);
+  font-weight: 800;
+  margin-bottom: 0.2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  line-height: 1.1;
+}
+
+.subtitle {
+  font-size: clamp(1.2rem, 2vw, 1.8rem);
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 1rem;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: #a3a3a3;
+}
+
+.match {
+  color: #46d369;
+  font-weight: 700;
+}
+
+.quality {
+  border: 1px solid rgba(25, 237, 113, 0.827);
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 0.8rem;
+  color: #46d369;
+}
+
+.description {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  display: -webkit-box;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 90%;
+}
+
+.genre {
+  font-size: 0.9rem;
+  color: #a3a3a3;
+  margin-bottom: 2rem;
+}
+
+.playMainBtn {
+  background: #fff;
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  padding: 12px 28px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: opacity 0.2s;
+}
+
+.playMainBtn:hover {
+  opacity: 0.8;
+}
+
+.myListBtn {
+  background: rgba(109, 109, 110, 0.7);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.myListBtn:hover {
+  background: rgba(109, 109, 110, 0.9);
+}
+
+.content {
+  padding: 0 4%;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+/* ── More Like This ──────────────────────────────────────────────────────── */
+.moreSection {
+  margin-top: 20px;
+  /* less top margin compared to series */
+}
+
+.moreTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.moreGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .moreGrid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .moreGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (min-width: 1440px) {
+  .moreGrid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (min-width: 2000px) {
+  .moreGrid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+.moreCard {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #111;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+
+.moreCard:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+}
+
+.morePoster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.moreOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.moreCard:hover .moreOverlay {
+  opacity: 1;
+}
+
+.morePlay {
+  color: #fff;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.8));
+}
+
+.moreInfo {
+  padding: 8px 10px 10px;
+}
+
+.moreMovieTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.moreMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.moreMetaGenre {
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    height: auto;
+    min-height: 65vh;
+  }
+
+  .heroOverlay {
+    position: relative;
+    padding-top: 120px;
+    padding-bottom: 2rem;
+  }
+
+  .title {
+    font-size: 2.2rem;
+    max-width: 95%;
+  }
+
+  .description {
+    font-size: 0.95rem;
+    line-clamp: 3;
+    max-width: 95%;
+  }
+
+  .subtitle {
+    font-size: 1.2rem;
+    max-width: 95%;
+  }
+}

@@ -1,0 +1,577 @@
+/* ── Page shell ─────────────────────────────────────────────────────────── */
+.page {
+  height: 100vh;
+  width: 100vw;
+  background: #000;
+  color: #fff;
+  font-family: 'Inter', 'Outfit', sans-serif;
+  overflow: hidden;
+}
+
+/* Hide cursor when controls are hidden */
+.hideCursor,
+.hideCursor * {
+  cursor: none !important;
+}
+
+/* ── Back button ─────────────────────────────────────────────────────────── */
+.backBtn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 30px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: background 0.2s, transform 0.15s, opacity 0.3s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.backBtnVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.backBtn:hover {
+  background: rgba(229, 9, 20, 0.7);
+  transform: scale(1.04);
+}
+
+/* ── Player wrapper ──────────────────────────────────────────────────────── */
+.playerWrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  display: block;
+}
+
+/* YouTube fallback */
+.youtubeWrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.youtubeIframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ── Skip flash animation ────────────────────────────────────────────────── */
+.skipFlash {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+  animation: flashFade 0.6s ease forwards;
+}
+
+.skipLeft {
+  left: 18%;
+}
+
+.skipRight {
+  right: 18%;
+}
+
+.playFlash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  animation: flashAnim 0.6s ease-out forwards;
+}
+
+.loadingOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #e50914;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes flashAnim {
+  0% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.9);
+  }
+}
+
+@keyframes centerFlashFade {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+}
+
+/* ── Controls overlay ────────────────────────────────────────────────────── */
+.controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 40px 24px 18px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.controlsVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* progress bar */
+.progressArea {
+  width: 100%;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.progressBg {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  overflow: visible;
+  transition: height 0.15s;
+}
+
+.progressArea:hover .progressBg {
+  height: 6px;
+}
+
+.progressBuf {
+  position: absolute;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.progressFill {
+  position: absolute;
+  height: 100%;
+  background: #e50914;
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+.progressThumb {
+  width: 14px;
+  height: 14px;
+  background: #e50914;
+  border-radius: 50%;
+  position: absolute;
+  right: -7px;
+  top: 50%;
+  transform: translateY(-50%) scale(0);
+  transition: transform 0.2s;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.progressArea:hover .progressThumb {
+  transform: translateY(-50%) scale(1);
+}
+
+.progressHoverTooltip {
+  position: absolute;
+  bottom: 15px;
+  /* above the progress bar */
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.btnRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  position: relative;
+}
+
+.btnCenter {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.btnLeft,
+.btnRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.iconBtn:hover {
+  color: #e50914;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.volumeSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80px;
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  outline: none;
+  cursor: pointer;
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+}
+
+.timeLabel {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+}
+
+.trailerBadge {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* ── Info section ────────────────────────────────────────────────────────── */
+.infoSection {
+  max-width: 1100px;
+  margin: 32px auto 0;
+  padding: 0 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.infoLeft {
+  flex: 1;
+}
+
+.infoRight {
+  flex-shrink: 0;
+}
+
+.infoBadges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.newBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: rgba(229, 9, 20, 0.25);
+  border: 1px solid rgba(229, 9, 20, 0.5);
+  color: #ff6060;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.yearBadge {
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.ratingBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: rgba(255, 200, 0, 0.12);
+  border: 1px solid rgba(255, 200, 0, 0.3);
+  color: #ffd700;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.dubBadge {
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: rgba(229, 9, 20, 0.18);
+  color: #ff8080;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.movieTitle {
+  font-size: 2rem;
+  font-weight: 900;
+  margin: 0 0 4px;
+  letter-spacing: -0.5px;
+}
+
+.movieAmharic {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 14px;
+}
+
+.movieDesc {
+  font-size: 0.97rem;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.65;
+  margin: 0 0 12px;
+  max-width: 660px;
+}
+
+.movieGenre {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.listBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 24px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+}
+
+.listBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.04);
+}
+
+.listBtnActive {
+  background: rgba(229, 9, 20, 0.3);
+  border-color: rgba(229, 9, 20, 0.5);
+  color: #ff8080;
+}
+
+/* ── More Like This ──────────────────────────────────────────────────────── */
+.moreSection {
+  max-width: 1100px;
+  margin: 40px auto 0;
+  padding: 0 24px;
+}
+
+.moreTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 18px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.moreGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.moreCard {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #111;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+
+.moreCard:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+}
+
+.morePoster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.moreOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.moreCard:hover .moreOverlay {
+  opacity: 1;
+}
+
+.morePlay {
+  color: #fff;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.8));
+}
+
+.moreInfo {
+  padding: 8px 10px 10px;
+}
+
+.moreMovieTitle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.moreMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.moreMetaGenre {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .infoSection {
+    flex-direction: column;
+  }
+
+  .movieTitle {
+    font-size: 1.8rem;
+  }
+
+  .btnRow {
+    flex-wrap: wrap;
+  }
+
+  .btnCenter {
+    position: relative;
+    left: auto;
+    transform: none;
+    order: -1;
+    width: 100%;
+    margin-bottom: 12px;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+
+  .volumeSlider {
+    display: none;
+  }
+
+  .timeLabel {
+    font-size: 0.75rem;
+  }
+
+  .moreGrid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}

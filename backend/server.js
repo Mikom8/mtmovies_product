@@ -1,0 +1,75 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
+require('dotenv').config();
+
+const hlsDir = path.join(__dirname, 'tmp_hls');
+if (!fs.existsSync(hlsDir)) {
+  fs.mkdirSync(hlsDir, { recursive: true });
+}
+
+const authRoutes = require('./routes/auth');
+const movieRoutes = require('./routes/movies');
+const userRoutes = require('./routes/users');
+const streamRoutes = require('./routes/stream');
+const paymentRoutes = require('./routes/payments');
+const { initTelegramClient } = require('./services/telegram');
+
+const app = express();
+
+// ── Middleware ──
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Serve HLS segments statically
+app.use('/api/stream/hls', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'no-cache');
+  next();
+}, express.static(hlsDir));
+
+// ── Routes ──
+app.use('/api/auth', authRoutes);
+app.use('/api/movies', movieRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/stream', streamRoutes);
+app.use('/api/payments', paymentRoutes);
+
+// ── Health check ──
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'MT Movies API is running', timestamp: new Date() });
+});
+
+// ── 404 handler ──
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+// ── Error handler ──
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong', message: err.message });
+});
+
+// ── Connect to MongoDB & Start server ──
+const PORT = process.env.PORT || 5000;
+
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(async () => {
+    console.log('✅ Connected to MongoDB Atlas');
+    
+    // Initialize Telegram MTProto Client
+    await initTelegramClient();
+
+    app.listen(PORT, () => {
+      console.log(`🚀 MT Movies server running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('❌ MongoDB connection failed:', err.message);
+    process.exit(1);
+  });

@@ -1,0 +1,113 @@
+const express = require('express');
+const router = express.Router();
+const https = require('https');
+const { protect } = require('../middleware/auth');
+const Transaction = require('../models/Transaction');
+const User = require('../models/User');
+const { utils: { parseFromHTML } } = require('telebirr-receipt');
+
+// Custom fetcher strictly for telebirr that isolates the connection
+const fetchReceiptIsolated = (receiptNo) => {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'transactioninfo.ethiotelecom.et',
+      port: 443,
+      path: `/receipt/${receiptNo}`,
+      method: 'GET',
+      // ONLY disable TLS for this specific request, protecting the rest of the server
+      rejectUnauthorized: false
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => resolve(data));
+    });
+
+    req.on('error', (e) => reject(e));
+    req.end();
+  });
+};
+
+router.post('/verify', protect, async (req, res) => {
+  try {
+    const { receiptNo, expectedAmount, planName } = req.body;
+
+    if (!receiptNo || !expectedAmount || !planName) {
+      return res.status(400).json({ error: 'Missing receipt details.' });
+    }
+
+    // 1. Check if receipt is already used in DB
+    const existingTx = await Transaction.findOne({ receiptNo });
+    if (existingTx) {
+      return res.status(400).json({ error: 'This transaction ID has already been used.' });
+    }
+
+    // 2. Fetch receipt from Telebirr
+    let htmlAsString;
+    try {
+      htmlAsString = await fetchReceiptIsolated(receiptNo);
+      if (!htmlAsString || !htmlAsString.includes(receiptNo)) {
+        throw new Error('Invalid HTML');
+      }
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid or missing receipt number on Telebirr.' });
+    }
+
+    const parsed = parseFromHTML(htmlAsString);
+
+    // Telebirr receipts might have empty 'total_amount' or 'settled_amount' or amount.
+    const amount = parsed.total_amount || parsed.settled_amount || parsed.amount;
+
+    // The receiver can be in 'credited_party_name', 'credited_party_acc_no', or 'to'
+    const receiverName = (parsed.credited_party_name || '').toUpperCase();
+    const receiverPhone = (parsed.credited_party_acc_no || parsed.to || '');
+
+    // Flexible matching for the specific account
+    const isReceiverCorrect = receiverName.includes('BIKILA') || receiverName.includes('MELESE') || receiverPhone.includes('919516418');
+
+    if (!amount) {
+      return res.status(400).json({ error: 'Could not read transaction amount from receipt.' });
+    }
+
+    if (!isReceiverCorrect) {
+      return res.status(400).json({ error: 'Transaction was not sent to the correct MT Movies account (BIKILA MELESE / 0919516418).' });
+    }
+
+    const numericAmount = parseFloat(amount);
+    const expected = parseFloat(expectedAmount);
+
+    if (numericAmount < expected) {
+      return res.status(400).json({ error: `Insufficient amount. Expected ETB ${expected}, but receipt shows ETB ${numericAmount}.` });
+    }
+
+    // 3. Mark as used
+    const tx = new Transaction({
+      receiptNo,
+      amount: numericAmount,
+      payerName: parsed.payer_name || 'Unknown',
+      usedBy: req.user._id
+    });
+    await tx.save();
+
+    // 4. Update user's plan
+    req.user.plan = planName.toLowerCase();
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 30);
+    req.user.planExpiresAt = expires;
+
+    await req.user.save();
+
+    // Remove sensitive data before sending user back
+    const safeUser = { ...req.user._doc };
+    delete safeUser.password;
+
+    res.json({ message: 'Payment verified successfully!', user: safeUser });
+
+  } catch (err) {
+    console.error('Payment Verification Error:', err);
+    res.status(500).json({ error: 'Verification failed. Please try again or contact support.' });
+  }
+});
+
+module.exports = router;
