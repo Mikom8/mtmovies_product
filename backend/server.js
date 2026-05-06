@@ -58,22 +58,26 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong', message: err.message });
 });
 
-// ── Connect to MongoDB & Start server ──
+// ── Start server ──
 const PORT = process.env.PORT || 5000;
 
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(async () => {
-    console.log('✅ Connected to MongoDB Atlas');
-    
-    // Initialize Telegram MTProto Client
-    await initTelegramClient();
+app.listen(PORT, () => {
+  console.log(`🚀 MT Movies server running on port ${PORT}`);
+});
 
-    app.listen(PORT, () => {
-      console.log(`🚀 MT Movies server running on http://localhost:${PORT}`);
+// ── Connect to MongoDB ──
+if (!process.env.MONGODB_URI) {
+  console.error('❌ MONGODB_URI is not set. Database will not connect.');
+} else {
+  mongoose
+    .connect(process.env.MONGODB_URI)
+    .then(async () => {
+      console.log('✅ Connected to MongoDB Atlas');
+      
+      // Initialize Telegram MTProto Client
+      await initTelegramClient();
+    })
+    .catch((err) => {
+      console.error('❌ MongoDB connection failed:', err.message);
     });
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection failed:', err.message);
-    process.exit(1);
-  });
+}
