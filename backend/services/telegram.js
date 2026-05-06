@@ -26,18 +26,22 @@ try {
 }
 
 async function initTelegramClient() {
-  if (!apiId || !apiHash || !botToken) {
-    console.warn('Telegram credentials missing, streaming disabled.');
+  if (!client || !apiId || !apiHash || !botToken) {
+    console.warn('Telegram credentials missing or client failed to initialize, streaming disabled.');
     return;
   }
 
-  await client.start({
-    botAuthToken: botToken,
-  });
-  console.log('✅ Telegram client connected successfully.');
-
-  // Save session to file so we don't need to re-authenticate
-  fs.writeFileSync(sessionPath, client.session.save());
+  try {
+    await client.start({
+      botAuthToken: botToken,
+    });
+    console.log('✅ Telegram client connected successfully.');
+    
+    // Save session to file so we don't need to re-authenticate
+    fs.writeFileSync(sessionPath, client.session.save());
+  } catch (err) {
+    console.error('❌ Failed to start Telegram client:', err.message);
+  }
 }
 
 module.exports = { client, initTelegramClient };
