@@ -93,7 +93,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
   useEffect(() => {
     if (!isTelegram) return;
     setIsProbing(true);
-    fetch(`http://localhost:5000/api/stream/${movie.telegramChatId}/${movie.telegramMessageId}/metadata`)
+    fetch(`https://mtmovies-production.up.railway.app/api/stream/${movie.telegramChatId}/${movie.telegramMessageId}/metadata`)
       .then(r => r.json())
       .then(meta => {
         console.log(`[Meta] codec=${meta.codec} pix_fmt=${meta.pixFmt} needsTranscode=${meta.needsTranscode}`);
@@ -111,7 +111,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
   const useHls = streamMeta?.needsTranscode || isAviMime || forceHls;
   let src = null;
   if (isTelegram && streamMeta && !useHls) {
-    src = `http://localhost:5000/api/stream/${movie.telegramChatId}/${movie.telegramMessageId}`;
+    src = `https://mtmovies-production.up.railway.app/api/stream/${movie.telegramChatId}/${movie.telegramMessageId}`;
   }
 
   // Auto-detect black screen: if native MP4 is playing but videoWidth=0, the codec
@@ -138,7 +138,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
     let hls;
     const v = videoRef.current;
     const query = hlsStartTime > 0 ? `?start=${Math.floor(hlsStartTime)}` : '';
-    const hlsSrc = `http://localhost:5000/api/stream/hls/${movie.telegramChatId}/${movie.telegramMessageId}/playlist.m3u8${query}`;
+    const hlsSrc = `https://mtmovies-production.up.railway.app/api/stream/hls/${movie.telegramChatId}/${movie.telegramMessageId}/playlist.m3u8${query}`;
 
     if (Hls.isSupported()) {
       hls = new Hls({
@@ -213,7 +213,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
       if (v && !v.paused && v.currentTime > 5) {
         try {
           const realTime = useHls ? v.currentTime + hlsStartTime : v.currentTime;
-          await fetch('http://localhost:5000/api/users/history', {
+          await fetch('https://mtmovies-production.up.railway.app/api/users/history', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

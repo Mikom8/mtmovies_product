@@ -46,7 +46,7 @@ export default function Browse() {
   // Refresh user profile when arriving at browse page
   useEffect(() => {
     if (token) {
-      fetch('http://localhost:5000/api/users/profile', {
+      fetch('https://mtmovies-production.up.railway.app/api/users/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
         .then(res => res.json())

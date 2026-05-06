@@ -98,7 +98,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, user, tok
     setIsProbing(true);
     setForceHls(false); // reset on episode change
     setStreamMeta(null);
-    fetch(`http://localhost:5000/api/stream/${episode.telegramChatId}/${episode.telegramMessageId}/metadata`)
+    fetch(`https://mtmovies-production.up.railway.app/api/stream/${episode.telegramChatId}/${episode.telegramMessageId}/metadata`)
       .then(r => r.json())
       .then(meta => {
         console.log(`[Meta] codec=${meta.codec} pix_fmt=${meta.pixFmt} needsTranscode=${meta.needsTranscode}`);
@@ -115,7 +115,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, user, tok
   const useHls = streamMeta?.needsTranscode || isAviMime || forceHls;
   let src = null;
   if (isTelegram && streamMeta && !useHls) {
-    src = `http://localhost:5000/api/stream/${episode.telegramChatId}/${episode.telegramMessageId}`;
+    src = `https://mtmovies-production.up.railway.app/api/stream/${episode.telegramChatId}/${episode.telegramMessageId}`;
   }
 
   // Auto-detect black screen: if native MP4 is playing but videoWidth=0 → switch to HLS
@@ -140,7 +140,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, user, tok
     let hls;
     const v = videoRef.current;
     const query = hlsStartTime > 0 ? `?start=${Math.floor(hlsStartTime)}` : '';
-    const hlsSrc = `http://localhost:5000/api/stream/hls/${episode.telegramChatId}/${episode.telegramMessageId}/playlist.m3u8${query}`;
+    const hlsSrc = `https://mtmovies-production.up.railway.app/api/stream/hls/${episode.telegramChatId}/${episode.telegramMessageId}/playlist.m3u8${query}`;
 
     if (Hls.isSupported()) {
       hls = new Hls({
@@ -230,7 +230,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, user, tok
       if (v && !v.paused && v.currentTime > 5) {
         try {
           const realTime = useHls ? v.currentTime + hlsStartTime : v.currentTime;
-          await fetch('http://localhost:5000/api/users/history', {
+          await fetch('https://mtmovies-production.up.railway.app/api/users/history', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

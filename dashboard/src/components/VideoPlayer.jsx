@@ -19,7 +19,7 @@ export default function VideoPlayer({ movie, onClose }) {
 
   // Telegram stream config
   const isTelegramStream = movie.telegramChatId && movie.telegramMessageId;
-  const streamSrc = `http://localhost:5000/api/stream/${movie.telegramChatId}/${movie.telegramMessageId}`;
+  const streamSrc = `https://mtmovies-production.up.railway.app/api/stream/${movie.telegramChatId}/${movie.telegramMessageId}`;
 
   // YouTube embed fallback
   const embedSrc = `https://www.youtube.com/embed/${movie.trailerEmbedId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1`;
