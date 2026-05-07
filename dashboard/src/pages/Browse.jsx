@@ -118,7 +118,6 @@ export default function Browse() {
           <MovieRow title="Continue Watching" movies={continueWatching} />
         )}
         <MovieRow title="TV Series" movies={SERIES} />
-        <MovieRow title="All Movies" movies={MOVIES} />
         {ACTION.length > 0 && <MovieRow title="Action & Thriller" movies={ACTION} />}
 
         {CRIME.length > 0 && <MovieRow title="Crime" movies={CRIME} />}

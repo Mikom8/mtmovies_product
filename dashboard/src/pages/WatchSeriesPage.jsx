@@ -457,34 +457,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
           className={`${styles.controls} ${showUI ? styles.controlsVisible : ''}`}
           onClick={e => e.stopPropagation()}
         >
-          {/* Mobile top bar */}
-          {isMobile && (
-            <div className={styles.mobileTopBar}>
-              <button
-                className={styles.mobileBackBtn}
-                onClick={() => navigate(-1)}
-                aria-label="Back"
-              >
-                <MdArrowBack size={22} />
-              </button>
-              <span className={styles.mobileTitle}>
-                S{season.seasonNumber} E{episode.episodeNumber}: {episode.title}
-              </span>
-            </div>
-          )}
 
-          {/* Mobile center play */}
-          {isMobile && (
-            <div className={styles.mobileCenterControls}>
-              <button
-                className={styles.mobileCenterPlay}
-                onClick={(e) => { e.stopPropagation(); togglePlay(); onUIActivity(); }}
-                aria-label={playing ? 'Pause' : 'Play'}
-              >
-                {playing ? <FaPause size={32} /> : <FaPlay size={32} style={{ marginLeft: '4px' }} />}
-              </button>
-            </div>
-          )}
 
           {/* Progress bar */}
           <div
@@ -513,40 +486,30 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
           {/* Bottom row */}
           <div className={styles.btnRow}>
             <div className={styles.btnLeft}>
-              {!isMobile && (
-                <button className={styles.iconBtn} onClick={togglePlay}>
-                  {playing ? <FaPause size={20} /> : <FaPlay size={20} style={{ marginLeft: '2px' }} />}
-                </button>
-              )}
-              {!isMobile && (
-                <>
-                  <button className={styles.iconBtn} onClick={() => skip(-10)}>
-                    <MdReplay10 size={24} />
-                  </button>
-                  <button className={styles.iconBtn} onClick={() => skip(10)}>
-                    <MdForward10 size={24} />
-                  </button>
-                </>
-              )}
+              <button className={styles.iconBtn} onClick={togglePlay}>
+                {playing ? <FaPause size={20} /> : <FaPlay size={20} style={{ marginLeft: '2px' }} />}
+              </button>
+              <button className={styles.iconBtn} onClick={() => skip(-10)}>
+                <MdReplay10 size={24} />
+              </button>
+              <button className={styles.iconBtn} onClick={() => skip(10)}>
+                <MdForward10 size={24} />
+              </button>
               <button className={styles.iconBtn} onClick={toggleMute}>
                 {muted || volume === 0 ? <BiVolumeMute size={22} /> : <BiVolumeFull size={22} />}
               </button>
-              {!isMobile && (
-                <input
-                  type="range" min="0" max="1" step="0.05"
-                  value={muted ? 0 : volume}
-                  onChange={changeVolume}
-                  className={styles.volumeSlider}
-                />
-              )}
+              <input
+                type="range" min="0" max="1" step="0.05"
+                value={muted ? 0 : volume}
+                onChange={changeVolume}
+                className={styles.volumeSlider}
+              />
               <span className={styles.timeLabel}>{fmt(currentTime)} / {duration ? fmt(duration) : '--:--'}</span>
             </div>
 
-            {!isMobile && (
-              <div className={styles.btnCenter}>
-                S{season.seasonNumber} E{episode.episodeNumber}: {episode.title}
-              </div>
-            )}
+            <div className={styles.btnCenter}>
+              S{season.seasonNumber} E{episode.episodeNumber}: {episode.title}
+            </div>
 
             <div className={styles.btnRight}>
               {hasNextEpisode && (
@@ -566,11 +529,9 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
               >
                 {isInMyList(series.id) ? <><FiCheck size={18} style={{ marginRight: '4px' }} /> In List</> : <><FiPlus size={18} style={{ marginRight: '4px' }} /> My List</>}
               </button>
-              {!isMobile && (
-                <button className={styles.iconBtn} onClick={toggleFullscreen}>
-                  {fullscreen ? <BiExitFullscreen size={22} /> : <BiFullscreen size={22} />}
-                </button>
-              )}
+              <button className={styles.iconBtn} onClick={toggleFullscreen}>
+                {fullscreen ? <BiExitFullscreen size={22} /> : <BiFullscreen size={22} />}
+              </button>
             </div>
           </div>
         </div>
@@ -628,7 +589,7 @@ export default function WatchSeriesPage() {
     >
       {/* Desktop back button only */}
       <button
-        className={`${styles.backBtn} ${showUI ? styles.backBtnVisible : ''} ${styles.backBtnDesktop}`}
+        className={`${styles.backBtn} ${showUI ? styles.backBtnVisible : ''}`}
         onClick={() => navigate(`/series/${series.id}`)}
       >
         <MdArrowBack size={22} />

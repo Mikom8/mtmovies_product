@@ -17,36 +17,46 @@ function MovieCard({ movie, onPlay }) {
         else navigate(movie.seasons ? `/series/${movie.id}` : `/movie/${movie.id}`);
       }}
     >
-      <img src={movie.poster} alt={movie.title} className={styles.poster} loading="lazy" />
+      <div className={styles.posterWrapper}>
+        <img src={movie.poster} alt={movie.title} className={styles.poster} loading="lazy" />
 
-      {movie.progressPct !== undefined && movie.progressPct > 0 && (
-        <div className={styles.progressBarContainer}>
-          <div className={styles.progressBarFill} style={{ width: `${movie.progressPct}%` }}></div>
-        </div>
-      )}
+        {movie.isNew && <span className={styles.newTag}>NEW</span>}
 
-      <div className={`${styles.cardOverlay} ${hovered ? styles.visible : ''}`}>
-        <button className={styles.playCircle} aria-label="Play trailer"><FaPlay style={{ marginLeft: '4px' }} /></button>
+        
 
-        <div className={styles.cardInfo}>
-          <p className={styles.cardTitle}>{movie.title}</p>
-          <p className={styles.cardAmharic}>
-            {movie.episodeText ? (
-              <span style={{ color: '#46d369', fontWeight: 'bold' }}>{movie.episodeText}</span>
-            ) : (
-              movie.titleAmharic
-            )}
-          </p>
-          <div className={styles.cardMeta}>
-            <span className={styles.cardRating}><FaStar style={{ marginRight: '4px', color: '#ffd700', transform: 'translateY(-1px)' }} /> {movie.rating}</span>
-            <span className={styles.cardYear}>{movie.year}</span>
-            {movie.hasAmharicDub && <span className={styles.dubTag}>አማርኛ</span>}
+        {movie.progressPct !== undefined && movie.progressPct > 0 && (
+          <div className={styles.progressBarContainer}>
+            <div className={styles.progressBarFill} style={{ width: `${movie.progressPct}%` }}></div>
           </div>
-          <p className={styles.cardGenre}>{movie.genre.split(' • ').slice(0, 2).join(' • ')}</p>
+        )}
+
+        <div className={`${styles.cardOverlay} ${hovered ? styles.visible : ''}`}>
+          <button className={styles.playCircle} aria-label="Play trailer"><FaPlay style={{ marginLeft: '4px' }} /></button>
+
+          <div className={styles.cardInfo}>
+            <p className={styles.cardTitle}>{movie.title}</p>
+            <p className={styles.cardAmharic}>
+              {movie.episodeText ? (
+                <span style={{ color: '#46d369', fontWeight: 'bold' }}>{movie.episodeText}</span>
+              ) : (
+                movie.titleAmharic
+              )}
+            </p>
+            <div className={styles.cardMeta}>
+              <span className={styles.cardRating}><FaStar style={{ marginRight: '4px', color: '#ffd700', transform: 'translateY(-1px)' }} /> {movie.rating}</span>
+              <span className={styles.cardYear}>{movie.year}</span>
+              {movie.hasAmharicDub && <span className={styles.dubTag}>አማርኛ</span>}
+            </div>
+            <p className={styles.cardGenre}>{movie.genre.split(' • ').slice(0, 2).join(' • ')}</p>
+          </div>
         </div>
       </div>
 
-      {movie.isNew && <span className={styles.newTag}>NEW</span>}
+      <div className={styles.mobileInfo}>
+        <p className={styles.mobileTitle}>{movie.title}</p>
+        <p className={styles.mobileSub}>
+        </p>
+      </div>
     </div>
   );
 }

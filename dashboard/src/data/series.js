@@ -434,5 +434,277 @@ export const SERIES = [
         ]
       }
     ]
+  },
+  {
+    id: "great-heist",
+    title: "The Great Heist",
+    titleAmharic: "ታላቁ ዘረፋ",
+    description: "Based on the 1994 robbery of the Bank of the Republic in Valledupar, where a group of thieves stole $33 million and turned the country upside down.",
+    genre: "Crime • Drama • Thriller",
+    year: 2020,
+    rating: 7.3,
+    quality: "720p",
+    hasAmharicDub: true,
+    poster: "https://m.media-amazon.com/images/M/MV5BNGY4ZDhlYzktZGFmNy00ZmNkLTgzOWEtNmU5YmQzOTBhYjgzXkEyXkFqcGc@._V1_.jpg",
+    backdrop: "https://i.ytimg.com/vi/AJPjXhTemBc/maxresdefault.jpg",
+    trailerEmbedId: "HhesaQXLuRY",
+    isFeatured: false,
+    isNew: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "The Big One", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "46" },
+          { episodeNumber: 2, title: "The Crew", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "47" },
+          { episodeNumber: 3, title: "The Plan", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "48" },
+          { episodeNumber: 4, title: "The Tunnel", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "49" },
+          { episodeNumber: 5, title: "The Heist", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "50" },
+          { episodeNumber: 6, title: "The Escape", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "51" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "ballard",
+    title: "Ballard",
+    titleAmharic: "ባላርድ",
+    description: "Detective Renée Ballard leads the LAPD’s newly formed, underfunded, and all-volunteer cold case unit. While working to solve decades-old homicides, she uncovers a dangerous web of corruption.",
+    genre: "Crime • Drama • Mystery",
+    year: 2025,
+    rating: 8.2,
+    quality: "720p",
+    hasAmharicDub: true,
+    poster: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTv36V3mh-jS1la0QAcNGlWglTc5_ZJsNz_Sg&s",
+    backdrop: "https://m.media-amazon.com/images/S/pv-target-images/9cb0974b4df785e9bb7fab0a72e7eba8bc11d510a77c38d45d6be3b30633454e.jpg",
+    trailerEmbedId: "kiZ_G_L1LhY",
+    isFeatured: false,
+    isNew: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: Array.from({ length: 10 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 1 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(53 + i)
+        }))
+      }
+    ]
+  },
+  {
+    id: "heroes",
+    title: "Heroes",
+    titleAmharic: "ሂሮስ",
+    description: "Common people discover that they have super-human abilities. Their lives intertwine as a devastating event must be prevented.",
+    genre: "Drama • Sci-Fi • Thriller",
+    year: 2006,
+    rating: 7.5,
+    quality: "720p",
+    hasAmharicDub: true,
+    poster: "https://m.media-amazon.com/images/M/MV5BMjI3ODU0OTQ1MV5BMl5BanBnXkFtZTgwNzI0MTQ2MzE@._V1_FMjpg_UX1000_.jpg",
+    backdrop: "https://lh3.googleusercontent.com/proxy/RtR8gmj2bFPlLO3BlltlieVyS16xjBkkQdinAxGxRVANBR6yszw0Upd-WwP09AAvHMXGwKdg0d0hOzwCnyc46Z6vVCfY8w9uhNw",
+    trailerEmbedId: "kiZ_G_L1LhY",
+    isFeatured: false,
+    isNew: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: Array.from({ length: 23 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 1 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(103 + i)
+        }))
+      },
+      {
+        seasonNumber: 2,
+        episodes: Array.from({ length: 11 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 2 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(126 + i)
+        }))
+      },
+      {
+        seasonNumber: 3,
+        episodes: Array.from({ length: 25 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 3 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(137 + i)
+        }))
+      },
+      {
+        seasonNumber: 4,
+        episodes: Array.from({ length: 17 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 4 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(162 + i)
+        }))
+      }
+    ]
+  },
+  {
+    id: "grimm",
+    title: "Grimm",
+    titleAmharic: "ግሪም",
+    description: "A homicide detective discovers he is a descendant of hunters who fight supernatural forces.",
+    genre: "Drama • Fantasy • Horror",
+    year: 2011,
+    rating: 7.9,
+    quality: "720p",
+    hasAmharicDub: true,
+    poster: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzTPYQJWlgTtBPvMFSabMLS9tcNEZKyIdjRw&s",
+    backdrop: "https://ntvb.tmsimg.com/assets/p13232610_b_h10_aa.jpg?w=1280&h=720",
+    trailerEmbedId: "2rVy3rbdz4A",
+    isFeatured: false,
+    isNew: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: Array.from({ length: 22 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 1 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(187 + i)
+        }))
+      },
+      {
+        seasonNumber: 2,
+        episodes: Array.from({ length: 22 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 2 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(209 + i)
+        }))
+      },
+      {
+        seasonNumber: 3,
+        episodes: Array.from({ length: 22 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 3 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(231 + i)
+        }))
+      },
+      {
+        seasonNumber: 4,
+        episodes: Array.from({ length: 22 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 4 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(253 + i)
+        }))
+      },
+      {
+        seasonNumber: 5,
+        episodes: Array.from({ length: 22 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 5 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(275 + i)
+        }))
+      },
+      {
+        seasonNumber: 6,
+        episodes: Array.from({ length: 12 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 6 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(297 + i)
+        }))
+      }
+    ]
+  },
+  {
+    id: "vikings",
+    title: "Vikings",
+    titleAmharic: "ቫይኪንግስ",
+    description: "Vikings transports us to the brutal and mysterious world of Ragnar Lothbrok, a Norse warrior and farmer who yearns to explore and raid the distant shores across the ocean.",
+    genre: "Action • Adventure • Drama",
+    year: 2013,
+    rating: 8.5,
+    quality: "720p",
+    hasAmharicDub: true,
+    poster: "https://m.media-amazon.com/images/M/MV5BNjM2YjA2ODItZmExYy00Y2EwLWIxMmUtMWNmMTY1ZGNlZTM5XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+    backdrop: "https://wallpapers.com/images/hd/medium-shot-ragnar-vikings-poster-hqs92xv9ih73zc79.jpg",
+    trailerEmbedId: "9GgxinPwAGc",
+    isFeatured: false,
+    isNew: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: Array.from({ length: 9 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 1 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(310 + i)
+        }))
+      },
+      {
+        seasonNumber: 2,
+        episodes: Array.from({ length: 10 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 2 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(319 + i)
+        }))
+      },
+      {
+        seasonNumber: 3,
+        episodes: Array.from({ length: 10 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 3 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(329 + i)
+        }))
+      },
+      {
+        seasonNumber: 4,
+        episodes: Array.from({ length: 20 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 4 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(339 + i)
+        }))
+      },
+      {
+        seasonNumber: 5,
+        episodes: Array.from({ length: 20 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 5 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(359 + i)
+        }))
+      },
+      {
+        seasonNumber: 6,
+        episodes: Array.from({ length: 19 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Season 6 | Episode ${i + 1}`,
+          duration: "45m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(379 + i)
+        }))
+      }
+    ]
   }
 ];
+

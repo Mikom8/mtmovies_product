@@ -216,10 +216,24 @@
     line-clamp: 2;
   }
 
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+  }
+
   .playBtn,
   .infoBtn {
-    padding: 11px 22px;
-    font-size: 0.9rem;
+    padding: 11px 4px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .infoBtn {
+    padding: 6px 2px;
   }
 }
 

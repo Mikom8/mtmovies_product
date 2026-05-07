@@ -176,10 +176,94 @@
   padding: 2px 7px;
   border-radius: 4px;
   letter-spacing: 0.5px;
+  z-index: 10;
 }
 
-@media (max-width: 600px) {
+/* ── Mobile Layout Elements (Hidden on Desktop) ── */
+.posterWrapper {
+  position: relative;
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #1e1e22;
+}
+
+.mobileRating {
+  display: none;
+}
+
+.mobileInfo {
+  display: none;
+}
+
+@media (max-width: 768px) {
   .card {
     width: clamp(130px, 35vw, 160px);
+    overflow: visible;
+    /* Allow text below poster */
+  }
+
+  .cardInfo {
+    display: none;
+    /* Hide desktop info inside overlay */
+  }
+
+  .playCircle {
+    margin-top: 55%; /* Center play button perfectly */
+  }
+
+  .mobileRating {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 3px 6px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+  }
+
+  .mobileInfo {
+    display: block;
+    margin-top: 8px;
+    text-align: left;
+    width: 100%;
+  }
+
+  .mobileTitle {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobileSub {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+  }
+
+  .mobileAmharic {
+    color: #ffd700;
+  }
+
+  .mobileEnglish {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .mobileDot {
+    margin: 0 4px;
+    color: rgba(255, 255, 255, 0.4);
   }
 }
