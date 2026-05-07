@@ -49,31 +49,46 @@
 }
 
 .skeletonTitle {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
   height: 52px;
   width: 65%;
 }
 
 .skeletonMeta {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
   height: 18px;
   width: 40%;
 }
 
 .skeletonDesc {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
   height: 16px;
   width: 100%;
 }
 
 .skeletonDescShort {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
   height: 16px;
   width: 78%;
 }
 
 .skeletonGenre {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
   height: 14px;
   width: 55%;
 }
@@ -85,17 +100,21 @@
 }
 
 .skeletonBtn {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 4px;
   height: 44px;
   width: 140px;
-  border-radius: 4px;
 }
 
 .skeletonBtnSm {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 4px;
   height: 44px;
   width: 110px;
-  border-radius: 4px;
 }
 
 .skeletonContent {
@@ -105,7 +124,10 @@
 }
 
 .skeletonSectionTitle {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
   height: 26px;
   width: 180px;
   margin-bottom: 20px;
@@ -129,20 +151,28 @@
 }
 
 .skeletonEpImage {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 4px;
   width: 100%;
   aspect-ratio: 16/9;
-  border-radius: 4px;
 }
 
 .skeletonEpTitle {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
   height: 18px;
   width: 55%;
 }
 
 .skeletonEpDuration {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
   height: 13px;
   width: 30%;
 }
@@ -193,20 +223,29 @@
 }
 
 .skeletonPoster {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
   width: 100%;
   aspect-ratio: 2 / 3;
 }
 
 .skeletonCardTitle {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
   height: 13px;
   width: 80%;
   margin: 10px 10px 6px;
 }
 
 .skeletonCardMeta {
-  composes: skeletonBase;
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
   height: 11px;
   width: 55%;
   margin: 0 10px 12px;
