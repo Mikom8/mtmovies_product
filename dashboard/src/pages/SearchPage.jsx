@@ -100,7 +100,6 @@ export default function SearchPage() {
                 </div>
                 <div className={styles.info}>
                   <p className={styles.title}>{item.title}</p>
-                  {item.titleAmharic && <p className={styles.amharic}>{item.titleAmharic}</p>}
                   <div className={styles.meta}>
                     <span className={styles.typeBadge}>{item.type === 'series' ? 'Series' : 'Movie'}</span>
                     <span>{item.year}</span>

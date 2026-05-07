@@ -32,7 +32,6 @@ function parseDuration(str) {
   return h * 3600 + m * 60;
 }
 
-// Rank similar movies: more shared genres = higher score, then prefer closer year
 function getSimilar(current, all) {
   const currentGenres = current.genre.split(' • ');
   return all
@@ -48,12 +47,13 @@ function getSimilar(current, all) {
 }
 
 // ── CustomPlayer ──────────────────────────────────────────────────────────────
-function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) {
+function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, updateUser }) {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const progressRef = useRef(null);
   const hlsRef = useRef(null);
-  const dblClickTimer = useRef(null);
+  const dblTapTimer = useRef(null);
+  const navigate = useNavigate();
 
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(() => {
@@ -67,7 +67,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
   const [duration, setDuration] = useState(0);
   const [buffered, setBuffered] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
-  const [showSkipFlash, setShowSkipFlash] = useState(null);
+  const [showSkipFlash, setShowSkipFlash] = useState(null); // 'fwd' | 'bck'
   const [showPlayFlash, setShowPlayFlash] = useState(null);
   const [streamMeta, setStreamMeta] = useState(null);
   const [buffering, setBuffering] = useState(true);
@@ -75,7 +75,8 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
   const [hoverPos, setHoverPos] = useState(0);
   const [hlsStartTime, setHlsStartTime] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
-  const [forceHls, setForceHls] = useState(false); // auto-fallback for black-screen MP4s
+  const [forceHls, setForceHls] = useState(false);
+  const [isMobile] = useState(() => window.innerWidth <= 768);
   const { toggleMyList, isInMyList } = useMyList();
 
   const isTelegram = !!(movie.telegramChatId && movie.telegramMessageId);
@@ -88,7 +89,6 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
     return 0;
   });
 
-  // Fetch metadata — now includes real FFprobe codec detection (first 2MB downloaded)
   const [isProbing, setIsProbing] = useState(false);
   useEffect(() => {
     if (!isTelegram) return;
@@ -96,7 +96,6 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
     fetch(`https://mtmovies-production.up.railway.app/api/stream/${movie.telegramChatId}/${movie.telegramMessageId}/metadata`)
       .then(r => r.json())
       .then(meta => {
-        console.log(`[Meta] codec=${meta.codec} pix_fmt=${meta.pixFmt} needsTranscode=${meta.needsTranscode}`);
         if (meta.needsTranscode && initialOffset > 0) {
           setHlsStartTime(initialOffset);
         }
@@ -106,7 +105,6 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
       .finally(() => setIsProbing(false));
   }, [movie.id, isTelegram, movie.telegramChatId, movie.telegramMessageId, initialOffset]);
 
-  // Guard — AVI must NEVER bypass HLS, even if metadata fetch is slow/wrong
   const isAviMime = streamMeta?.mimeType === 'video/avi' || streamMeta?.mimeType === 'video/x-msvideo';
   const useHls = streamMeta?.needsTranscode || isAviMime || forceHls;
   let src = null;
@@ -114,15 +112,11 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
     src = `https://mtmovies-production.up.railway.app/api/stream/${movie.telegramChatId}/${movie.telegramMessageId}`;
   }
 
-  // Auto-detect black screen: if native MP4 is playing but videoWidth=0, the codec
-  // is unsupported (H.265/HEVC, 10-bit, etc.). Switch to HLS automatically.
-  // Auto-detect black screen: if native MP4 is playing but videoWidth=0 → switch to HLS
   useEffect(() => {
     if (!src || !videoRef.current) return;
     const v = videoRef.current;
     const onPlay = () => setTimeout(() => {
       if (v.videoWidth === 0) {
-        console.warn('[Stream] Black screen on movie — auto-switching to HLS');
         setHlsStartTime(v.currentTime);
         setForceHls(true);
       }
@@ -131,21 +125,16 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
     return () => v.removeEventListener('playing', onPlay);
   }, [src]);
 
-  // ── initialize HLS if needed ─────────────────────────────────────────────
+  // ── initialize HLS ───────────────────────────────────────────────────────
   useEffect(() => {
     if (!isTelegram || !useHls || !videoRef.current) return;
-
     let hls;
     const v = videoRef.current;
     const query = hlsStartTime > 0 ? `?start=${Math.floor(hlsStartTime)}` : '';
     const hlsSrc = `https://mtmovies-production.up.railway.app/api/stream/hls/${movie.telegramChatId}/${movie.telegramMessageId}/playlist.m3u8${query}`;
 
     if (Hls.isSupported()) {
-      hls = new Hls({
-        maxBufferLength: 60 * 5, // buffer up to 5 minutes ahead
-        maxMaxBufferLength: 60 * 10,
-        autoStartLoad: true,
-      });
+      hls = new Hls({ maxBufferLength: 60 * 5, maxMaxBufferLength: 60 * 10, autoStartLoad: true });
       hls.loadSource(hlsSrc);
       hls.attachMedia(v);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -154,7 +143,6 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
         setBuffering(false);
       });
     } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
-      // Safari Native HLS
       v.src = hlsSrc;
       v.addEventListener('loadedmetadata', () => {
         v.play().catch(e => console.log(e));
@@ -164,12 +152,40 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
     }
 
     return () => {
-      if (hls) {
-        hls.destroy();
-        hlsRef.current = null;
-      }
+      if (hls) { hls.destroy(); hlsRef.current = null; }
     };
   }, [useHls, movie.telegramChatId, movie.telegramMessageId, hlsStartTime]);
+
+  // ── Auto fullscreen on mobile ────────────────────────────────────────────
+  useEffect(() => {
+    if (!isMobile) return;
+    const enterFs = async () => {
+      try {
+        if (containerRef.current && !document.fullscreenElement) {
+          await containerRef.current.requestFullscreen();
+          setFullscreen(true);
+        }
+        if (window.screen.orientation?.lock) {
+          await window.screen.orientation.lock('landscape');
+        }
+      } catch (err) {
+        console.log('Auto-fullscreen failed:', err);
+      }
+    };
+    // Small delay so the page has rendered
+    const t = setTimeout(enterFs, 300);
+    return () => clearTimeout(t);
+  }, [isMobile]);
+
+  // ── Cleanup fullscreen/orientation on unmount ─────────────────────────────
+  useEffect(() => {
+    return () => {
+      try {
+        if (document.fullscreenElement) document.exitFullscreen();
+        if (window.screen.orientation?.unlock) window.screen.orientation.unlock();
+      } catch { /* ignore */ }
+    };
+  }, []);
 
   const hasResumedRef = useRef(false);
   const onTimeUpdate = () => {
@@ -180,19 +196,15 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
     setCurrentTime(currentAbs);
     if (v.buffered.length > 0) setBuffered(v.buffered.end(v.buffered.length - 1));
   };
+
   const onLoaded = () => {
     if (videoRef.current) {
       videoRef.current.volume = volume;
       videoRef.current.muted = muted;
-
       if (useHls) {
-        // HLS stream starts at hlsStartTime — its reported duration is only the
-        // remaining portion. Use the stored metadata string for the real duration.
         setDuration(parseDuration(movie.duration));
-        // Do NOT resume from history here: FFmpeg already starts at the right offset.
       } else {
         setDuration(videoRef.current.duration);
-        // Resume from history once, only for native streams
         if (user && user.watchHistory && !hasResumedRef.current) {
           hasResumedRef.current = true;
           const historyItem = user.watchHistory.find(h => h.movieId === String(movie.id));
@@ -204,10 +216,9 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
     }
   };
 
-  // ── save history ──────────────────────────────────────────────────────────
+  // ── save history ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!isTelegram || !token) return;
-
     const interval = setInterval(async () => {
       const v = videoRef.current;
       if (v && !v.paused && v.currentTime > 5) {
@@ -215,14 +226,9 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
           const realTime = useHls ? v.currentTime + hlsStartTime : v.currentTime;
           await fetch('https://mtmovies-production.up.railway.app/api/users/history', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ movieId: String(movie.id), progress: realTime })
           });
-
-          // update local context so Browse gets it instantly when we go back
           const newHistory = [...(user.watchHistory || [])];
           const idx = newHistory.findIndex(h => h.movieId === String(movie.id));
           if (idx !== -1) {
@@ -232,47 +238,13 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
             newHistory.push({ movieId: String(movie.id), progress: realTime, watchedAt: new Date().toISOString() });
           }
           updateUser({ ...user, watchHistory: newHistory });
-
-        } catch (e) {
-          console.error('Failed to save history', e);
-        }
+        } catch (e) { console.error('Failed to save history', e); }
       }
-    }, 10000); // Save every 10 seconds
-
+    }, 10000);
     return () => clearInterval(interval);
   }, [movie.id, isTelegram, token, user, updateUser, useHls, hlsStartTime]);
 
-  // ── lock orientation on mobile ────────────────────────────────────────────
-  useEffect(() => {
-    const lockLandscape = async () => {
-      if (window.innerWidth > 768) return; // Only on mobile
-      try {
-        if (window.screen.orientation && window.screen.orientation.lock) {
-          await window.screen.orientation.lock('landscape');
-        } else if (window.screen.lockOrientation) {
-          window.screen.lockOrientation('landscape');
-        }
-      } catch (err) {
-        console.log("Auto-orientation lock failed (likely needs fullscreen/gesture first):", err);
-      }
-    };
-
-    lockLandscape();
-
-    return () => {
-      try {
-        if (window.screen.orientation && window.screen.orientation.unlock) {
-          window.screen.orientation.unlock();
-        } else if (window.screen.unlockOrientation) {
-          window.screen.unlockOrientation();
-        }
-      } catch (err) {
-        // ignore
-      }
-    };
-  }, []);
-
-  // ── actions ───────────────────────────────────────────────────────────────
+  // ── actions ──────────────────────────────────────────────────────────────
   const togglePlay = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -291,15 +263,14 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
   const skip = useCallback((secs) => {
     setShowSkipFlash(secs > 0 ? 'fwd' : 'bck');
     setTimeout(() => setShowSkipFlash(null), 600);
-
     const v = videoRef.current;
     if (!v) return;
     v.currentTime += secs;
     const currentAbs = useHls ? v.currentTime + hlsStartTime : v.currentTime;
-    setCurrentTime(currentAbs); // instantly update visually
+    setCurrentTime(currentAbs);
     v.play().catch(e => console.log(e));
     setPlaying(true);
-  }, [streamMeta, useHls, hlsStartTime]);
+  }, [useHls, hlsStartTime]);
 
   const getProgressPct = (clientX) => {
     if (!progressRef.current || duration === 0) return 0;
@@ -311,37 +282,24 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
     const pct = getProgressPct(e.clientX);
     const targetAbsoluteTime = pct * duration;
     const targetRelativeTime = useHls ? targetAbsoluteTime - hlsStartTime : targetAbsoluteTime;
-
-    // Instantly update the visual progress bar and time label
     setCurrentTime(targetAbsoluteTime);
-
     const needsRestartHls = useHls && (targetRelativeTime < -15 || targetRelativeTime > buffered + 15);
-
     if (needsRestartHls) {
       setHlsStartTime(targetAbsoluteTime);
       setBuffering(true);
       setPlaying(true);
       return;
     }
-
     if (videoRef.current) {
       videoRef.current.currentTime = targetRelativeTime;
       videoRef.current.play().catch(e => console.log(e));
       setPlaying(true);
-      if (targetRelativeTime > buffered + 10) {
-        setBuffering(true);
-      }
+      if (targetRelativeTime > buffered + 10) setBuffering(true);
     }
   };
 
-  const startSeeking = (e) => {
-    setIsSeeking(true);
-    seek(e);
-  };
-
-  const stopSeeking = () => {
-    setIsSeeking(false);
-  };
+  const startSeeking = (e) => { setIsSeeking(true); seek(e); };
+  const stopSeeking = () => setIsSeeking(false);
 
   useEffect(() => {
     if (!isSeeking) return;
@@ -380,40 +338,59 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
     if (!document.fullscreenElement) {
       try {
         await containerRef.current?.requestFullscreen();
-        if (window.innerWidth <= 768 && window.screen.orientation && window.screen.orientation.lock) {
-          await window.screen.orientation.lock('landscape');
-        }
-      } catch (err) {
-        console.log("Fullscreen/Lock failed:", err);
-      }
+        if (window.screen.orientation?.lock) await window.screen.orientation.lock('landscape');
+      } catch (err) { console.log('Fullscreen failed:', err); }
       setFullscreen(true);
     } else {
       document.exitFullscreen();
-      if (window.innerWidth <= 768 && window.screen.orientation && window.screen.orientation.unlock) {
-        window.screen.orientation.unlock();
-      }
+      if (window.screen.orientation?.unlock) window.screen.orientation.unlock();
       setFullscreen(false);
     }
   }, []);
 
-  // ── single click = play/pause | double click = fullscreen ─────────────────
-  const handleClick = (e) => {
+  // ── tap/click handling ────────────────────────────────────────────────────
+  // Mobile: single tap = toggle controls visibility; double tap left/right = ±10s
+  // Desktop: single click = toggle play; double click = fullscreen
+  const handleVideoTap = useCallback((e) => {
     e.stopPropagation();
-    onUIActivity();
-    if (dblClickTimer.current) {
-      // second click came in quickly → double-click detected
-      clearTimeout(dblClickTimer.current);
-      dblClickTimer.current = null;
-      toggleFullscreen();
-    } else {
-      dblClickTimer.current = setTimeout(() => {
-        dblClickTimer.current = null;
-        togglePlay();
-      }, 250);
-    }
-  };
 
-  // ── keyboard shortcuts ─────────────────────────────────────────────────────
+    if (isMobile) {
+      // determine which half was tapped for double-tap skip
+      const rect = e.currentTarget.getBoundingClientRect();
+      const tapX = e.clientX - rect.left;
+      const isRightSide = tapX > rect.width / 2;
+
+      if (dblTapTimer.current) {
+        // double tap
+        clearTimeout(dblTapTimer.current);
+        dblTapTimer.current = null;
+        skip(isRightSide ? 10 : -10);
+        // keep controls visible after skip
+        onUIActivity();
+      } else {
+        dblTapTimer.current = setTimeout(() => {
+          dblTapTimer.current = null;
+          // single tap: just toggle controls
+          onToggleUI();
+        }, 250);
+      }
+    } else {
+      // Desktop: single click = toggle play, double click = fullscreen
+      if (dblTapTimer.current) {
+        clearTimeout(dblTapTimer.current);
+        dblTapTimer.current = null;
+        toggleFullscreen();
+      } else {
+        dblTapTimer.current = setTimeout(() => {
+          dblTapTimer.current = null;
+          togglePlay();
+        }, 250);
+      }
+      onUIActivity();
+    }
+  }, [isMobile, skip, onUIActivity, onToggleUI, togglePlay, toggleFullscreen]);
+
+  // ── keyboard shortcuts ────────────────────────────────────────────────────
   useEffect(() => {
     const onKey = (e) => {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
@@ -434,8 +411,8 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
     <div
       ref={containerRef}
       className={`${styles.playerWrap} ${showUI ? '' : styles.hideCursor}`}
-      onMouseMove={onUIActivity}
-      onClick={handleClick}
+      onMouseMove={!isMobile ? onUIActivity : undefined}
+      onClick={handleVideoTap}
     >
       {/* ── video ── */}
       {isTelegram ? (
@@ -464,24 +441,18 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
         </div>
       )}
 
-      {/* ── probing overlay: shown while FFprobe detects codec ── */}
-      {isProbing && isTelegram && (
+      {/* ── probing / buffering overlay ── */}
+      {(isProbing || (!isProbing && buffering)) && isTelegram && (
         <div className={styles.loadingOverlay}>
           <div className={styles.spinner} />
         </div>
       )}
 
-      {/* ── buffering overlay ── */}
-      {!isProbing && buffering && isTelegram && (
-        <div className={styles.loadingOverlay}>
-          <div className={styles.spinner} />
-        </div>
-      )}
-
-      {/* ── skip flash ── */}
+      {/* ── double-tap skip flash ── */}
       {showSkipFlash && (
         <div className={`${styles.skipFlash} ${showSkipFlash === 'fwd' ? styles.skipRight : styles.skipLeft}`}>
           {showSkipFlash === 'fwd' ? <MdForward10 size={54} /> : <MdReplay10 size={54} />}
+          <span className={styles.skipLabel}>{showSkipFlash === 'fwd' ? '+10s' : '-10s'}</span>
         </div>
       )}
 
@@ -498,6 +469,34 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
           className={`${styles.controls} ${showUI ? styles.controlsVisible : ''}`}
           onClick={e => e.stopPropagation()}
         >
+          {/* ── Mobile top bar: back + title ── */}
+          {isMobile && (
+            <div className={styles.mobileTopBar}>
+              <button
+                className={styles.mobileBackBtn}
+                onClick={() => navigate(-1)}
+                aria-label="Back"
+              >
+                <MdArrowBack size={22} />
+              </button>
+              <span className={styles.mobileTitle}>{movie.title}</span>
+            </div>
+          )}
+
+          {/* ── Mobile center play button ── */}
+          {isMobile && (
+            <div className={styles.mobileCenterControls}>
+              <button
+                className={styles.mobileCenterPlay}
+                onClick={(e) => { e.stopPropagation(); togglePlay(); onUIActivity(); }}
+                aria-label={playing ? 'Pause' : 'Play'}
+              >
+                {playing ? <FaPause size={32} /> : <FaPlay size={32} style={{ marginLeft: '4px' }} />}
+              </button>
+            </div>
+          )}
+
+          {/* ── Progress bar ── */}
           <div
             className={styles.progressArea}
             ref={progressRef}
@@ -521,32 +520,44 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
             </div>
           </div>
 
+          {/* ── Bottom button row ── */}
           <div className={styles.btnRow}>
             <div className={styles.btnLeft}>
-              <button className={styles.iconBtn} onClick={togglePlay}>
-                {playing ? <FaPause size={20} /> : <FaPlay size={20} style={{ marginLeft: '2px' }} />}
-              </button>
-              <button className={styles.iconBtn} onClick={() => skip(-10)} title="Rewind 10s">
-                <MdReplay10 size={24} />
-              </button>
-              <button className={styles.iconBtn} onClick={() => skip(10)} title="Forward 10s">
-                <MdForward10 size={24} />
-              </button>
+              {/* Play/pause only on desktop in bottom bar */}
+              {!isMobile && (
+                <button className={styles.iconBtn} onClick={togglePlay}>
+                  {playing ? <FaPause size={20} /> : <FaPlay size={20} style={{ marginLeft: '2px' }} />}
+                </button>
+              )}
+              {/* Skip buttons only on desktop */}
+              {!isMobile && (
+                <>
+                  <button className={styles.iconBtn} onClick={() => skip(-10)} title="Rewind 10s">
+                    <MdReplay10 size={24} />
+                  </button>
+                  <button className={styles.iconBtn} onClick={() => skip(10)} title="Forward 10s">
+                    <MdForward10 size={24} />
+                  </button>
+                </>
+              )}
               <button className={styles.iconBtn} onClick={toggleMute}>
                 {muted || volume === 0 ? <BiVolumeMute size={22} /> : <BiVolumeFull size={22} />}
               </button>
-              <input
-                type="range" min="0" max="1" step="0.05"
-                value={muted ? 0 : volume}
-                onChange={changeVolume}
-                className={styles.volumeSlider}
-              />
+              {!isMobile && (
+                <input
+                  type="range" min="0" max="1" step="0.05"
+                  value={muted ? 0 : volume}
+                  onChange={changeVolume}
+                  className={styles.volumeSlider}
+                />
+              )}
               <span className={styles.timeLabel}>{fmt(currentTime)} / {duration ? fmt(duration) : '--:--'}</span>
             </div>
 
-            <div className={styles.btnCenter}>
-              {movie.title}
-            </div>
+            {/* Desktop title in center */}
+            {!isMobile && (
+              <div className={styles.btnCenter}>{movie.title}</div>
+            )}
 
             <div className={styles.btnRight}>
               {movie.isTrailer && (
@@ -559,9 +570,12 @@ function CustomPlayer({ movie, showUI, onUIActivity, user, token, updateUser }) 
               >
                 {isInMyList(movie.id) ? <><FiCheck size={18} style={{ marginRight: '4px' }} /> In List</> : <><FiPlus size={18} style={{ marginRight: '4px' }} /> My List</>}
               </button>
-              <button className={styles.iconBtn} onClick={toggleFullscreen}>
-                {fullscreen ? <BiExitFullscreen size={22} /> : <BiFullscreen size={22} />}
-              </button>
+              {/* Fullscreen button: desktop only */}
+              {!isMobile && (
+                <button className={styles.iconBtn} onClick={toggleFullscreen}>
+                  {fullscreen ? <BiExitFullscreen size={22} /> : <BiFullscreen size={22} />}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -578,12 +592,30 @@ export default function WatchPage() {
   const [showUI, setShowUI] = useState(true);
   const hideTimer = useRef(null);
 
-  // shared UI activity handler — controls + back button + cursor all fade together
-  const onUIActivity = useCallback(() => {
-    setShowUI(true);
+  const resetTimer = useCallback(() => {
     clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => setShowUI(false), 3000);
   }, []);
+
+  const onUIActivity = useCallback(() => {
+    setShowUI(true);
+    resetTimer();
+  }, [resetTimer]);
+
+  // Toggle for mobile single-tap
+  const onToggleUI = useCallback(() => {
+    setShowUI(prev => {
+      if (!prev) {
+        // showing — start hide timer
+        resetTimer();
+        return true;
+      } else {
+        // hiding immediately
+        clearTimeout(hideTimer.current);
+        return false;
+      }
+    });
+  }, [resetTimer]);
 
   useEffect(() => {
     onUIActivity();
@@ -602,19 +634,19 @@ export default function WatchPage() {
       className={`${styles.page} ${showUI ? '' : styles.hideCursor}`}
       onMouseMove={onUIActivity}
     >
-      {/* Back button — fades with controls */}
+      {/* Desktop back button — fades with controls */}
       <button
-        className={`${styles.backBtn} ${showUI ? styles.backBtnVisible : ''}`}
-        onClick={() => navigate('/browse')}
+        className={`${styles.backBtn} ${showUI ? styles.backBtnVisible : ''} ${styles.backBtnDesktop}`}
+        onClick={() => navigate(-1)}
       >
         <MdArrowBack size={22} />
       </button>
 
-      {/* Player */}
       <CustomPlayer
         movie={movie}
         showUI={showUI}
         onUIActivity={onUIActivity}
+        onToggleUI={onToggleUI}
         user={user}
         token={token}
         updateUser={updateUser}

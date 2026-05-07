@@ -274,7 +274,7 @@ export const SERIES = [
     genre: "Drama • Fantasy • Horror",
     year: 2016,
     rating: 8.7,
-    quality: "4K",
+    quality: "720p",
     hasAmharicDub: true,
     poster: "https://m.media-amazon.com/images/M/MV5BOWU2NjY5NWQtMjdkZi00ODJlLThkZTAtMzFlYmJmMGE2NjZkXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
     backdrop: "https://images.wallpapersden.com/image/download/stranger-things-season-4-poster_bWhtbGeUmZqaraWkpJRmbmdlrWZlbWU.jpg",

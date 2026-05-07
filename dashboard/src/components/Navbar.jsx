@@ -21,15 +21,15 @@ function matchesQuery(item, q) {
 }
 
 export default function Navbar({ user, onLogout, hideLinks = false }) {
-  const [scrolled, setScrolled]       = useState(false);
-  const [menuOpen, setMenuOpen]       = useState(false);
-  const [searchOpen, setSearchOpen]   = useState(false);
-  const [query, setQuery]             = useState('');
-  const [isMobile, setIsMobile]       = useState(() => window.innerWidth <= 768);
-  const timeoutRef  = useRef(null);
-  const searchRef   = useRef(null);
-  const inputRef    = useRef(null);
-  const navigate    = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  const timeoutRef = useRef(null);
+  const searchRef = useRef(null);
+  const inputRef = useRef(null);
+  const navigate = useNavigate();
 
   /* track mobile breakpoint */
   useEffect(() => {
@@ -105,10 +105,10 @@ export default function Navbar({ user, onLogout, hideLinks = false }) {
 
       {!hideLinks && (
         <div className={styles.navLinks}>
-          <NavLink to="/browse"    className={({ isActive }) => isActive ? styles.active : ''}>Home</NavLink>
-          <NavLink to="/movies"    className={({ isActive }) => isActive ? styles.active : ''}>Movies</NavLink>
+          <NavLink to="/browse" className={({ isActive }) => isActive ? styles.active : ''}>Home</NavLink>
+          <NavLink to="/movies" className={({ isActive }) => isActive ? styles.active : ''}>Movies</NavLink>
           <NavLink to="/tv-series" className={({ isActive }) => isActive ? styles.active : ''}>TV Series</NavLink>
-          <NavLink to="/my-list"   className={({ isActive }) => isActive ? styles.active : ''}>My List</NavLink>
+          <NavLink to="/my-list" className={({ isActive }) => isActive ? styles.active : ''}>My List</NavLink>
         </div>
       )}
 
@@ -168,9 +168,6 @@ export default function Navbar({ user, onLogout, hideLinks = false }) {
                     <img src={item.poster} alt={item.title} className={styles.popupPoster} />
                     <div className={styles.popupInfo}>
                       <p className={styles.popupTitle}>{item.title}</p>
-                      {item.titleAmharic && (
-                        <p className={styles.popupAmharic}>{item.titleAmharic}</p>
-                      )}
                       <div className={styles.popupMeta}>
                         <span className={styles.popupBadge}>{item.type === 'series' ? 'Series' : 'Movie'}</span>
                         <span>{item.year}</span>
