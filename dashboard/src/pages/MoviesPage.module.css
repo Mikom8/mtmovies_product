@@ -1,0 +1,42 @@
+/* Shared hero for Movies & Series pages */
+.hero {
+  position: relative;
+  height: 30vh;
+  min-height: 180px;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1400 60%, #0a0a0a 100%);
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+/* subtle golden shimmer bar */
+.hero::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #d4af37, #f5d97a, #d4af37, transparent);
+}
+
+.heroOverlay {
+  padding: 0 4% 2.5rem;
+}
+
+.heroTitle {
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 900;
+  background: linear-gradient(90deg, #d4af37, #f5d97a, #b8860b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 0.4rem;
+  letter-spacing: -1px;
+}
+
+.heroSub {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0;
+}

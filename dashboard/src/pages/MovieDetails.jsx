@@ -26,7 +26,41 @@ export default function MovieDetails() {
     }
   }, [id, navigate]);
 
-  if (!movie) return <div className={styles.loading}>Loading...</div>;
+  if (!movie) return (
+    <div className={styles.page}>
+      <Navbar user={user} onLogout={() => { logout(); navigate('/'); }} />
+
+      {/* Hero skeleton */}
+      <div className={styles.skeletonHero}>
+        <div className={styles.skeletonHeroContent}>
+          <div className={styles.skeletonTitle} />
+          <div className={styles.skeletonMeta} />
+          <div className={styles.skeletonDesc} />
+          <div className={styles.skeletonDescShort} />
+          <div className={styles.skeletonDescShort} style={{ width: '60%' }} />
+          <div className={styles.skeletonGenre} />
+          <div className={styles.skeletonBtnRow}>
+            <div className={styles.skeletonBtn} />
+            <div className={styles.skeletonBtnSm} />
+          </div>
+        </div>
+      </div>
+
+      {/* More Like This skeleton */}
+      <div className={styles.skeletonContent}>
+        <div className={styles.skeletonSectionTitle} />
+        <div className={styles.skeletonGrid}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className={styles.skeletonCard}>
+              <div className={styles.skeletonPoster} />
+              <div className={styles.skeletonCardTitle} />
+              <div className={styles.skeletonCardMeta} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   const handleLogout = () => {
     logout();

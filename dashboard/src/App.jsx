@@ -10,6 +10,9 @@ import WatchSeriesPage from './pages/WatchSeriesPage';
 import ChoosePlan from './pages/ChoosePlan';
 import Account from './pages/Account';
 import MyList from './pages/MyList';
+import SearchPage from './pages/SearchPage';
+import MoviesPage from './pages/MoviesPage';
+import SeriesPage from './pages/SeriesPage';
 
 // Protect the /browse route
 function ProtectedRoute({ children }) {
@@ -83,6 +86,30 @@ export default function App() {
         element={
           <ProtectedRoute>
             <MyList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/search"
+        element={
+          <ProtectedRoute>
+            <SearchPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/movies"
+        element={
+          <ProtectedRoute>
+            <MoviesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tv-series"
+        element={
+          <ProtectedRoute>
+            <SeriesPage />
           </ProtectedRoute>
         }
       />
