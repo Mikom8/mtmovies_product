@@ -370,6 +370,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
         }, 250);
       }
     } else {
+      // Desktop
       if (dblTapTimer.current) {
         clearTimeout(dblTapTimer.current);
         dblTapTimer.current = null;
@@ -377,12 +378,12 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
       } else {
         dblTapTimer.current = setTimeout(() => {
           dblTapTimer.current = null;
-          togglePlay();
+          // single click: just toggle controls (do not play/pause!)
+          onToggleUI();
         }, 250);
       }
-      onUIActivity();
     }
-  }, [isMobile, skip, onUIActivity, onToggleUI, togglePlay, toggleFullscreen]);
+  }, [isMobile, skip, onUIActivity, onToggleUI, toggleFullscreen]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -603,11 +604,16 @@ export default function WatchSeriesPage() {
 
   const onToggleUI = useCallback(() => {
     setShowUI(prev => {
-      if (!prev) { resetTimer(); return true; }
-      clearTimeout(hideTimer.current);
-      return false;
+      if (!prev) {
+        clearTimeout(hideTimer.current);
+        hideTimer.current = setTimeout(() => setShowUI(false), 3000);
+        return true;
+      } else {
+        clearTimeout(hideTimer.current);
+        return false;
+      }
     });
-  }, [resetTimer]);
+  }, []);
 
   useEffect(() => {
     onUIActivity();

@@ -349,8 +349,9 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
   }, []);
 
   // ── tap/click handling ────────────────────────────────────────────────────
-  // Mobile: single tap = toggle controls visibility; double tap left/right = ±10s
-  // Desktop: single click = toggle play; double click = fullscreen
+  // Single click/tap = toggle controls visibility
+  // Double tap/click left/right (mobile) = ±10s skip
+  // Double tap/click (desktop) = fullscreen
   const handleVideoTap = useCallback((e) => {
     e.stopPropagation();
 
@@ -361,13 +362,14 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
       const isRightSide = tapX > rect.width / 2;
 
       if (dblTapTimer.current) {
-        // double tap
+        // double tap detected
         clearTimeout(dblTapTimer.current);
         dblTapTimer.current = null;
         skip(isRightSide ? 10 : -10);
         // keep controls visible after skip
         onUIActivity();
       } else {
+        // wait to see if it's a double tap
         dblTapTimer.current = setTimeout(() => {
           dblTapTimer.current = null;
           // single tap: just toggle controls
@@ -375,7 +377,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
         }, 250);
       }
     } else {
-      // Desktop: single click = toggle play, double click = fullscreen
+      // Desktop
       if (dblTapTimer.current) {
         clearTimeout(dblTapTimer.current);
         dblTapTimer.current = null;
@@ -383,12 +385,12 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
       } else {
         dblTapTimer.current = setTimeout(() => {
           dblTapTimer.current = null;
-          togglePlay();
+          // single click: just toggle controls (do not play/pause!)
+          onToggleUI();
         }, 250);
       }
-      onUIActivity();
     }
-  }, [isMobile, skip, onUIActivity, onToggleUI, togglePlay, toggleFullscreen]);
+  }, [isMobile, skip, onUIActivity, onToggleUI, toggleFullscreen]);
 
   // ── keyboard shortcuts ────────────────────────────────────────────────────
   useEffect(() => {
@@ -606,20 +608,21 @@ export default function WatchPage() {
     resetTimer();
   }, [resetTimer]);
 
-  // Toggle for mobile single-tap
+  // Toggle for UI (single tap/click)
   const onToggleUI = useCallback(() => {
     setShowUI(prev => {
       if (!prev) {
-        // showing — start hide timer
-        resetTimer();
+        // UI was hidden, show it and start hide timer
+        clearTimeout(hideTimer.current);
+        hideTimer.current = setTimeout(() => setShowUI(false), 3000);
         return true;
       } else {
-        // hiding immediately
+        // UI was visible, hide it immediately and clear timer
         clearTimeout(hideTimer.current);
         return false;
       }
     });
-  }, [resetTimer]);
+  }, []);
 
   useEffect(() => {
     onUIActivity();
