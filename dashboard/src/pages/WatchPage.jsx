@@ -465,10 +465,40 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
 
       {/* ── controls (Telegram only) ── */}
       {isTelegram && (
-        <div
-          className={`${styles.controls} ${showUI ? styles.controlsVisible : ''}`}
-          onClick={e => e.stopPropagation()}
-        >
+        <>
+          {/* ── Mobile top bar: back + title ── */}
+          {isMobile && (
+            <div className={`${styles.mobileTopBar} ${showUI ? styles.controlsVisible : ''}`}>
+              <button
+                className={styles.mobileBackBtn}
+                onClick={() => navigate(-1)}
+                aria-label="Back"
+              >
+                <MdArrowBack size={22} />
+              </button>
+              <span className={styles.mobileTitle}>{movie.title}</span>
+            </div>
+          )}
+
+          {/* ── Mobile center play button ── */}
+          {isMobile && (
+            <div className={`${styles.mobileCenterControls} ${showUI ? styles.controlsVisible : ''}`}>
+              <button
+                className={styles.mobileCenterPlay}
+                onClick={(e) => { e.stopPropagation(); togglePlay(); onUIActivity(); }}
+                aria-label={playing ? 'Pause' : 'Play'}
+              >
+                {playing ? <FaPause size={32} /> : <FaPlay size={32} style={{ marginLeft: '4px' }} />}
+              </button>
+            </div>
+          )}
+
+
+
+          <div
+            className={`${styles.controls} ${showUI ? styles.controlsVisible : ''}`}
+            onClick={e => e.stopPropagation()}
+          >
 
 
           {/* ── Progress bar ── */}
@@ -498,15 +528,23 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
           {/* ── Bottom button row ── */}
           <div className={styles.btnRow}>
             <div className={styles.btnLeft}>
-              <button className={styles.iconBtn} onClick={togglePlay}>
-                {playing ? <FaPause size={20} /> : <FaPlay size={20} style={{ marginLeft: '2px' }} />}
-              </button>
-              <button className={styles.iconBtn} onClick={() => skip(-10)} title="Rewind 10s">
-                <MdReplay10 size={24} />
-              </button>
-              <button className={styles.iconBtn} onClick={() => skip(10)} title="Forward 10s">
-                <MdForward10 size={24} />
-              </button>
+              {/* Play/pause only on desktop in bottom bar */}
+              {!isMobile && (
+                <button className={styles.iconBtn} onClick={togglePlay}>
+                  {playing ? <FaPause size={20} /> : <FaPlay size={20} style={{ marginLeft: '2px' }} />}
+                </button>
+              )}
+              {/* Skip buttons only on desktop */}
+              {!isMobile && (
+                <>
+                  <button className={styles.iconBtn} onClick={() => skip(-10)} title="Rewind 10s">
+                    <MdReplay10 size={24} />
+                  </button>
+                  <button className={styles.iconBtn} onClick={() => skip(10)} title="Forward 10s">
+                    <MdForward10 size={24} />
+                  </button>
+                </>
+              )}
               <button className={styles.iconBtn} onClick={toggleMute}>
                 {muted || volume === 0 ? <BiVolumeMute size={22} /> : <BiVolumeFull size={22} />}
               </button>
@@ -519,7 +557,10 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
               <span className={styles.timeLabel}>{fmt(currentTime)} / {duration ? fmt(duration) : '--:--'}</span>
             </div>
 
-            <div className={styles.btnCenter}>{movie.title}</div>
+            {/* Desktop title in center */}
+            {!isMobile && (
+              <div className={styles.btnCenter}>{movie.title}</div>
+            )}
 
             <div className={styles.btnRight}>
               {movie.isTrailer && (
@@ -532,12 +573,16 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
               >
                 {isInMyList(movie.id) ? <><FiCheck size={18} style={{ marginRight: '4px' }} /> In List</> : <><FiPlus size={18} style={{ marginRight: '4px' }} /> My List</>}
               </button>
-              <button className={styles.iconBtn} onClick={toggleFullscreen}>
-                {fullscreen ? <BiExitFullscreen size={22} /> : <BiFullscreen size={22} />}
-              </button>
+              {/* Fullscreen button: desktop only */}
+              {!isMobile && (
+                <button className={styles.iconBtn} onClick={toggleFullscreen}>
+                  {fullscreen ? <BiExitFullscreen size={22} /> : <BiFullscreen size={22} />}
+                </button>
+              )}
             </div>
           </div>
         </div>
+        </>
       )}
     </div>
   );
@@ -595,7 +640,7 @@ export default function WatchPage() {
     >
       {/* Desktop back button — fades with controls */}
       <button
-        className={`${styles.backBtn} ${showUI ? styles.backBtnVisible : ''}`}
+        className={`${styles.backBtn} ${showUI ? styles.backBtnVisible : ''} ${styles.backBtnDesktop}`}
         onClick={() => navigate(-1)}
       >
         <MdArrowBack size={22} />
