@@ -38,18 +38,28 @@ export default function VideoPlayer({ movie, onClose }) {
 
   // Toggle controls on tap/click
   const handleContainerTap = (e) => {
-    // Ignore if clicking on a button or control element
-    if (e.target.closest('button') || e.target.closest('input') || e.target.closest(`.${styles.customVideoControls}`)) {
+    // Only toggle if clicking directly on the container or video, not on buttons/controls
+    const isClickOnContainer = e.target === e.currentTarget;
+    const isClickOnVideo = e.target.tagName === 'VIDEO';
+    const isClickOnButton = e.target.closest('button');
+    const isClickOnInput = e.target.closest('input');
+    const isClickOnControls = e.target.closest(`.${styles.customVideoControls}`);
+    
+    // Ignore clicks on interactive elements
+    if (isClickOnButton || isClickOnInput || (isClickOnControls && !isClickOnVideo)) {
       return;
     }
     
-    // Toggle controls
-    if (showControls) {
-      clearTimeout(controlsTimer.current);
-      setShowControls(false);
-    } else {
-      setShowControls(true);
-      hideControlsAfterDelay();
+    // Only toggle if clicking on container or video
+    if (isClickOnContainer || isClickOnVideo) {
+      // Toggle controls
+      if (showControls) {
+        clearTimeout(controlsTimer.current);
+        setShowControls(false);
+      } else {
+        setShowControls(true);
+        hideControlsAfterDelay();
+      }
     }
   };
 
@@ -116,7 +126,6 @@ export default function VideoPlayer({ movie, onClose }) {
       <div
         ref={containerRef}
         className={styles.playerContainer}
-        onClick={handleContainerTap}
       >
         {/* Close button */}
         <button 
@@ -153,6 +162,7 @@ export default function VideoPlayer({ movie, onClose }) {
               autoPlay
               playsInline
               className={styles.iframe}
+              onClick={handleContainerTap}
             />
             
             {/* Custom video controls for mobile */}
