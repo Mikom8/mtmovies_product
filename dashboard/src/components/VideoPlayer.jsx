@@ -4,13 +4,8 @@ import { FiX, FiPlus } from 'react-icons/fi';
 import { FaStar, FaCheck } from 'react-icons/fa';
 import { useMyList } from '../hooks/useMyList';
 import { BiMoviePlay, BiFullscreen, BiExitFullscreen } from 'react-icons/bi';
-import { HiVolumeUp, HiVolumeOff } from 'react-icons/hi';
 
 export default function VideoPlayer({ movie, onClose }) {
-  const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [volume, setVolume] = useState(80);
   const [showControls, setShowControls] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
   const { toggleMyList, isInMyList } = useMyList();
@@ -33,19 +28,27 @@ export default function VideoPlayer({ movie, onClose }) {
   };
 
   useEffect(() => {
-    setPlaying(true);
     hideControlsAfterDelay();
     return () => clearTimeout(controlsTimer.current);
   }, []);
 
   // Toggle controls on click (mobile behavior like YouTube)
   const handlePlayerClick = (e) => {
-    // Don't toggle if clicking on controls or buttons
-    if (e.target.closest('button') || e.target.closest(`.${styles.volumeControl}`)) {
+    // Don't toggle if clicking on controls, buttons, or video element itself
+    if (
+      e.target.closest('button') || 
+      e.target.closest(`.${styles.volumeControl}`) ||
+      e.target.tagName === 'VIDEO' ||
+      e.target.tagName === 'IFRAME'
+    ) {
       return;
     }
-    setShowControls(prev => !prev);
-    if (!showControls) {
+    
+    const newShowControls = !showControls;
+    setShowControls(newShowControls);
+    
+    // Only start auto-hide timer if we're showing controls
+    if (newShowControls) {
       hideControlsAfterDelay();
     } else {
       clearTimeout(controlsTimer.current);
@@ -67,29 +70,6 @@ export default function VideoPlayer({ movie, onClose }) {
       setFullscreen(false);
     }
     handleControlInteraction();
-  };
-
-  const handleVolumeChange = (e) => {
-    const newVolume = parseInt(e.target.value);
-    setVolume(newVolume);
-    if (videoRef.current) {
-      videoRef.current.volume = newVolume / 100;
-      setMuted(newVolume === 0);
-    }
-  };
-
-  const toggleMute = () => {
-    if (videoRef.current) {
-      const newMuted = !muted;
-      setMuted(newMuted);
-      videoRef.current.muted = newMuted;
-      if (newMuted) {
-        setVolume(0);
-      } else {
-        setVolume(80);
-        videoRef.current.volume = 0.8;
-      }
-    }
   };
 
   const handleMyListClick = () => {
@@ -137,8 +117,9 @@ export default function VideoPlayer({ movie, onClose }) {
             ref={videoRef}
             src={streamSrc}
             autoPlay
+            controls
+            controlsList="nodownload"
             className={styles.iframe}
-            onClick={(e) => e.stopPropagation()}
           />
         ) : (
           <iframe
@@ -148,28 +129,7 @@ export default function VideoPlayer({ movie, onClose }) {
             className={styles.iframe}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; fullscreen"
             allowFullScreen
-            onClick={(e) => e.stopPropagation()}
           />
-        )}
-
-        {/* Custom controls overlay for Telegram streams */}
-        {isTelegramStream && (
-          <div className={`${styles.customControls} ${showControls ? styles.visible : ''}`}>
-            <div className={styles.volumeControl} onClick={(e) => e.stopPropagation()}>
-              <button className={styles.volumeBtn} onClick={toggleMute}>
-                {muted || volume === 0 ? <HiVolumeOff size={24} /> : <HiVolumeUp size={24} />}
-              </button>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={volume}
-                onChange={handleVolumeChange}
-                className={styles.volumeSlider}
-              />
-              <span className={styles.volumeText}>{volume}%</span>
-            </div>
-          </div>
         )}
       </div>
 
