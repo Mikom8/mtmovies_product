@@ -490,94 +490,94 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
           >
 
 
-          {/* Progress bar */}
-          <div
-            className={styles.progressArea}
-            ref={progressRef}
-            onClick={seek}
-            onPointerDown={startSeeking}
-            onPointerMove={handleProgressHover}
-            onPointerUp={stopSeeking}
-            onMouseMove={handleProgressHover}
-            onMouseLeave={() => setHoverTime(null)}
-          >
-            <div className={styles.progressBg}>
-              <div className={styles.progressBuf} style={{ width: `${bufProgress}%` }} />
-              <div className={styles.progressFill} style={{ width: `${progress}%` }}>
-                <div className={styles.progressThumb} />
+            {/* Progress bar */}
+            <div
+              className={styles.progressArea}
+              ref={progressRef}
+              onClick={seek}
+              onPointerDown={startSeeking}
+              onPointerMove={handleProgressHover}
+              onPointerUp={stopSeeking}
+              onMouseMove={handleProgressHover}
+              onMouseLeave={() => setHoverTime(null)}
+            >
+              <div className={styles.progressBg}>
+                <div className={styles.progressBuf} style={{ width: `${bufProgress}%` }} />
+                <div className={styles.progressFill} style={{ width: `${progress}%` }}>
+                  <div className={styles.progressThumb} />
+                </div>
+                {hoverTime !== null && (
+                  <div className={styles.progressHoverTooltip} style={{ left: `${hoverPos}%` }}>
+                    {fmt(hoverTime)}
+                  </div>
+                )}
               </div>
-              {hoverTime !== null && (
-                <div className={styles.progressHoverTooltip} style={{ left: `${hoverPos}%` }}>
-                  {fmt(hoverTime)}
+            </div>
+
+            {/* Bottom row */}
+            <div className={styles.btnRow}>
+              <div className={styles.btnLeft}>
+                {!isMobile && (
+                  <button className={styles.iconBtn} onClick={togglePlay}>
+                    {playing ? <FaPause size={20} /> : <FaPlay size={20} style={{ marginLeft: '2px' }} />}
+                  </button>
+                )}
+                {!isMobile && (
+                  <>
+                    <button className={styles.iconBtn} onClick={() => skip(-10)}>
+                      <MdReplay10 size={24} />
+                    </button>
+                    <button className={styles.iconBtn} onClick={() => skip(10)}>
+                      <MdForward10 size={24} />
+                    </button>
+                  </>
+                )}
+                <button className={styles.iconBtn} onClick={toggleMute}>
+                  {muted || volume === 0 ? <BiVolumeMute size={22} /> : <BiVolumeFull size={22} />}
+                </button>
+                {!isMobile && (
+                  <input
+                    type="range" min="0" max="1" step="0.05"
+                    value={muted ? 0 : volume}
+                    onChange={changeVolume}
+                    className={styles.volumeSlider}
+                  />
+                )}
+                <span className={styles.timeLabel}>{fmt(currentTime)} / {duration ? fmt(duration) : '--:--'}</span>
+              </div>
+
+              {!isMobile && (
+                <div className={styles.btnCenter}>
+                  S{season.seasonNumber} E{episode.episodeNumber}: {episode.title}
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Bottom row */}
-          <div className={styles.btnRow}>
-            <div className={styles.btnLeft}>
-              {!isMobile && (
-                <button className={styles.iconBtn} onClick={togglePlay}>
-                  {playing ? <FaPause size={20} /> : <FaPlay size={20} style={{ marginLeft: '2px' }} />}
-                </button>
-              )}
-              {!isMobile && (
-                <>
-                  <button className={styles.iconBtn} onClick={() => skip(-10)}>
-                    <MdReplay10 size={24} />
+              <div className={styles.btnRight}>
+                {hasNextEpisode && (
+                  <button
+                    className={styles.iconBtn}
+                    onClick={handleNextEp}
+                    style={{ fontSize: '0.9rem', width: 'auto', padding: '0 8px' }}
+                    title="Next Episode"
+                  >
+                    <MdSkipNext size={24} style={{ marginRight: '2px' }} /> Next Ep
                   </button>
-                  <button className={styles.iconBtn} onClick={() => skip(10)}>
-                    <MdForward10 size={24} />
-                  </button>
-                </>
-              )}
-              <button className={styles.iconBtn} onClick={toggleMute}>
-                {muted || volume === 0 ? <BiVolumeMute size={22} /> : <BiVolumeFull size={22} />}
-              </button>
-              {!isMobile && (
-                <input
-                  type="range" min="0" max="1" step="0.05"
-                  value={muted ? 0 : volume}
-                  onChange={changeVolume}
-                  className={styles.volumeSlider}
-                />
-              )}
-              <span className={styles.timeLabel}>{fmt(currentTime)} / {duration ? fmt(duration) : '--:--'}</span>
-            </div>
-
-            {!isMobile && (
-              <div className={styles.btnCenter}>
-                S{season.seasonNumber} E{episode.episodeNumber}: {episode.title}
-              </div>
-            )}
-
-            <div className={styles.btnRight}>
-              {hasNextEpisode && (
+                )}
                 <button
                   className={styles.iconBtn}
-                  onClick={handleNextEp}
+                  onClick={() => toggleMyList(series)}
                   style={{ fontSize: '0.9rem', width: 'auto', padding: '0 8px' }}
-                  title="Next Episode"
                 >
-                  <MdSkipNext size={24} style={{ marginRight: '2px' }} /> Next Ep
+                  {isInMyList(series.id) ? <><FiCheck size={18} style={{ marginRight: '4px' }} /> In List</> : <><FiPlus size={18} style={{ marginRight: '4px' }} /> My List</>}
                 </button>
-              )}
-              <button
-                className={styles.iconBtn}
-                onClick={() => toggleMyList(series)}
-                style={{ fontSize: '0.9rem', width: 'auto', padding: '0 8px' }}
-              >
-                {isInMyList(series.id) ? <><FiCheck size={18} style={{ marginRight: '4px' }} /> In List</> : <><FiPlus size={18} style={{ marginRight: '4px' }} /> My List</>}
-              </button>
-              {!isMobile && (
-                <button className={styles.iconBtn} onClick={toggleFullscreen}>
-                  {fullscreen ? <BiExitFullscreen size={22} /> : <BiFullscreen size={22} />}
-                </button>
-              )}
+                {!isMobile && (
+                  <button className={styles.iconBtn} onClick={toggleFullscreen}>
+                    {fullscreen ? <BiExitFullscreen size={22} /> : <BiFullscreen size={22} />}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
         </>
       )}
     </div>

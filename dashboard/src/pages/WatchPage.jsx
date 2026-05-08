@@ -503,87 +503,87 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
           >
 
 
-          {/* ── Progress bar ── */}
-          <div
-            className={styles.progressArea}
-            ref={progressRef}
-            onClick={seek}
-            onPointerDown={startSeeking}
-            onPointerMove={handleProgressHover}
-            onPointerUp={stopSeeking}
-            onMouseMove={handleProgressHover}
-            onMouseLeave={() => setHoverTime(null)}
-          >
-            <div className={styles.progressBg}>
-              <div className={styles.progressBuf} style={{ width: `${bufProgress}%` }} />
-              <div className={styles.progressFill} style={{ width: `${progress}%` }}>
-                <div className={styles.progressThumb} />
-              </div>
-              {hoverTime !== null && (
-                <div className={styles.progressHoverTooltip} style={{ left: `${hoverPos}%` }}>
-                  {fmt(hoverTime)}
+            {/* ── Progress bar ── */}
+            <div
+              className={styles.progressArea}
+              ref={progressRef}
+              onClick={seek}
+              onPointerDown={startSeeking}
+              onPointerMove={handleProgressHover}
+              onPointerUp={stopSeeking}
+              onMouseMove={handleProgressHover}
+              onMouseLeave={() => setHoverTime(null)}
+            >
+              <div className={styles.progressBg}>
+                <div className={styles.progressBuf} style={{ width: `${bufProgress}%` }} />
+                <div className={styles.progressFill} style={{ width: `${progress}%` }}>
+                  <div className={styles.progressThumb} />
                 </div>
+                {hoverTime !== null && (
+                  <div className={styles.progressHoverTooltip} style={{ left: `${hoverPos}%` }}>
+                    {fmt(hoverTime)}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ── Bottom button row ── */}
+            <div className={styles.btnRow}>
+              <div className={styles.btnLeft}>
+                {/* Play/pause only on desktop in bottom bar */}
+                {!isMobile && (
+                  <button className={styles.iconBtn} onClick={togglePlay}>
+                    {playing ? <FaPause size={20} /> : <FaPlay size={20} style={{ marginLeft: '2px' }} />}
+                  </button>
+                )}
+                {/* Skip buttons only on desktop */}
+                {!isMobile && (
+                  <>
+                    <button className={styles.iconBtn} onClick={() => skip(-10)} title="Rewind 10s">
+                      <MdReplay10 size={24} />
+                    </button>
+                    <button className={styles.iconBtn} onClick={() => skip(10)} title="Forward 10s">
+                      <MdForward10 size={24} />
+                    </button>
+                  </>
+                )}
+                <button className={styles.iconBtn} onClick={toggleMute}>
+                  {muted || volume === 0 ? <BiVolumeMute size={22} /> : <BiVolumeFull size={22} />}
+                </button>
+                <input
+                  type="range" min="0" max="1" step="0.05"
+                  value={muted ? 0 : volume}
+                  onChange={changeVolume}
+                  className={styles.volumeSlider}
+                />
+                <span className={styles.timeLabel}>{fmt(currentTime)} / {duration ? fmt(duration) : '--:--'}</span>
+              </div>
+
+              {/* Desktop title in center */}
+              {!isMobile && (
+                <div className={styles.btnCenter}>{movie.title}</div>
               )}
+
+              <div className={styles.btnRight}>
+                {movie.isTrailer && (
+                  <span className={styles.trailerBadge}><BiMoviePlay size={16} style={{ marginRight: 4 }} /> Official Trailer</span>
+                )}
+                <button
+                  className={styles.iconBtn}
+                  onClick={() => toggleMyList(movie)}
+                  style={{ fontSize: '0.9rem', width: 'auto', padding: '0 8px' }}
+                >
+                  {isInMyList(movie.id) ? <><FiCheck size={18} style={{ marginRight: '4px' }} /> In List</> : <><FiPlus size={18} style={{ marginRight: '4px' }} /> My List</>}
+                </button>
+                {/* Fullscreen button: desktop only */}
+                {!isMobile && (
+                  <button className={styles.iconBtn} onClick={toggleFullscreen}>
+                    {fullscreen ? <BiExitFullscreen size={22} /> : <BiFullscreen size={22} />}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-
-          {/* ── Bottom button row ── */}
-          <div className={styles.btnRow}>
-            <div className={styles.btnLeft}>
-              {/* Play/pause only on desktop in bottom bar */}
-              {!isMobile && (
-                <button className={styles.iconBtn} onClick={togglePlay}>
-                  {playing ? <FaPause size={20} /> : <FaPlay size={20} style={{ marginLeft: '2px' }} />}
-                </button>
-              )}
-              {/* Skip buttons only on desktop */}
-              {!isMobile && (
-                <>
-                  <button className={styles.iconBtn} onClick={() => skip(-10)} title="Rewind 10s">
-                    <MdReplay10 size={24} />
-                  </button>
-                  <button className={styles.iconBtn} onClick={() => skip(10)} title="Forward 10s">
-                    <MdForward10 size={24} />
-                  </button>
-                </>
-              )}
-              <button className={styles.iconBtn} onClick={toggleMute}>
-                {muted || volume === 0 ? <BiVolumeMute size={22} /> : <BiVolumeFull size={22} />}
-              </button>
-              <input
-                type="range" min="0" max="1" step="0.05"
-                value={muted ? 0 : volume}
-                onChange={changeVolume}
-                className={styles.volumeSlider}
-              />
-              <span className={styles.timeLabel}>{fmt(currentTime)} / {duration ? fmt(duration) : '--:--'}</span>
-            </div>
-
-            {/* Desktop title in center */}
-            {!isMobile && (
-              <div className={styles.btnCenter}>{movie.title}</div>
-            )}
-
-            <div className={styles.btnRight}>
-              {movie.isTrailer && (
-                <span className={styles.trailerBadge}><BiMoviePlay size={16} style={{ marginRight: 4 }} /> Official Trailer</span>
-              )}
-              <button
-                className={styles.iconBtn}
-                onClick={() => toggleMyList(movie)}
-                style={{ fontSize: '0.9rem', width: 'auto', padding: '0 8px' }}
-              >
-                {isInMyList(movie.id) ? <><FiCheck size={18} style={{ marginRight: '4px' }} /> In List</> : <><FiPlus size={18} style={{ marginRight: '4px' }} /> My List</>}
-              </button>
-              {/* Fullscreen button: desktop only */}
-              {!isMobile && (
-                <button className={styles.iconBtn} onClick={toggleFullscreen}>
-                  {fullscreen ? <BiExitFullscreen size={22} /> : <BiFullscreen size={22} />}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
         </>
       )}
     </div>
