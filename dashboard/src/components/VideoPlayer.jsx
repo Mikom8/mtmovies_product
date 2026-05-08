@@ -168,17 +168,32 @@ export default function VideoPlayer({ movie, onClose }) {
               playsInline
               className={styles.iframe}
               onClick={handleContainerTap}
+              onTouchEnd={handleContainerTap}
             />
             
             {/* Custom video controls for mobile */}
             <div 
               className={`${styles.customVideoControls} ${showControls ? styles.visible : ''}`}
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
+              onTouchEnd={(e) => {
+                e.stopPropagation();
+              }}
             >
-              <div className={styles.videoControlsRow}>
+              <div 
+                className={styles.videoControlsRow}
+                onClick={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
+              >
                 <button 
                   className={styles.playPauseBtn} 
                   onClick={togglePlayPause}
+                  onTouchEnd={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                  }}
                 >
                   {isPlaying ? <BiPause size={28} /> : <BiPlay size={28} />}
                 </button>
@@ -186,8 +201,16 @@ export default function VideoPlayer({ movie, onClose }) {
                 <div 
                   className={styles.volumeControlGroup}
                   onClick={(e) => e.stopPropagation()}
+                  onTouchEnd={(e) => e.stopPropagation()}
                 >
-                  <button className={styles.volumeBtn} onClick={toggleMute}>
+                  <button 
+                    className={styles.volumeBtn} 
+                    onClick={toggleMute}
+                    onTouchEnd={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                    }}
+                  >
                     {isMuted || volume === 0 ? <HiVolumeOff size={24} /> : <HiVolumeUp size={24} />}
                   </button>
                   <input
@@ -197,6 +220,9 @@ export default function VideoPlayer({ movie, onClose }) {
                     value={volume}
                     onChange={handleVolumeChange}
                     onClick={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchMove={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
                     className={styles.volumeSlider}
                   />
                   <span className={styles.volumePercent}>{volume}%</span>
@@ -205,6 +231,10 @@ export default function VideoPlayer({ movie, onClose }) {
                 <button 
                   className={styles.fullscreenBtn} 
                   onClick={toggleFullscreen}
+                  onTouchEnd={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                  }}
                 >
                   {fullscreen ? <BiExitFullscreen size={24} /> : <BiFullscreen size={24} />}
                 </button>
