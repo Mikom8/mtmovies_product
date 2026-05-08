@@ -27,7 +27,9 @@ export default function VideoPlayer({ movie, onClose }) {
 
   const hideControlsAfterDelay = () => {
     clearTimeout(controlsTimer.current);
-    controlsTimer.current = setTimeout(() => setShowControls(false), 3000);
+    controlsTimer.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
   };
 
   useEffect(() => {
@@ -38,22 +40,28 @@ export default function VideoPlayer({ movie, onClose }) {
 
   // Toggle controls on tap/click
   const handleContainerTap = (e) => {
-    // Prevent both touch and click from firing
     e.preventDefault();
+    e.stopPropagation();
     
-    // Only toggle if clicking directly on the video element
+    // Only toggle if tapping directly on the video element
     const isClickOnVideo = e.target.tagName === 'VIDEO';
     
-    // Only toggle if clicking on video
     if (isClickOnVideo) {
+      // Clear any existing timer first
+      clearTimeout(controlsTimer.current);
+      
       // Toggle controls
-      if (showControls) {
-        clearTimeout(controlsTimer.current);
-        setShowControls(false);
-      } else {
-        setShowControls(true);
-        hideControlsAfterDelay();
-      }
+      setShowControls(prev => {
+        const newState = !prev;
+        // Only start timer if showing controls
+        if (newState) {
+          // Use setTimeout to ensure state is updated first
+          setTimeout(() => {
+            hideControlsAfterDelay();
+          }, 100);
+        }
+        return newState;
+      });
     }
   };
 
@@ -65,6 +73,7 @@ export default function VideoPlayer({ movie, onClose }) {
 
   const toggleFullscreen = (e) => {
     e.stopPropagation();
+    e.preventDefault();
     if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen();
       setFullscreen(true);
@@ -73,8 +82,11 @@ export default function VideoPlayer({ movie, onClose }) {
       setFullscreen(false);
     }
     // Keep controls visible and reset auto-hide timer
+    clearTimeout(controlsTimer.current);
     setShowControls(true);
-    hideControlsAfterDelay();
+    setTimeout(() => {
+      hideControlsAfterDelay();
+    }, 100);
   };
 
   const handleMyListClick = () => {
@@ -84,6 +96,7 @@ export default function VideoPlayer({ movie, onClose }) {
 
   const togglePlayPause = (e) => {
     e.stopPropagation();
+    e.preventDefault();
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -93,8 +106,11 @@ export default function VideoPlayer({ movie, onClose }) {
       setIsPlaying(!isPlaying);
     }
     // Keep controls visible and reset auto-hide timer
+    clearTimeout(controlsTimer.current);
     setShowControls(true);
-    hideControlsAfterDelay();
+    setTimeout(() => {
+      hideControlsAfterDelay();
+    }, 100);
   };
 
   const handleVolumeChange = (e) => {
@@ -105,12 +121,16 @@ export default function VideoPlayer({ movie, onClose }) {
       setIsMuted(newVolume === 0);
     }
     // Keep controls visible while adjusting volume
+    clearTimeout(controlsTimer.current);
     setShowControls(true);
-    hideControlsAfterDelay();
+    setTimeout(() => {
+      hideControlsAfterDelay();
+    }, 100);
   };
 
   const toggleMute = (e) => {
     e.stopPropagation();
+    e.preventDefault();
     if (videoRef.current) {
       if (isMuted) {
         videoRef.current.muted = false;
@@ -125,8 +145,11 @@ export default function VideoPlayer({ movie, onClose }) {
       }
     }
     // Keep controls visible and reset auto-hide timer
+    clearTimeout(controlsTimer.current);
     setShowControls(true);
-    hideControlsAfterDelay();
+    setTimeout(() => {
+      hideControlsAfterDelay();
+    }, 100);
   };
 
   return (
