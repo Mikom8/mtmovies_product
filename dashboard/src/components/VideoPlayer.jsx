@@ -4,6 +4,7 @@ import { FiX, FiPlus } from 'react-icons/fi';
 import { FaStar, FaCheck } from 'react-icons/fa';
 import { useMyList } from '../hooks/useMyList';
 import { BiMoviePlay, BiFullscreen, BiExitFullscreen } from 'react-icons/bi';
+import { HiVolumeUp, HiVolumeOff } from 'react-icons/hi';
 
 export default function VideoPlayer({ movie, onClose }) {
   const [playing, setPlaying] = useState(false);
@@ -15,6 +16,7 @@ export default function VideoPlayer({ movie, onClose }) {
   const { toggleMyList, isInMyList } = useMyList();
   const iframeRef = useRef(null);
   const containerRef = useRef(null);
+  const videoRef = useRef(null);
   const controlsTimer = useRef(null);
 
   // Telegram stream config
@@ -36,6 +38,26 @@ export default function VideoPlayer({ movie, onClose }) {
     return () => clearTimeout(controlsTimer.current);
   }, []);
 
+  // Toggle controls on click (mobile behavior like YouTube)
+  const handlePlayerClick = (e) => {
+    // Don't toggle if clicking on controls or buttons
+    if (e.target.closest('button') || e.target.closest(`.${styles.volumeControl}`)) {
+      return;
+    }
+    setShowControls(prev => !prev);
+    if (!showControls) {
+      hideControlsAfterDelay();
+    } else {
+      clearTimeout(controlsTimer.current);
+    }
+  };
+
+  // Hide controls immediately when interacting with them
+  const handleControlInteraction = () => {
+    clearTimeout(controlsTimer.current);
+    setShowControls(false);
+  };
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen();
@@ -44,6 +66,35 @@ export default function VideoPlayer({ movie, onClose }) {
       document.exitFullscreen();
       setFullscreen(false);
     }
+    handleControlInteraction();
+  };
+
+  const handleVolumeChange = (e) => {
+    const newVolume = parseInt(e.target.value);
+    setVolume(newVolume);
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume / 100;
+      setMuted(newVolume === 0);
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      const newMuted = !muted;
+      setMuted(newMuted);
+      videoRef.current.muted = newMuted;
+      if (newMuted) {
+        setVolume(0);
+      } else {
+        setVolume(80);
+        videoRef.current.volume = 0.8;
+      }
+    }
+  };
+
+  const handleMyListClick = () => {
+    toggleMyList(movie);
+    handleControlInteraction();
   };
 
   return (
@@ -52,9 +103,18 @@ export default function VideoPlayer({ movie, onClose }) {
         ref={containerRef}
         className={styles.playerContainer}
         onMouseMove={hideControlsAfterDelay}
+        onClick={handlePlayerClick}
       >
         {/* Close button */}
-        <button className={styles.closeBtn} onClick={onClose}><FiX size={28} /></button>
+        <button 
+          className={`${styles.closeBtn} ${showControls ? styles.visible : ''}`} 
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+        >
+          <FiX size={28} />
+        </button>
 
         {/* Movie info bar */}
         <div className={`${styles.infoBar} ${showControls ? styles.visible : ''}`}>
@@ -74,10 +134,11 @@ export default function VideoPlayer({ movie, onClose }) {
         {/* Video Player */}
         {isTelegramStream ? (
           <video
+            ref={videoRef}
             src={streamSrc}
             autoPlay
-            controls
             className={styles.iframe}
+            onClick={(e) => e.stopPropagation()}
           />
         ) : (
           <iframe
@@ -87,13 +148,33 @@ export default function VideoPlayer({ movie, onClose }) {
             className={styles.iframe}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; fullscreen"
             allowFullScreen
+            onClick={(e) => e.stopPropagation()}
           />
         )}
 
+        {/* Custom controls overlay for Telegram streams */}
+        {isTelegramStream && (
+          <div className={`${styles.customControls} ${showControls ? styles.visible : ''}`}>
+            <div className={styles.volumeControl} onClick={(e) => e.stopPropagation()}>
+              <button className={styles.volumeBtn} onClick={toggleMute}>
+                {muted || volume === 0 ? <HiVolumeOff size={24} /> : <HiVolumeUp size={24} />}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={volume}
+                onChange={handleVolumeChange}
+                className={styles.volumeSlider}
+              />
+              <span className={styles.volumeText}>{volume}%</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Controls below the player */}
-      <div className={styles.bottomBar}>
+      <div className={`${styles.bottomBar} ${showControls ? styles.visible : ''}`}>
         <div className={styles.controlsLeft}>
           {movie.isTrailer && (
             <span className={styles.trailerLabel}>
@@ -104,7 +185,13 @@ export default function VideoPlayer({ movie, onClose }) {
           <span className={styles.ratingBadge}><FaStar style={{ marginRight: '4px', color: '#ffd700', transform: 'translateY(-1px)' }} /> {movie.rating}/10</span>
         </div>
         <div className={styles.controlsRight}>
-          <button className={styles.ctaBtn} onClick={() => toggleMyList(movie)}>
+          <button 
+            className={styles.ctaBtn} 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleMyListClick();
+            }}
+          >
             {isInMyList(movie.id) ? (
               <><FaCheck size={18} style={{ marginRight: '6px' }} /> In My List</>
             ) : (
@@ -112,7 +199,13 @@ export default function VideoPlayer({ movie, onClose }) {
             )}
           </button>
           {!isTelegramStream && (
-            <button className={styles.ctaBtn} onClick={toggleFullscreen}>
+            <button 
+              className={styles.ctaBtn} 
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFullscreen();
+              }}
+            >
               {fullscreen ? <><BiExitFullscreen size={18} style={{ marginRight: '6px' }} /> Exit</> : <><BiFullscreen size={18} style={{ marginRight: '6px' }} /> Fullscreen</>}
             </button>
           )}
