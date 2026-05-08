@@ -17,6 +17,8 @@ export default function VideoPlayer({ movie, onClose }) {
   const containerRef = useRef(null);
   const videoRef = useRef(null);
   const controlsTimer = useRef(null);
+  const lastTapTime = useRef(0);
+  const isTogglingControls = useRef(false);
 
   // Telegram stream config
   const isTelegramStream = movie.telegramChatId && movie.telegramMessageId;
@@ -40,29 +42,55 @@ export default function VideoPlayer({ movie, onClose }) {
 
   // Toggle controls on tap/click
   const handleContainerTap = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
     // Only toggle if tapping directly on the video element
     const isClickOnVideo = e.target.tagName === 'VIDEO';
     
-    if (isClickOnVideo) {
-      // Clear any existing timer first
-      clearTimeout(controlsTimer.current);
-      
-      // Toggle controls
-      setShowControls(prev => {
-        const newState = !prev;
-        // Only start timer if showing controls
-        if (newState) {
-          // Use setTimeout to ensure state is updated first
-          setTimeout(() => {
-            hideControlsAfterDelay();
-          }, 100);
-        }
-        return newState;
-      });
+    if (!isClickOnVideo) {
+      return;
     }
+
+    // Prevent multiple rapid taps
+    const now = Date.now();
+    if (now - lastTapTime.current < 300) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    lastTapTime.current = now;
+
+    // Prevent if already toggling
+    if (isTogglingControls.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+    
+    isTogglingControls.current = true;
+    
+    // Clear any existing timer
+    clearTimeout(controlsTimer.current);
+    
+    // Toggle controls
+    setShowControls(prev => {
+      const newState = !prev;
+      
+      // Only start timer if showing controls
+      if (newState) {
+        controlsTimer.current = setTimeout(() => {
+          setShowControls(false);
+        }, 3000);
+      }
+      
+      // Reset toggling flag after a short delay
+      setTimeout(() => {
+        isTogglingControls.current = false;
+      }, 300);
+      
+      return newState;
+    });
   };
 
   // Hide controls immediately when interacting with them
@@ -74,6 +102,7 @@ export default function VideoPlayer({ movie, onClose }) {
   const toggleFullscreen = (e) => {
     e.stopPropagation();
     e.preventDefault();
+    
     if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen();
       setFullscreen(true);
@@ -81,12 +110,13 @@ export default function VideoPlayer({ movie, onClose }) {
       document.exitFullscreen();
       setFullscreen(false);
     }
-    // Keep controls visible and reset auto-hide timer
+    
+    // Keep controls visible and reset timer
     clearTimeout(controlsTimer.current);
     setShowControls(true);
-    setTimeout(() => {
-      hideControlsAfterDelay();
-    }, 100);
+    controlsTimer.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
   };
 
   const handleMyListClick = () => {
@@ -97,6 +127,7 @@ export default function VideoPlayer({ movie, onClose }) {
   const togglePlayPause = (e) => {
     e.stopPropagation();
     e.preventDefault();
+    
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -105,12 +136,13 @@ export default function VideoPlayer({ movie, onClose }) {
       }
       setIsPlaying(!isPlaying);
     }
-    // Keep controls visible and reset auto-hide timer
+    
+    // Keep controls visible and reset timer
     clearTimeout(controlsTimer.current);
     setShowControls(true);
-    setTimeout(() => {
-      hideControlsAfterDelay();
-    }, 100);
+    controlsTimer.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
   };
 
   const handleVolumeChange = (e) => {
@@ -120,17 +152,19 @@ export default function VideoPlayer({ movie, onClose }) {
       videoRef.current.volume = newVolume / 100;
       setIsMuted(newVolume === 0);
     }
-    // Keep controls visible while adjusting volume
+    
+    // Keep controls visible and reset timer
     clearTimeout(controlsTimer.current);
     setShowControls(true);
-    setTimeout(() => {
-      hideControlsAfterDelay();
-    }, 100);
+    controlsTimer.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
   };
 
   const toggleMute = (e) => {
     e.stopPropagation();
     e.preventDefault();
+    
     if (videoRef.current) {
       if (isMuted) {
         videoRef.current.muted = false;
@@ -144,12 +178,13 @@ export default function VideoPlayer({ movie, onClose }) {
         setIsMuted(true);
       }
     }
-    // Keep controls visible and reset auto-hide timer
+    
+    // Keep controls visible and reset timer
     clearTimeout(controlsTimer.current);
     setShowControls(true);
-    setTimeout(() => {
-      hideControlsAfterDelay();
-    }, 100);
+    controlsTimer.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
   };
 
   return (
