@@ -38,20 +38,11 @@ export default function VideoPlayer({ movie, onClose }) {
 
   // Toggle controls on tap/click
   const handleContainerTap = (e) => {
-    // Only toggle if clicking directly on the container or video, not on buttons/controls
-    const isClickOnContainer = e.target === e.currentTarget;
+    // Only toggle if clicking directly on the video element
     const isClickOnVideo = e.target.tagName === 'VIDEO';
-    const isClickOnButton = e.target.closest('button');
-    const isClickOnInput = e.target.closest('input');
-    const isClickOnControls = e.target.closest(`.${styles.customVideoControls}`);
     
-    // Ignore clicks on interactive elements
-    if (isClickOnButton || isClickOnInput || (isClickOnControls && !isClickOnVideo)) {
-      return;
-    }
-    
-    // Only toggle if clicking on container or video
-    if (isClickOnContainer || isClickOnVideo) {
+    // Only toggle if clicking on video
+    if (isClickOnVideo) {
       // Toggle controls
       if (showControls) {
         clearTimeout(controlsTimer.current);
@@ -180,13 +171,22 @@ export default function VideoPlayer({ movie, onClose }) {
             />
             
             {/* Custom video controls for mobile */}
-            <div className={`${styles.customVideoControls} ${showControls ? styles.visible : ''}`}>
+            <div 
+              className={`${styles.customVideoControls} ${showControls ? styles.visible : ''}`}
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className={styles.videoControlsRow}>
-                <button className={styles.playPauseBtn} onClick={togglePlayPause}>
+                <button 
+                  className={styles.playPauseBtn} 
+                  onClick={togglePlayPause}
+                >
                   {isPlaying ? <BiPause size={28} /> : <BiPlay size={28} />}
                 </button>
                 
-                <div className={styles.volumeControlGroup}>
+                <div 
+                  className={styles.volumeControlGroup}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <button className={styles.volumeBtn} onClick={toggleMute}>
                     {isMuted || volume === 0 ? <HiVolumeOff size={24} /> : <HiVolumeUp size={24} />}
                   </button>
@@ -196,12 +196,16 @@ export default function VideoPlayer({ movie, onClose }) {
                     max="100"
                     value={volume}
                     onChange={handleVolumeChange}
+                    onClick={(e) => e.stopPropagation()}
                     className={styles.volumeSlider}
                   />
                   <span className={styles.volumePercent}>{volume}%</span>
                 </div>
 
-                <button className={styles.fullscreenBtn} onClick={toggleFullscreen}>
+                <button 
+                  className={styles.fullscreenBtn} 
+                  onClick={toggleFullscreen}
+                >
                   {fullscreen ? <BiExitFullscreen size={24} /> : <BiFullscreen size={24} />}
                 </button>
               </div>
