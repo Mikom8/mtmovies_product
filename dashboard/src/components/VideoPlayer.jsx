@@ -69,7 +69,8 @@ export default function VideoPlayer({ movie, onClose }) {
     setShowControls(false);
   };
 
-  const toggleFullscreen = () => {
+  const toggleFullscreen = (e) => {
+    e.stopPropagation();
     if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen();
       setFullscreen(true);
@@ -77,7 +78,9 @@ export default function VideoPlayer({ movie, onClose }) {
       document.exitFullscreen();
       setFullscreen(false);
     }
-    handleControlInteraction();
+    // Keep controls visible and reset auto-hide timer
+    setShowControls(true);
+    hideControlsAfterDelay();
   };
 
   const handleMyListClick = () => {
@@ -85,7 +88,8 @@ export default function VideoPlayer({ movie, onClose }) {
     handleControlInteraction();
   };
 
-  const togglePlayPause = () => {
+  const togglePlayPause = (e) => {
+    e.stopPropagation();
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -94,6 +98,9 @@ export default function VideoPlayer({ movie, onClose }) {
       }
       setIsPlaying(!isPlaying);
     }
+    // Keep controls visible and reset auto-hide timer
+    setShowControls(true);
+    hideControlsAfterDelay();
   };
 
   const handleVolumeChange = (e) => {
@@ -103,9 +110,13 @@ export default function VideoPlayer({ movie, onClose }) {
       videoRef.current.volume = newVolume / 100;
       setIsMuted(newVolume === 0);
     }
+    // Keep controls visible while adjusting volume
+    setShowControls(true);
+    hideControlsAfterDelay();
   };
 
-  const toggleMute = () => {
+  const toggleMute = (e) => {
+    e.stopPropagation();
     if (videoRef.current) {
       if (isMuted) {
         videoRef.current.muted = false;
@@ -119,6 +130,9 @@ export default function VideoPlayer({ movie, onClose }) {
         setIsMuted(true);
       }
     }
+    // Keep controls visible and reset auto-hide timer
+    setShowControls(true);
+    hideControlsAfterDelay();
   };
 
   return (
@@ -166,7 +180,7 @@ export default function VideoPlayer({ movie, onClose }) {
             />
             
             {/* Custom video controls for mobile */}
-            <div className={`${styles.customVideoControls} ${showControls ? styles.visible : ''}`} onClick={(e) => e.stopPropagation()}>
+            <div className={`${styles.customVideoControls} ${showControls ? styles.visible : ''}`}>
               <div className={styles.videoControlsRow}>
                 <button className={styles.playPauseBtn} onClick={togglePlayPause}>
                   {isPlaying ? <BiPause size={28} /> : <BiPlay size={28} />}
