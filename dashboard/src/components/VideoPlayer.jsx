@@ -38,6 +38,9 @@ export default function VideoPlayer({ movie, onClose }) {
 
   // Toggle controls on tap/click
   const handleContainerTap = (e) => {
+    // Prevent both touch and click from firing
+    e.preventDefault();
+    
     // Only toggle if clicking directly on the video element
     const isClickOnVideo = e.target.tagName === 'VIDEO';
     
@@ -167,7 +170,6 @@ export default function VideoPlayer({ movie, onClose }) {
               autoPlay
               playsInline
               className={styles.iframe}
-              onClick={handleContainerTap}
               onTouchEnd={handleContainerTap}
             />
             
