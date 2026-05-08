@@ -3,11 +3,15 @@ import styles from './VideoPlayer.module.css';
 import { FiX, FiPlus } from 'react-icons/fi';
 import { FaStar, FaCheck } from 'react-icons/fa';
 import { useMyList } from '../hooks/useMyList';
-import { BiMoviePlay, BiFullscreen, BiExitFullscreen } from 'react-icons/bi';
+import { BiMoviePlay, BiFullscreen, BiExitFullscreen, BiPlay, BiPause } from 'react-icons/bi';
+import { HiVolumeUp, HiVolumeOff } from 'react-icons/hi';
 
 export default function VideoPlayer({ movie, onClose }) {
   const [showControls, setShowControls] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [volume, setVolume] = useState(100);
+  const [isMuted, setIsMuted] = useState(false);
   const { toggleMyList, isInMyList } = useMyList();
   const iframeRef = useRef(null);
   const containerRef = useRef(null);
@@ -23,35 +27,29 @@ export default function VideoPlayer({ movie, onClose }) {
 
   const hideControlsAfterDelay = () => {
     clearTimeout(controlsTimer.current);
-    setShowControls(true);
     controlsTimer.current = setTimeout(() => setShowControls(false), 3000);
   };
 
   useEffect(() => {
+    setShowControls(true);
     hideControlsAfterDelay();
     return () => clearTimeout(controlsTimer.current);
   }, []);
 
-  // Toggle controls on click (mobile behavior like YouTube)
-  const handlePlayerClick = (e) => {
-    // Don't toggle if clicking on controls, buttons, or video element itself
-    if (
-      e.target.closest('button') || 
-      e.target.closest(`.${styles.volumeControl}`) ||
-      e.target.tagName === 'VIDEO' ||
-      e.target.tagName === 'IFRAME'
-    ) {
+  // Toggle controls on tap/click
+  const handleContainerTap = (e) => {
+    // Ignore if clicking on a button or control element
+    if (e.target.closest('button') || e.target.closest('input') || e.target.closest(`.${styles.customVideoControls}`)) {
       return;
     }
     
-    const newShowControls = !showControls;
-    setShowControls(newShowControls);
-    
-    // Only start auto-hide timer if we're showing controls
-    if (newShowControls) {
-      hideControlsAfterDelay();
-    } else {
+    // Toggle controls
+    if (showControls) {
       clearTimeout(controlsTimer.current);
+      setShowControls(false);
+    } else {
+      setShowControls(true);
+      hideControlsAfterDelay();
     }
   };
 
@@ -77,13 +75,48 @@ export default function VideoPlayer({ movie, onClose }) {
     handleControlInteraction();
   };
 
+  const togglePlayPause = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleVolumeChange = (e) => {
+    const newVolume = parseInt(e.target.value);
+    setVolume(newVolume);
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume / 100;
+      setIsMuted(newVolume === 0);
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      if (isMuted) {
+        videoRef.current.muted = false;
+        setIsMuted(false);
+        if (volume === 0) {
+          setVolume(100);
+          videoRef.current.volume = 1;
+        }
+      } else {
+        videoRef.current.muted = true;
+        setIsMuted(true);
+      }
+    }
+  };
+
   return (
     <div className={styles.overlay}>
       <div
         ref={containerRef}
         className={styles.playerContainer}
-        onMouseMove={hideControlsAfterDelay}
-        onClick={handlePlayerClick}
+        onClick={handleContainerTap}
       >
         {/* Close button */}
         <button 
@@ -113,14 +146,43 @@ export default function VideoPlayer({ movie, onClose }) {
 
         {/* Video Player */}
         {isTelegramStream ? (
-          <video
-            ref={videoRef}
-            src={streamSrc}
-            autoPlay
-            controls
-            controlsList="nodownload"
-            className={styles.iframe}
-          />
+          <>
+            <video
+              ref={videoRef}
+              src={streamSrc}
+              autoPlay
+              playsInline
+              className={styles.iframe}
+            />
+            
+            {/* Custom video controls for mobile */}
+            <div className={`${styles.customVideoControls} ${showControls ? styles.visible : ''}`} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.videoControlsRow}>
+                <button className={styles.playPauseBtn} onClick={togglePlayPause}>
+                  {isPlaying ? <BiPause size={28} /> : <BiPlay size={28} />}
+                </button>
+                
+                <div className={styles.volumeControlGroup}>
+                  <button className={styles.volumeBtn} onClick={toggleMute}>
+                    {isMuted || volume === 0 ? <HiVolumeOff size={24} /> : <HiVolumeUp size={24} />}
+                  </button>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={volume}
+                    onChange={handleVolumeChange}
+                    className={styles.volumeSlider}
+                  />
+                  <span className={styles.volumePercent}>{volume}%</span>
+                </div>
+
+                <button className={styles.fullscreenBtn} onClick={toggleFullscreen}>
+                  {fullscreen ? <BiExitFullscreen size={24} /> : <BiFullscreen size={24} />}
+                </button>
+              </div>
+            </div>
+          </>
         ) : (
           <iframe
             ref={iframeRef}
