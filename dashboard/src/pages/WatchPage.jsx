@@ -597,6 +597,7 @@ export default function WatchPage() {
   const { user, token, updateUser, isAuthenticated } = useAuth();
   const [showUI, setShowUI] = useState(true);
   const hideTimer = useRef(null);
+  const isMobileRef = useRef(window.innerWidth <= 768);
 
   const resetTimer = useCallback(() => {
     clearTimeout(hideTimer.current);
@@ -609,16 +610,16 @@ export default function WatchPage() {
   }, [resetTimer]);
 
   // Toggle for UI (single tap/click)
+  // On mobile: if hidden → show + start 3s timer; if visible → hide immediately
   const onToggleUI = useCallback(() => {
     setShowUI(prev => {
+      clearTimeout(hideTimer.current);
       if (!prev) {
-        // UI was hidden, show it and start hide timer
-        clearTimeout(hideTimer.current);
+        // UI was hidden → show it and start auto-hide timer
         hideTimer.current = setTimeout(() => setShowUI(false), 3000);
         return true;
       } else {
-        // UI was visible, hide it immediately and clear timer
-        clearTimeout(hideTimer.current);
+        // UI was visible → hide it immediately (no timer needed)
         return false;
       }
     });
@@ -639,7 +640,7 @@ export default function WatchPage() {
   return (
     <div
       className={`${styles.page} ${showUI ? '' : styles.hideCursor}`}
-      onMouseMove={onUIActivity}
+      onMouseMove={!isMobileRef.current ? onUIActivity : undefined}
     >
       {/* Desktop back button — fades with controls */}
       <button

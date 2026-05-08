@@ -591,6 +591,7 @@ export default function WatchSeriesPage() {
   const { user, token, updateUser, isAuthenticated } = useAuth();
   const [showUI, setShowUI] = useState(true);
   const hideTimer = useRef(null);
+  const isMobileRef = useRef(window.innerWidth <= 768);
 
   const resetTimer = useCallback(() => {
     clearTimeout(hideTimer.current);
@@ -604,12 +605,13 @@ export default function WatchSeriesPage() {
 
   const onToggleUI = useCallback(() => {
     setShowUI(prev => {
+      clearTimeout(hideTimer.current);
       if (!prev) {
-        clearTimeout(hideTimer.current);
+        // UI was hidden → show it and start auto-hide timer
         hideTimer.current = setTimeout(() => setShowUI(false), 3000);
         return true;
       } else {
-        clearTimeout(hideTimer.current);
+        // UI was visible → hide it immediately
         return false;
       }
     });
@@ -634,7 +636,7 @@ export default function WatchSeriesPage() {
   return (
     <div
       className={`${styles.page} ${showUI ? '' : styles.hideCursor}`}
-      onMouseMove={onUIActivity}
+      onMouseMove={!isMobileRef.current ? onUIActivity : undefined}
     >
       {/* Desktop back button only */}
       <button
