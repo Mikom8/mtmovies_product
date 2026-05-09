@@ -22,7 +22,7 @@ function MovieCard({ movie, onPlay }) {
 
         {movie.isNew && <span className={styles.newTag}>NEW</span>}
 
-        
+
 
         {movie.progressPct !== undefined && movie.progressPct > 0 && (
           <div className={styles.progressBarContainer}>
@@ -35,13 +35,6 @@ function MovieCard({ movie, onPlay }) {
 
           <div className={styles.cardInfo}>
             <p className={styles.cardTitle}>{movie.title}</p>
-            <p className={styles.cardAmharic}>
-              {movie.episodeText ? (
-                <span style={{ color: '#46d369', fontWeight: 'bold' }}>{movie.episodeText}</span>
-              ) : (
-                movie.titleAmharic
-              )}
-            </p>
             <div className={styles.cardMeta}>
               <span className={styles.cardRating}><FaStar style={{ marginRight: '4px', color: '#ffd700', transform: 'translateY(-1px)' }} /> {movie.rating}</span>
               <span className={styles.cardYear}>{movie.year}</span>
