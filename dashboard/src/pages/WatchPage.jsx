@@ -64,7 +64,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
     return localStorage.getItem('mtmovies_muted') === 'true';
   });
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(() => parseDuration(movie?.duration) || 0);
+  const [duration, setDuration] = useState(0);
   const [buffered, setBuffered] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
   const [showSkipFlash, setShowSkipFlash] = useState(null); // 'fwd' | 'bck'
@@ -90,9 +90,11 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
   });
 
   const [isProbing, setIsProbing] = useState(false);
+
   useEffect(() => {
     setDuration(parseDuration(movie?.duration) || 0);
   }, [movie]);
+
   useEffect(() => {
     if (!isTelegram) return;
     setIsProbing(true);
@@ -615,7 +617,28 @@ export default function WatchPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, token, updateUser, isAuthenticated } = useAuth();
-  const { movies: MOVIES, loading } = useMovies();
+  const { movies: MOVIES, loading: contextLoading } = useMovies();
+
+  const [movie, setMovie] = useState(null);
+  const [loadingMovie, setLoadingMovie] = useState(true);
+
+  useEffect(() => {
+    fetch(`https://mtmovies-production.up.railway.app/api/movies/${id}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.movie) {
+          setMovie({
+            ...data.movie,
+            id: data.movie._id,
+            genre: data.movie.genres ? data.movie.genres.join(' • ') : '',
+            telegramChatId: data.movie.telegram?.chatId,
+            telegramMessageId: data.movie.telegram?.messageId,
+          });
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingMovie(false));
+  }, [id]);
   const [showUI, setShowUI] = useState(true);
   const [isClosing, setIsClosing] = useState(false);
   const isClosingRef = useRef(false);
@@ -666,16 +689,19 @@ export default function WatchPage() {
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
-    } else if (!loading) {
-      const m = MOVIES.find(m => String(m.id) === String(id));
-      if (!m) navigate('/browse');
     }
-  }, [isAuthenticated, loading, MOVIES, id, navigate]);
+  }, [isAuthenticated, navigate]);
 
-  if (!isAuthenticated || loading) return <div className={styles.page}></div>;
+  if (!isAuthenticated || contextLoading || loadingMovie) return <div className={styles.page}></div>;
 
-  const movie = MOVIES.find(m => String(m.id) === String(id));
-  if (!movie) return null;
+  if (!movie) {
+    return (
+      <div className={styles.errorState}>
+        <h2>Movie not found.</h2>
+        <button className={styles.backBtn} onClick={() => navigate(-1)}>Go Back</button>
+      </div>
+    );
+  }
 
   return (
     <div

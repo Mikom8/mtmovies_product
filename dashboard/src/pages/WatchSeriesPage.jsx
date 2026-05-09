@@ -194,8 +194,8 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
     const v = videoRef.current;
     if (!v) return;
 
-    if (!duration || !isFinite(duration)) {
-      if (isFinite(v.duration) && v.duration > 0) {
+    if (isFinite(v.duration) && v.duration > 0) {
+      if (Math.abs(duration - v.duration) > 1) {
         setDuration(v.duration);
       }
     }
