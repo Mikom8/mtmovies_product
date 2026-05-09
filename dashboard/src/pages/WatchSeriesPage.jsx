@@ -33,7 +33,7 @@ function parseDuration(str) {
 }
 
 // ── CustomPlayer ──────────────────────────────────────────────────────────────
-function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleUI, user, token, updateUser }) {
+function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleUI, user, token, updateUser, onBack }) {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const progressRef = useRef(null);
@@ -245,7 +245,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
           updateUser({ ...user, watchHistory: newHistory });
         } catch (e) { console.error('Failed to save history', e); }
       }
-    }, 5000);
+    }, 2000);
     return () => clearInterval(interval);
   }, [compoundId, isTelegram, token, user, updateUser]);
 
@@ -378,8 +378,8 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
       } else {
         dblTapTimer.current = setTimeout(() => {
           dblTapTimer.current = null;
-          // single click: just toggle controls (do not play/pause!)
-          onToggleUI();
+          // single click on desktop: toggle play/pause
+          togglePlay();
         }, 250);
       }
     }
@@ -460,7 +460,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
             <div className={`${styles.mobileTopBar} ${showUI ? styles.controlsVisible : ''}`}>
               <button
                 className={styles.mobileBackBtn}
-                onClick={() => navigate(-1)}
+                onClick={() => onBack(-1)}
                 aria-label="Back"
               >
                 <MdArrowBack size={22} />
@@ -590,8 +590,20 @@ export default function WatchSeriesPage() {
   const navigate = useNavigate();
   const { user, token, updateUser, isAuthenticated } = useAuth();
   const [showUI, setShowUI] = useState(true);
+  const [isClosing, setIsClosing] = useState(false);
+  const isClosingRef = useRef(false);
   const hideTimer = useRef(null);
   const isMobileRef = useRef(window.innerWidth <= 768);
+
+  const handleBack = () => {
+    if (isClosingRef.current) return;
+    isClosingRef.current = true;
+    setIsClosing(true);
+
+    setTimeout(() => {
+      navigate(-1);
+    }, 500);
+  };
 
   const resetTimer = useCallback(() => {
     clearTimeout(hideTimer.current);
@@ -635,13 +647,13 @@ export default function WatchSeriesPage() {
 
   return (
     <div
-      className={`${styles.page} ${showUI ? '' : styles.hideCursor}`}
+      className={`${styles.page} ${showUI ? '' : styles.hideCursor} ${isClosing ? styles.pageClosing : ''}`}
       onMouseMove={!isMobileRef.current ? onUIActivity : undefined}
     >
       {/* Desktop back button only */}
       <button
         className={`${styles.backBtn} ${showUI ? styles.backBtnVisible : ''} ${styles.backBtnDesktop}`}
-        onClick={() => navigate(`/series/${series.id}`)}
+        onClick={() => handleBack()}
       >
         <MdArrowBack size={22} />
       </button>
@@ -656,6 +668,7 @@ export default function WatchSeriesPage() {
         user={user}
         token={token}
         updateUser={updateUser}
+        onBack={handleBack}
       />
     </div>
   );

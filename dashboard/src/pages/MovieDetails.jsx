@@ -16,8 +16,12 @@ export default function MovieDetails() {
   const { toggleMyList, isInMyList } = useMyList();
 
   const [movie, setMovie] = useState(null);
+  const [isExpanding, setIsExpanding] = useState(false);
+  const [expandPos, setExpandPos] = useState({ x: 0, y: 0 });
+  const [showSpinner, setShowSpinner] = useState(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const m = MOVIES.find(m => String(m.id) === id);
     if (m) {
       setMovie(m);
@@ -104,9 +108,37 @@ export default function MovieDetails() {
 
   const similar = getSimilarContent();
 
+  const handleWatchClick = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+
+    setExpandPos({ x, y });
+    setIsExpanding(true);
+
+    setTimeout(() => {
+      setShowSpinner(true);
+      setTimeout(() => {
+        navigate(`/watch/${movie.id}`);
+      }, 500); // wait a bit before navigating so spinner is seen
+    }, 500); // 500ms for the cubic-bezier expansion to finish
+  };
+
   return (
-    <div className={styles.page}>
-      <Navbar user={user} onLogout={handleLogout} />
+    <>
+      {isExpanding && (
+        <div
+          className={styles.expansionOverlay}
+          style={{
+            '--origin-x': `${expandPos.x}px`,
+            '--origin-y': `${expandPos.y}px`
+          }}
+        >
+          {showSpinner && <div className={styles.spinner}></div>}
+        </div>
+      )}
+      <div className={styles.page}>
+        <Navbar user={user} onLogout={handleLogout} />
 
       <div className={styles.hero} style={{ backgroundImage: `url(${movie.backdrop})` }}>
         <div className={styles.heroOverlay}>
@@ -126,7 +158,7 @@ export default function MovieDetails() {
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
               <button
                 className={styles.playMainBtn}
-                onClick={() => navigate(`/watch/${movie.id}`)}
+                onClick={handleWatchClick}
               >
                 <FaPlay /> Watch Movie
               </button>
@@ -173,6 +205,7 @@ export default function MovieDetails() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

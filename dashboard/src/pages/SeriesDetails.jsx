@@ -18,7 +18,12 @@ export default function SeriesDetails() {
   const [activeSeason, setActiveSeason] = useState(1);
   const { toggleMyList, isInMyList } = useMyList();
 
+  const [isExpanding, setIsExpanding] = useState(false);
+  const [expandPos, setExpandPos] = useState({ x: 0, y: 0 });
+  const [showSpinner, setShowSpinner] = useState(false);
+
   useEffect(() => {
+    window.scrollTo(0, 0);
     const s = SERIES.find(s => String(s.id) === id);
     if (s) {
       setSeries(s);
@@ -132,9 +137,37 @@ export default function SeriesDetails() {
 
   const similar = getSimilarContent();
 
+  const handleWatchClick = (e, url) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+
+    setExpandPos({ x, y });
+    setIsExpanding(true);
+
+    setTimeout(() => {
+      setShowSpinner(true);
+      setTimeout(() => {
+        navigate(url);
+      }, 500); // wait a bit before navigating so spinner is seen
+    }, 500); // 500ms for the cubic-bezier expansion to finish
+  };
+
   return (
-    <div className={styles.page}>
-      <Navbar user={user} onLogout={handleLogout} />
+    <>
+      {isExpanding && (
+        <div
+          className={styles.expansionOverlay}
+          style={{
+            '--origin-x': `${expandPos.x}px`,
+            '--origin-y': `${expandPos.y}px`
+          }}
+        >
+          {showSpinner && <div className={styles.spinner}></div>}
+        </div>
+      )}
+      <div className={styles.page}>
+        <Navbar user={user} onLogout={handleLogout} />
 
       <div className={styles.hero} style={{ backgroundImage: `url(${series.backdrop})` }}>
         <div className={styles.heroOverlay}>
@@ -154,9 +187,9 @@ export default function SeriesDetails() {
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginTop: '16px' }}>
               <button
                 className={styles.playMainBtn}
-                onClick={() => {
+                onClick={(e) => {
                   const firstEp = series.seasons[0]?.episodes[0];
-                  if (firstEp) navigate(`/watch-series/${series.id}/s/1/e/1`);
+                  if (firstEp) handleWatchClick(e, `/watch-series/${series.id}/s/1/e/1`);
                 }}
               >
                 <FaPlay /> Play
@@ -206,7 +239,7 @@ export default function SeriesDetails() {
               <div
                 key={ep.episodeNumber}
                 className={styles.episodeCard}
-                onClick={() => navigate(`/watch-series/${series.id}/s/${currentSeason.seasonNumber}/e/${ep.episodeNumber}`)}
+                onClick={(e) => handleWatchClick(e, `/watch-series/${series.id}/s/${currentSeason.seasonNumber}/e/${ep.episodeNumber}`)}
               >
                 <div className={styles.epImageWrap}>
                   <img src={series.backdrop} alt={ep.title} className={styles.epImage} />
@@ -260,6 +293,7 @@ export default function SeriesDetails() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

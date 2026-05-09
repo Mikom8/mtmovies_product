@@ -1,12 +1,101 @@
 .row {
-  padding: 0 4% 2.5rem;
+  padding: 0 0 2.5rem;
+}
+
+/* ── Scroll track + arrow wrapper ── */
+.rowTrack {
+  position: relative;
+}
+
+/* ── Scroll Arrows ── */
+.scrollArrow {
+  position: absolute;
+  top: 0;
+  bottom: 12px;
+  /* account for scrollContainer padding-bottom */
+  width: 52px;
+  background: rgba(30, 30, 34, 0.5);
+  border: none;
+  color: #fff;
+  font-size: 2.8rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, background 0.2s;
+  backdrop-filter: blur(1px);
+}
+
+.scrollArrowLeft {
+  left: 0;
+  width: 4vw;
+  /* Match the bleed area */
+  background: linear-gradient(to right, #141414 40%, transparent 100%);
+  /* Solid mask blending to transparent */
+}
+
+.scrollArrowRight {
+  right: 0;
+  width: 4vw;
+  border-radius: 0 8px 8px 0;
+  background: linear-gradient(to left, #141414 40%, transparent 100%);
+}
+
+.arrowVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scrollArrow:hover {
+  background: rgba(30, 30, 34, 0.5);
+  color: #d4af37;
+}
+
+
+
+.rowHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0 4%;
 }
 
 .rowTitle {
   font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 1rem;
   color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  /* Removed margin-bottom since parent handles it now */
+}
+
+.scrollIndicator {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  margin-top: 4px;
+  /* Slight visual tweak to align nicely with the title text baseline */
+}
+
+.scrollIndicator.indicatorVisible {
+  opacity: 1;
+}
+
+.dot {
+  width: 12px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: background 0.3s ease, width 0.3s ease;
+}
+
+.dot.activeDot {
+  background: #d4af37;
 }
 
 .scrollContainer {
@@ -14,8 +103,18 @@
   gap: 8px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  padding-bottom: 12px;
+  padding: 0 0 12px 0;
+  /* No left/right padding so cards bleed to the edge */
+  scroll-padding-left: 4vw;
+  /* Forces cards to snap at the 4vw mark, aligning with the title! */
   scrollbar-width: none;
+}
+
+.scrollContainer::before,
+.scrollContainer::after {
+  content: '';
+  flex: 0 0 calc(4vw - 8px);
+  /* Acts as the 4% padding on the edges, minus the gap */
 }
 
 .scrollContainer::-webkit-scrollbar {
@@ -209,8 +308,15 @@
   }
 
   .playCircle {
-    margin-top: 55%; /* Center play button perfectly */
+    margin-top: 55%;
+    /* Center play button perfectly */
   }
+
+  /* Hide arrows on touch devices — users swipe */
+  .scrollArrow {
+    display: none;
+  }
+
 
   .mobileRating {
     display: flex;
