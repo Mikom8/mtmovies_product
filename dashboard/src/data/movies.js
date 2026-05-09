@@ -242,6 +242,7 @@ export const MOVIES = [
     isFeatured: false,
     isNew: true,
     isTrailer: false,
+    isFree: true,
   },
   {
     id: 8,

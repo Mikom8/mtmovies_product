@@ -108,6 +108,7 @@ export default function Navbar({ user, onLogout, hideLinks = false }) {
           <NavLink to="/browse" className={({ isActive }) => isActive ? styles.active : ''}>Home</NavLink>
           <NavLink to="/movies" className={({ isActive }) => isActive ? styles.active : ''}>Movies</NavLink>
           <NavLink to="/tv-series" className={({ isActive }) => isActive ? styles.active : ''}>TV Series</NavLink>
+          <NavLink to="/free" className={({ isActive }) => isActive ? styles.active : ''}>Free</NavLink>
           <NavLink to="/my-list" className={({ isActive }) => isActive ? styles.active : ''}>My List</NavLink>
         </div>
       )}

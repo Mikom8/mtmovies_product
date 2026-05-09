@@ -13,6 +13,7 @@ import MyList from './pages/MyList';
 import SearchPage from './pages/SearchPage';
 import MoviesPage from './pages/MoviesPage';
 import SeriesPage from './pages/SeriesPage';
+import FreePage from './pages/FreePage';
 
 // Protect the /browse route
 function ProtectedRoute({ children }) {
@@ -110,6 +111,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <SeriesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/free"
+        element={
+          <ProtectedRoute>
+            <FreePage />
           </ProtectedRoute>
         }
       />

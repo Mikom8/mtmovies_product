@@ -13,6 +13,7 @@ export const SERIES = [
     backdrop: "https://www.highreshdwallpapers.com/wp-content/uploads/2014/04/Game-of-Thrones-Season-1-HD-Background-1920x1080.jpg",
     trailerEmbedId: "KPLWWIOCOOQ",
     isFeatured: true,
+    isFree: true,
     seasons: [
       {
         seasonNumber: 1,
@@ -233,7 +234,7 @@ export const SERIES = [
     rating: 8.4,
     quality: "720p",
     hasAmharicDub: true,
-    poster: "https://m.media-amazon.com/images/M/MV5BM2QzMGVkNjUtN2Y4Yi00ODMwLTg3YzktYzUxYjJlNjFjNDY1XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+    poster: "https://xonomax.com/cdn/shop/files/700298.jpg?v=1723565926",
     backdrop: "https://static3.go3.tv/scale/go3/imagesVOD/147950468.jpg?dsth=1080&dstw=1920&srcmode=0&quality=80&srcx=0&srcy=0&srcw=1/1&srch=1/1&type=2",
     trailerEmbedId: "DotnJ7tTA34",
     isFeatured: false,
@@ -346,6 +347,7 @@ export const SERIES = [
     trailerEmbedId: "HhesaQXLuRY",
     isFeatured: false,
     isNew: false,
+    isFree: true,
     seasons: [
       {
         seasonNumber: 1,
@@ -643,6 +645,7 @@ export const SERIES = [
     trailerEmbedId: "9GgxinPwAGc",
     isFeatured: false,
     isNew: false,
+    isFree: true,
     seasons: [
       {
         seasonNumber: 1,
@@ -703,6 +706,446 @@ export const SERIES = [
           telegramChatId: "-1003934460497",
           telegramMessageId: String(379 + i)
         }))
+      }
+    ]
+  },
+  {
+    id: "wednesday",
+    title: "Wednesday",
+    titleAmharic: "ዌንስዴይ",
+    description: "Follows Wednesday Addams' years as a student, when she attempts to master her emerging psychic ability, thwart a killing spree and solve the mystery that embroiled her parents.",
+    genre: "Comedy • Crime • Fantasy",
+    year: 2022,
+    rating: 8.1,
+    quality: "720p",
+    hasAmharicDub: true,
+    poster: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0JhH_ZYcITuu5c8BHBppuHI14saDsWpzImQ&s",
+    backdrop: "https://film-book.com/wp-content/uploads/2023/01/wednesday-tv-show-poster-banner-01-700x400-1.jpg",
+    trailerEmbedId: "Di310fipQHk",
+    isFeatured: false,
+    isFree: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "Wednesday's Child Is Full of Woe", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "686" },
+          { episodeNumber: 2, title: "Woe Is the Loneliest Number", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "687" },
+          { episodeNumber: 3, title: "Friend or Woe", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "688" },
+          { episodeNumber: 4, title: "Woe What a Night", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "689" },
+          { episodeNumber: 5, title: "You Reap What You Woe", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "690" },
+          { episodeNumber: 6, title: "Quid Pro Woe", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "691" },
+          { episodeNumber: 7, title: "If You Don't Woe Me by Now", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "692" },
+          { episodeNumber: 8, title: "A Murder of Woes", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "693" }
+        ]
+      },
+      {
+        seasonNumber: 2,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "694" },
+          { episodeNumber: 2, title: "Episode 2", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "695" },
+          { episodeNumber: 3, title: "Episode 3", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "696" },
+          { episodeNumber: 4, title: "Episode 4", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "697" },
+          { episodeNumber: 5, title: "Episode 5", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "698" },
+          { episodeNumber: 6, title: "Episode 6", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "699" },
+          { episodeNumber: 7, title: "Episode 7", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "700" },
+          { episodeNumber: 8, title: "Episode 8", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "701" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "the-flash",
+    title: "The Flash",
+    titleAmharic: "ዘ ፍላሽ",
+    description: "After being struck by lightning, Barry Allen wakes up from his coma to discover he's been given the power of super speed, becoming the next Flash, fighting crime in Central City.",
+    genre: "Action • Adventure • Drama",
+    year: "2014-2023",
+    rating: 7.5,
+    quality: "720p",
+    hasAmharicDub: true,
+    poster: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7OA5rq5MCQwIz_I70kvXidXcTl8R-tgPJ9g&s",
+    backdrop: "https://4kwallpapers.com/images/wallpapers/the-flash-barry-allen-nora-west-allen-tv-series-dc-comics-2880x1800-6770.jpg",
+    trailerEmbedId: "Yj0l7iGKh8g",
+    isFeatured: true,
+    isFree: true,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: Array.from({ length: 23 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Episode ${i + 1}`,
+          duration: "42m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(399 + i)
+        }))
+      },
+      {
+        seasonNumber: 2,
+        episodes: Array.from({ length: 23 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Episode ${i + 1}`,
+          duration: "42m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(422 + i)
+        }))
+      },
+      {
+        seasonNumber: 3,
+        episodes: Array.from({ length: 23 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Episode ${i + 1}`,
+          duration: "42m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(445 + i)
+        }))
+      },
+      {
+        seasonNumber: 4,
+        episodes: Array.from({ length: 23 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Episode ${i + 1}`,
+          duration: "42m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(468 + i)
+        }))
+      },
+      {
+        seasonNumber: 5,
+        episodes: Array.from({ length: 22 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Episode ${i + 1}`,
+          duration: "42m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(491 + i)
+        }))
+      },
+      {
+        seasonNumber: 6,
+        episodes: Array.from({ length: 19 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Episode ${i + 1}`,
+          duration: "42m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(513 + i)
+        }))
+      },
+      {
+        seasonNumber: 7,
+        episodes: Array.from({ length: 18 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Episode ${i + 1}`,
+          duration: "42m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(532 + i)
+        }))
+      },
+      {
+        seasonNumber: 8,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "42m", telegramChatId: "-1003934460497", telegramMessageId: "550" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "from",
+    title: "From",
+    titleAmharic: "ፍሮም",
+    description: "Unravel the mystery of a city in middle America that imprisons everyone who enters. As the unwilling residents fight to keep a sense of normalcy and search for a way out, they must also survive the threats of the surrounding forest.",
+    genre: "Horror • Mystery • Sci-Fi",
+    year: 2022,
+    rating: 7.7,
+    quality: "720p",
+    hasAmharicDub: true,
+    poster: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQP7mY0X2ctmIeUeGLk_VMsLNUulv4k_3AxRg&s",
+    backdrop: "https://m.media-amazon.com/images/M/MV5BNDAwNDljNWEtNWE1Zi00YjFlLWEzM2UtY2E3ZTM1MTcxMTcyXkEyXkFqcGc@._V1_QL75_UX500_CR0,230,500,281_.jpg",
+    trailerEmbedId: "14fshWp",
+    isFeatured: false,
+    isFree: false,
+    isNew: true,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "Long Day's Journey into Night", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "729" },
+          { episodeNumber: 2, title: "The Way Things Are Now", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "730" },
+          { episodeNumber: 3, title: "Choosing Day", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "731" },
+          { episodeNumber: 4, title: "A Rock and a Farway Place", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "732" },
+          { episodeNumber: 5, title: "Silhouettes", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "733" },
+          { episodeNumber: 6, title: "Book 74", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "734" },
+          { episodeNumber: 7, title: "All Good Things", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "735" },
+          { episodeNumber: 8, title: "Broken Windows, Open Doors", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "736" },
+          { episodeNumber: 9, title: "Into the Woods", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "737" },
+          { episodeNumber: 10, title: "Oh, the Places We'll Go", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "738" }
+        ]
+      },
+      {
+        seasonNumber: 2,
+        episodes: [
+          { episodeNumber: 1, title: "Strangers in a Strange Land", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "739" },
+          { episodeNumber: 2, title: "The Kindness of Strangers", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "740" },
+          { episodeNumber: 3, title: "Tether", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "741" },
+          { episodeNumber: 4, title: "Gone Soft", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "742" },
+          { episodeNumber: 5, title: "Lullaby", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "743" },
+          { episodeNumber: 6, title: "Pas de Deux", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "744" },
+          { episodeNumber: 7, title: "Belly of the Beast", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "745" },
+          { episodeNumber: 8, title: "Forest for the Trees", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "746" },
+          { episodeNumber: 9, title: "Ball of Magic Fire", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "747" },
+          { episodeNumber: 10, title: "Once Upon a Time...", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "748" }
+        ]
+      },
+      {
+        seasonNumber: 3,
+        episodes: Array.from({ length: 13 }, (_, i) => ({
+          episodeNumber: i + 1,
+          title: `Episode ${i + 1}`,
+          duration: "50m",
+          telegramChatId: "-1003934460497",
+          telegramMessageId: String(749 + i)
+        }))
+      }
+    ]
+  },
+  {
+    id: "copenhagen-test",
+    title: "The Copenhagen Test",
+    titleAmharic: "ዘ ኮፐንሃገን ቴስት",
+    description: "An intelligence analyst discovers his brain has been hacked, giving perpetrators access to everything he sees and hears. He must uncover the truth while caught between his shadows agency and unknown hackers.",
+    genre: "Action • Sci-Fi • Thriller",
+    year: 2025,
+    rating: 7.0,
+    quality: "720p",
+    hasAmharicDub: true,
+    poster: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkMptRHLHPlFjhX1DXcACq7c1we_pUn-ZP8g&s",
+    backdrop: "https://flixchatter.net/wp-content/uploads/2026/02/peacock-copenhagentest-series.jpg",
+    trailerEmbedId: "bO1Xw4mE_5c",
+    isFeatured: false,
+    isFree: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "The Orphanage", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "763" },
+          { episodeNumber: 2, title: "The Hack", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "764" },
+          { episodeNumber: 3, title: "The Performance", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "765" },
+          { episodeNumber: 4, title: "The Clue", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "766" },
+          { episodeNumber: 5, title: "The Allegiance", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "767" },
+          { episodeNumber: 6, title: "The Perps", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "768" },
+          { episodeNumber: 7, title: "The Truth", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "769" },
+          { episodeNumber: 8, title: "The End", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "770" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "maxton-hall",
+    title: "Maxton Hall",
+    description: "A scholarship student at the elite private school Maxton Hall unintentionally witnesses a secret that changes everything.",
+    genre: "Drama • Romance",
+    year: 2024,
+    rating: 7.5,
+    quality: "1080p",
+    hasAmharicDub: true,
+    poster: "https://m.media-amazon.com/images/M/MV5BNWQ0Y2JlNjMtODJkYy00ODA3LTgyOTYtZWQ3MmRjOTBiNzQ0XkEyXkFqcGc@._V1_.jpg",
+    backdrop: "https://www.vitalthrills.com/wp-content/uploads/2025/06/maxtonhallheader.jpg",
+    trailerEmbedId: "Di310fipQHk",
+    isFeatured: false,
+    isFree: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "824" },
+          { episodeNumber: 2, title: "Episode 2", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "825" },
+          { episodeNumber: 3, title: "Episode 3", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "826" },
+          { episodeNumber: 4, title: "Episode 4", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "827" },
+          { episodeNumber: 5, title: "Episode 5", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "828" },
+          { episodeNumber: 6, title: "Episode 6", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "829" },
+          { episodeNumber: 7, title: "Episode 7", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "830" },
+          { episodeNumber: 8, title: "Episode 8", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "831" },
+          { episodeNumber: 9, title: "Episode 9", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "832" },
+          { episodeNumber: 10, title: "Episode 10", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "833" },
+          { episodeNumber: 11, title: "Episode 11", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "834" },
+          { episodeNumber: 12, title: "Episode 12", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "835" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "the-sentinels",
+    title: "The Sentinels",
+    description: "A wounded soldier is recruited into a secret program that grants him superhuman abilities during World War I.",
+    genre: "Sci-Fi • War • Drama",
+    year: 2025,
+    rating: 6.4,
+    quality: "1080p",
+    hasAmharicDub: true,
+    poster: "https://m.media-amazon.com/images/M/MV5BZDliOTRlY2EtNDE1ZC00N2UxLWIyNTktMDJkMjcyM2VkZjlmXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+    backdrop: "https://image.tmdb.org/t/p/w780/pdyLy7u0mD2ujXL8gaVnCZ0sFCH.jpg",
+    trailerEmbedId: "KPLWWIOCOOQ",
+    isFeatured: false,
+    isFree: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "815" },
+          { episodeNumber: 2, title: "Episode 2", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "816" },
+          { episodeNumber: 3, title: "Episode 3", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "817" },
+          { episodeNumber: 4, title: "Episode 4", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "818" },
+          { episodeNumber: 5, title: "Episode 5", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "819" },
+          { episodeNumber: 6, title: "Episode 6", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "820" },
+          { episodeNumber: 7, title: "Episode 7", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "821" },
+          { episodeNumber: 8, title: "Episode 8", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "822" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "cashero",
+    title: "Cashero",
+    description: "An ordinary civil servant gains superhuman strength that is directly tied to the amount of cash he carries.",
+    genre: "Action • Superhero • Drama",
+    year: 2025,
+    rating: 8.6,
+    quality: "1080p",
+    hasAmharicDub: true,
+    poster: "https://m.media-amazon.com/images/M/MV5BZmJkZjZlOTEtMDZjMC00YWNhLTg2MjItMzMzNzE0MTEyODM2XkEyXkFqcGc@._V1_.jpg",
+    backdrop: "https://www.chosun.com/resizer/v2/MI3WENZSMM3GMMRUMM3DONLBGM.jpg?auth=eaf02068c6844ec6e4ce3b5462e40086453a0a5411d0cfcda587e98875df15d6&width=530&height=265&smart=true",
+    trailerEmbedId: "14fshWp",
+    isFeatured: false,
+    isFree: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "806" },
+          { episodeNumber: 2, title: "Episode 2", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "807" },
+          { episodeNumber: 3, title: "Episode 3", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "808" },
+          { episodeNumber: 4, title: "Episode 4", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "809" },
+          { episodeNumber: 5, title: "Episode 5", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "810" },
+          { episodeNumber: 6, title: "Episode 6", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "811" },
+          { episodeNumber: 7, title: "Episode 7", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "812" },
+          { episodeNumber: 8, title: "Episode 8", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "813" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "as-you-stood-by",
+    title: "As You Stood By",
+    description: "Two women trapped by trauma and abuse plot a dangerous escape that leads to unexpected consequences.",
+    genre: "Thriller • Crime • Drama",
+    year: 2025,
+    rating: 8.2,
+    quality: "1080p",
+    hasAmharicDub: true,
+    poster: "https://resizing.flixster.com/-XZAfHZM39UwaGJIFWKAE8fS0ak=/v3/t/assets/p31003446_b_v9_ab.jpg",
+    backdrop: "https://miro.medium.com/1*c_Xrc_Xovpn2j2jFw1jQCg.jpeg",
+    trailerEmbedId: "Yj0l7iGKh8g",
+    isFeatured: false,
+    isFree: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "797" },
+          { episodeNumber: 2, title: "Episode 2", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "798" },
+          { episodeNumber: 3, title: "Episode 3", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "799" },
+          { episodeNumber: 4, title: "Episode 4", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "800" },
+          { episodeNumber: 5, title: "Episode 5", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "801" },
+          { episodeNumber: 6, title: "Episode 6", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "802" },
+          { episodeNumber: 7, title: "Episode 7", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "803" },
+          { episodeNumber: 8, title: "Episode 8", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "804" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sunny-nights",
+    title: "Sunny Nights",
+    description: "American siblings relocate to Australia to launch a spray tan business but get entangled with the local criminal underworld.",
+    genre: "Comedy • Crime • Drama",
+    year: 2025,
+    rating: 7.0,
+    quality: "1080p",
+    hasAmharicDub: true,
+    poster: "https://m.media-amazon.com/images/M/MV5BNjQ2MTY3NzctZGEwOC00YzI3LTk0YzEtYTYyNTE1NDkyZWMyXkEyXkFqcGc@._V1_QL75_UY281_CR155,0,190,281_.jpg",
+    backdrop: "https://image.tmdb.org/t/p/w780/snzdsMpR8kDcZkRJPja85BbRysT.jpg",
+    trailerEmbedId: "bO1Xw4mE_5c",
+    isFeatured: false,
+    isFree: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "788" },
+          { episodeNumber: 2, title: "Episode 2", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "789" },
+          { episodeNumber: 3, title: "Episode 3", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "790" },
+          { episodeNumber: 4, title: "Episode 4", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "791" },
+          { episodeNumber: 5, title: "Episode 5", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "792" },
+          { episodeNumber: 6, title: "Episode 6", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "793" },
+          { episodeNumber: 7, title: "Episode 7", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "794" },
+          { episodeNumber: 8, title: "Episode 8", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "795" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "run-away",
+    title: "Run Away",
+    description: "A man's life is shattered when his daughter runs away, leading him into a dangerous dark underworld.",
+    genre: "Thriller • Mystery • Drama",
+    year: 2026,
+    rating: 8.0,
+    quality: "1080p",
+    hasAmharicDub: true,
+    poster: "https://myhotposters.com/cdn/shop/files/Run_Away_TV_Show_2_large.webp?v=1768153295",
+    backdrop: "https://justvoicesagency.com/app/uploads/2026/01/p31528087_b_h9_aa.jpg",
+    trailerEmbedId: "Di310fipQHk",
+    isFeatured: false,
+    isFree: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "779" },
+          { episodeNumber: 2, title: "Episode 2", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "780" },
+          { episodeNumber: 3, title: "Episode 3", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "781" },
+          { episodeNumber: 4, title: "Episode 4", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "782" },
+          { episodeNumber: 5, title: "Episode 5", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "783" },
+          { episodeNumber: 6, title: "Episode 6", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "784" },
+          { episodeNumber: 7, title: "Episode 7", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "785" },
+          { episodeNumber: 8, title: "Episode 8", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "786" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "red-eye",
+    title: "Red Eye",
+    description: "A detective must escort a doctor accused of murder on an overnight flight, discovering a major conspiracy.",
+    genre: "Thriller • Crime",
+    year: 2024,
+    rating: 7.2,
+    quality: "1080p",
+    hasAmharicDub: true,
+    poster: "https://image.tmdb.org/t/p/original/2Sz6GZwmaN5MX3GRBCRyQxYSQOh.jpg",
+    backdrop: "https://cultbox.co.uk/wp-content/uploads/2025/05/Red-Eye-600x337.jpeg",
+    trailerEmbedId: "Yj0l7iGKh8g",
+    isFeatured: false,
+    isFree: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "772" },
+          { episodeNumber: 2, title: "Episode 2", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "773" },
+          { episodeNumber: 3, title: "Episode 3", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "774" },
+          { episodeNumber: 4, title: "Episode 4", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "775" },
+          { episodeNumber: 5, title: "Episode 5", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "776" },
+          { episodeNumber: 6, title: "Episode 6", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "777" }
+        ]
       }
     ]
   }
