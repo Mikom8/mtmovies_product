@@ -1,17 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MOVIES } from '../data/movies';
-import { SERIES } from '../data/series';
+import { useMovies } from '../context/MovieContext';
 import { FiArrowLeft, FiSearch, FiX } from 'react-icons/fi';
 import { FaPlay } from 'react-icons/fa';
+import PageSkeleton from '../components/PageSkeleton';
 import styles from './SearchPage.module.css';
-
-const ALL = [
-  ...MOVIES.map(m => ({ ...m, type: 'movie' })),
-  ...SERIES.map(s => ({ ...s, type: 'series' })),
-];
-
 function matchesQuery(item, q) {
   const lower = q.toLowerCase();
   return (
@@ -24,12 +18,20 @@ function matchesQuery(item, q) {
 export default function SearchPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { movies: MOVIES, series: SERIES, loading } = useMovies();
   const [query, setQuery] = useState('');
   const inputRef = useRef(null);
 
   useEffect(() => {
     if (inputRef.current) inputRef.current.focus();
   }, []);
+
+  if (loading) return <PageSkeleton />;
+
+  const ALL = [
+    ...MOVIES.map(m => ({ ...m, type: 'movie' })),
+    ...SERIES.map(s => ({ ...s, type: 'series' })),
+  ];
 
   const results = query.trim() ? ALL.filter(i => matchesQuery(i, query.trim())) : [];
 

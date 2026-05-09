@@ -14,19 +14,13 @@ function MovieCard({ movie }) {
       onMouseLeave={() => setHovered(false)}
       onClick={() => {
         if (movie.continueWatchUrl) navigate(movie.continueWatchUrl);
-        else navigate(movie.seasons ? `/series/${movie.id}` : `/movie/${movie.id}`);
+        else navigate(movie.type === 'series' ? `/series/${movie.id}` : `/movie/${movie.id}`);
       }}
     >
       <div className={styles.posterWrapper}>
         <img src={movie.poster} alt={movie.title} className={styles.poster} loading="lazy" />
 
         {movie.isNew && <span className={styles.newTag}>NEW</span>}
-
-        {movie.progressPct !== undefined && movie.progressPct > 0 && (
-          <div className={styles.progressBarContainer}>
-            <div className={styles.progressBarFill} style={{ width: `${movie.progressPct}%` }}></div>
-          </div>
-        )}
 
         <div className={`${styles.cardOverlay} ${hovered ? styles.visible : ''}`}>
           <button className={styles.playCircle} aria-label="Play">
@@ -43,14 +37,31 @@ function MovieCard({ movie }) {
               <span className={styles.cardYear}>{movie.year}</span>
               {movie.hasAmharicDub && <span className={styles.dubTag}>አማርኛ</span>}
             </div>
-            <p className={styles.cardGenre}>{movie.genre.split(' • ').slice(0, 2).join(' • ')}</p>
+            <p className={styles.cardGenre}>{movie.genre?.split(' • ').slice(0, 2).join(' • ')}</p>
           </div>
         </div>
+
+        {/* Progress bar — always render track, fill only when there's progress */}
+        {movie.progressPct !== undefined && (
+          <div className={styles.progressBarContainer}>
+            <div
+              className={styles.progressBarFill}
+              style={{ width: `${movie.progressPct || 0}%` }}
+            ></div>
+          </div>
+        )}
+
+        {/* Episode badge: S01E02 — shown on hover for series cards */}
+        {movie.episodeText && (
+          <span className={`${styles.episodeBadge} ${hovered ? styles.episodeBadgeVisible : ''}`}>
+            {movie.episodeText}
+          </span>
+        )}
       </div>
 
       <div className={styles.mobileInfo}>
         <p className={styles.mobileTitle}>{movie.title}</p>
-        <p className={styles.mobileSub}></p>
+        <p className={styles.mobileSub}>{movie.episodeText || ''}</p>
       </div>
     </div>
   );
@@ -142,16 +153,23 @@ export default function MovieRow({ title, movies }) {
     >
       <div className={styles.rowHeader}>
         <h2 className={styles.rowTitle}>{title}</h2>
-        {totalSteps > 1 && (
-          <div className={`${styles.scrollIndicator} ${rowHovered ? styles.indicatorVisible : ''}`}>
-            {Array.from({ length: totalSteps }).map((_, idx) => (
-              <span
-                key={idx}
-                className={`${styles.dot} ${idx === currentStep ? styles.activeDot : ''}`}
-              />
-            ))}
-          </div>
-        )}
+        {totalSteps > 1 && (() => {
+          const maxDots = Math.min(totalSteps, 7);
+          const activeDotIndex = totalSteps <= 7 
+            ? currentStep 
+            : Math.round((currentStep / (totalSteps - 1)) * (maxDots - 1));
+            
+          return (
+            <div className={`${styles.scrollIndicator} ${rowHovered ? styles.indicatorVisible : ''}`}>
+              {Array.from({ length: maxDots }).map((_, idx) => (
+                <span
+                  key={idx}
+                  className={`${styles.dot} ${idx === activeDotIndex ? styles.activeDot : ''}`}
+                />
+              ))}
+            </div>
+          );
+        })()}
       </div>
 
       <div className={styles.rowTrack}>

@@ -151,17 +151,42 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  z-index: 5;
-  /* Above poster, below overlay if needed, but usually we want it always visible */
+  height: 5px;
+  background: rgba(255, 255, 255, 0.25);
+  z-index: 20; /* above cardOverlay */
 }
 
 .progressBarFill {
   height: 100%;
   background: #e50914;
-  /* Netflix red */
-  border-radius: 0 2px 2px 0;
+  border-radius: 0 3px 3px 0;
+  transition: width 0.3s ease;
+}
+
+/* Episode badge: S01E02 — appears on hover */
+.episodeBadge {
+  position: absolute;
+  bottom: 12px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  z-index: 21; /* above progress bar and overlay */
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.episodeBadgeVisible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .cardOverlay {

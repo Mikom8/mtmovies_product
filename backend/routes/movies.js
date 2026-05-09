@@ -6,20 +6,20 @@ const { protect, requirePlan } = require('../middleware/auth');
 // ── GET /api/movies — get all movies (with filtering) ──
 router.get('/', async (req, res) => {
   try {
-    const { genre, type, search, featured, newRelease, page = 1, limit = 20 } = req.query;
+    const { genre, type, search, featured, newRelease, page = 1, limit = 50 } = req.query;
 
     const filter = {};
-    if (genre) filter.genre = genre;
+    if (genre) filter.genres = genre;
     if (type) filter.type = type;
     if (featured === 'true') filter.isFeatured = true;
-    if (newRelease === 'true') filter.isNewRelease = true;
+    if (newRelease === 'true') filter.isNew = true;
     if (search) filter.$text = { $search: search };
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const [movies, total] = await Promise.all([
       Movie.find(filter)
-        .select('-videoUrl -seasons.episodes.videoUrl') // don't expose video URLs publicly
+        .select('-telegram') // Hide telegram details from list for size optimization (they are in details anyway)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
@@ -41,7 +41,7 @@ router.get('/', async (req, res) => {
 router.get('/featured', async (req, res) => {
   try {
     const movies = await Movie.find({ isFeatured: true })
-      .select('-videoUrl')
+      .select('-telegram')
       .limit(5);
     res.json({ movies });
   } catch (err) {
@@ -52,7 +52,7 @@ router.get('/featured', async (req, res) => {
 // ── GET /api/movies/:id — get single movie details ──
 router.get('/:id', async (req, res) => {
   try {
-    const movie = await Movie.findById(req.params.id).select('-videoUrl -seasons.episodes.videoUrl');
+    const movie = await Movie.findById(req.params.id);
     if (!movie) return res.status(404).json({ error: 'Movie not found.' });
     res.json({ movie });
   } catch (err) {
@@ -69,19 +69,19 @@ router.get('/:id/stream', protect, async (req, res) => {
     // Check plan access
     const planLevels = { free: 0, basic: 1, popular: 2, family: 3 };
     const userLevel = planLevels[req.user.plan] || 0;
-    const requiredLevel = planLevels[movie.requiredPlan] || 1;
+    const requiredLevel = movie.isFree ? 0 : 1;
 
     if (userLevel < requiredLevel) {
       return res.status(403).json({
         error: 'Upgrade your plan to watch this title.',
-        requiredPlan: movie.requiredPlan
+        requiredPlan: 'basic'
       });
     }
 
     // Increment view count
-    await Movie.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
+    await Movie.findByIdAndUpdate(req.params.id, { $inc: { 'stats.views': 1 } });
 
-    res.json({ videoUrl: movie.videoUrl, title: movie.title });
+    res.json({ telegram: movie.telegram, title: movie.title });
   } catch (err) {
     res.status(500).json({ error: 'Failed to get stream.' });
   }

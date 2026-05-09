@@ -34,7 +34,7 @@ export function useMyList() {
     if (!token) return;
 
     const itemId = String(item.id);
-    const itemType = item.seasons ? 'series' : 'movie';
+    const itemType = item.type === 'series' ? 'series' : 'movie';
 
     // Optimistic UI update
     setMyList(prev => {

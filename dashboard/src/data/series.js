@@ -1148,6 +1148,141 @@ export const SERIES = [
         ]
       }
     ]
+  },
+  {
+    id: "furies",
+    title: "Furies",
+    titleAmharic: "ፊዩሪስ",
+    description: "Seeking to avenge her father's death, a young woman becomes entangled in the web of the Fury, the peacekeeper of the Paris criminal underworld.",
+    genre: "Action • Crime • Drama",
+    year: 2024,
+    rating: 6.3,
+    quality: "1080p",
+    hasAmharicDub: true,
+    poster: "https://img.lazcdn.com/g/p/09cff7d935aec6dd4d14aebd8e5a004b.jpg_960x960q80.jpg_.webp",
+    backdrop: "https://occ-0-8407-92.1.nflxso.net/dnm/api/v6/0Qzqdxw-HG1AiOKLWWPsFOUDA2E/AAAABc3w49oihjbio_8E5PaMMe_MaggUtwgRlVkofOjNF5J1U6gW35vPPPCO7MgpiYxiPADeBUgGxKDBSXjxLc9gE-a-nb1xnbmEki4x5zxOAr8Vwq_CT26diuTTP1soAeKvXxTwlA.webp?r=004",
+    trailerEmbedId: "DotnJ7tTA34",
+    isFeatured: false,
+    isFree: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "848" },
+          { episodeNumber: 2, title: "Episode 2", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "849" },
+          { episodeNumber: 3, title: "Episode 3", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "850" },
+          { episodeNumber: 4, title: "Episode 4", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "851" },
+          { episodeNumber: 5, title: "Episode 5", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "852" },
+          { episodeNumber: 6, title: "Episode 6", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "853" },
+          { episodeNumber: 7, title: "Episode 7", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "854" },
+          { episodeNumber: 8, title: "Episode 8", duration: "45m", telegramChatId: "-1003934460497", telegramMessageId: "855" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "mr-inbetween",
+    title: "Mr Inbetween",
+    titleAmharic: "ሚስተር ኢንቢትዊን",
+    description: "Ray Shoesmith is a father, ex-husband, boyfriend and best friend: tough roles to juggle in the modern age. Even tougher when you're a hitman for hire.",
+    genre: "Crime • Drama • Comedy",
+    year: "2018-2021",
+    rating: 8.6,
+    quality: "1080p",
+    hasAmharicDub: true,
+    poster: "https://i.ebayimg.com/images/g/8y4AAOSwkY9blxKr/s-l400.jpg",
+    backdrop: "https://img3.hulu.com/user/v3/artwork/0c198187-f948-4ccd-b2b4-f5930ca4ac2f?base_image_bucket_name=image_manager&base_image=03dee164-476f-4bac-906d-f686b5d1605c&region=US&format=webp&size=952x536",
+    trailerEmbedId: "9S_68yE7o_A",
+    isFeatured: false,
+    isFree: true,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "857" },
+          { episodeNumber: 2, title: "Episode 2", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "858" },
+          { episodeNumber: 3, title: "Episode 3", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "859" },
+          { episodeNumber: 4, title: "Episode 4", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "860" },
+          { episodeNumber: 5, title: "Episode 5", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "861" },
+          { episodeNumber: 6, title: "Episode 6", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "862" }
+        ]
+      },
+      {
+        seasonNumber: 2,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "863" },
+          { episodeNumber: 2, title: "Episode 2", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "864" },
+          { episodeNumber: 3, title: "Episode 3", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "865" },
+          { episodeNumber: 4, title: "Episode 4", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "866" },
+          { episodeNumber: 5, title: "Episode 5", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "867" },
+          { episodeNumber: 6, title: "Episode 6", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "868" },
+          { episodeNumber: 7, title: "Episode 7", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "869" },
+          { episodeNumber: 8, title: "Episode 8", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "870" },
+          { episodeNumber: 9, title: "Episode 9", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "871" },
+          { episodeNumber: 10, title: "Episode 10", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "872" },
+          { episodeNumber: 11, title: "Episode 11", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "873" }
+        ]
+      },
+      {
+        seasonNumber: 3,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "874" },
+          { episodeNumber: 2, title: "Episode 2", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "875" },
+          { episodeNumber: 3, title: "Episode 3", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "876" },
+          { episodeNumber: 4, title: "Episode 4", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "877" },
+          { episodeNumber: 5, title: "Episode 5", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "878" },
+          { episodeNumber: 6, title: "Episode 6", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "879" },
+          { episodeNumber: 7, title: "Episode 7", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "880" },
+          { episodeNumber: 8, title: "Episode 8", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "881" },
+          { episodeNumber: 9, title: "Episode 9", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "882" },
+          { episodeNumber: 10, title: "Episode 10", duration: "30m", telegramChatId: "-1003934460497", telegramMessageId: "883" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "one-piece",
+    title: "One Piece",
+    titleAmharic: "ዋን ፒስ",
+    description: "In a seafaring world, a young pirate captain sets out with his crew to attain the title of Pirate King, and to discover the mythical treasure known as 'One Piece.'",
+    genre: "Action • Adventure • Fantasy",
+    year: 2023,
+    rating: 8.4,
+    quality: "1080p",
+    hasAmharicDub: true,
+    poster: "https://m.media-amazon.com/images/M/MV5BM2ExYzUzMGMtODVlZS00YjY2LTk2MjEtNTNiZmI0YjEwMzA0XkEyXkFqcGc@._V1_.jpg",
+    backdrop: "https://gqcanimes.com.br/wp-content/uploads/2025/02/One-Piece-live-action-2-filmagens.webp",
+    trailerEmbedId: "A7sYV80WfMc",
+    isFeatured: false,
+    isFree: false,
+    seasons: [
+      {
+        seasonNumber: 1,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "885" },
+          { episodeNumber: 2, title: "Episode 2", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "886" },
+          { episodeNumber: 3, title: "Episode 3", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "887" },
+          { episodeNumber: 4, title: "Episode 4", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "888" },
+          { episodeNumber: 5, title: "Episode 5", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "889" },
+          { episodeNumber: 6, title: "Episode 6", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "890" },
+          { episodeNumber: 7, title: "Episode 7", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "891" },
+          { episodeNumber: 8, title: "Episode 8", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "892" }
+        ]
+      },
+      {
+        seasonNumber: 2,
+        episodes: [
+          { episodeNumber: 1, title: "Episode 1", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "893" },
+          { episodeNumber: 2, title: "Episode 2", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "894" },
+          { episodeNumber: 3, title: "Episode 3", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "895" },
+          { episodeNumber: 4, title: "Episode 4", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "896" },
+          { episodeNumber: 5, title: "Episode 5", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "897" },
+          { episodeNumber: 6, title: "Episode 6", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "898" },
+          { episodeNumber: 7, title: "Episode 7", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "899" },
+          { episodeNumber: 8, title: "Episode 8", duration: "60m", telegramChatId: "-1003934460497", telegramMessageId: "900" }
+        ]
+      }
+    ]
   }
 ];
 

@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useMyList } from '../hooks/useMyList';
+import { useMovies } from '../context/MovieContext';
 import Navbar from '../components/Navbar';
-import { SERIES } from '../data/series';
-import { MOVIES } from '../data/movies';
 import { FaPlay, FaPlus, FaCheck } from 'react-icons/fa';
 import { IoIosArrowBack } from 'react-icons/io';
 import styles from './SeriesDetails.module.css';
@@ -13,6 +12,7 @@ export default function SeriesDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, token, logout } = useAuth();
+  const { series: SERIES, loading } = useMovies();
 
   const [series, setSeries] = useState(null);
   const [activeSeason, setActiveSeason] = useState(1);
@@ -24,18 +24,20 @@ export default function SeriesDetails() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const s = SERIES.find(s => String(s.id) === id);
-    if (s) {
-      setSeries(s);
-      if (s.seasons && s.seasons.length > 0) {
-        setActiveSeason(s.seasons[0].seasonNumber);
+    if (!loading && SERIES.length > 0) {
+      const s = SERIES.find(s => String(s.id) === String(id));
+      if (s) {
+        setSeries(s);
+        if (s.seasons && s.seasons.length > 0) {
+          setActiveSeason(s.seasons[0].seasonNumber);
+        }
+      } else {
+        navigate('/browse');
       }
-    } else {
-      navigate('/browse');
     }
-  }, [id, navigate]);
+  }, [id, navigate, loading, SERIES]);
 
-  if (!series) return (
+  if (loading || !series) return (
     <div className={styles.page}>
       <Navbar user={user} onLogout={() => { logout(); navigate('/'); }} />
 
@@ -85,7 +87,7 @@ export default function SeriesDetails() {
     </div>
   );
 
-  const currentSeason = series.seasons.find(s => s.seasonNumber === activeSeason);
+  const currentSeason = series.seasons?.find(s => s.seasonNumber === activeSeason);
 
   // Find user progress if any
   const getEpisodeProgress = (sNum, eNum) => {
@@ -101,12 +103,12 @@ export default function SeriesDetails() {
   };
 
   const getSimilarContent = () => {
-    if (!series) return [];
+    if (!series || !series.genre) return [];
 
     const currentPrimaryGenre = series.genre.split(' • ')[0];
     const currentGenres = series.genre.split(' • ');
 
-    const pool = [...SERIES].filter(item => item.id !== series.id);
+    const pool = [...SERIES].filter(item => String(item.id) !== String(series.id) && item.genre);
 
     const scored = pool.map(item => {
       let score = 0;
@@ -132,7 +134,11 @@ export default function SeriesDetails() {
       return { ...item, score };
     });
 
-    return scored.sort((a, b) => b.score - a.score).slice(0, 10);
+    // Only include items that had at least one genre match (score > 10)
+    return scored
+      .filter(item => item.score > 10)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 9); // 9 items total for a 3x3 grid on mobile
   };
 
   const similar = getSimilarContent();
@@ -178,7 +184,7 @@ export default function SeriesDetails() {
             <div className={styles.meta}>
               <span>{series.year}</span>
               <span className={styles.quality}>{series.quality || 'HD'}</span>
-              <span>{series.seasons.length} Season{series.seasons.length > 1 ? 's' : ''}</span>
+              <span>{series.seasons?.length || 0} Season{series.seasons?.length > 1 ? 's' : ''}</span>
             </div>
 
             <p className={styles.description}>{series.description}</p>
@@ -188,7 +194,7 @@ export default function SeriesDetails() {
               <button
                 className={styles.playMainBtn}
                 onClick={(e) => {
-                  const firstEp = series.seasons[0]?.episodes[0];
+                  const firstEp = series.seasons?.[0]?.episodes?.[0];
                   if (firstEp) handleWatchClick(e, `/watch-series/${series.id}/s/1/e/1`);
                 }}
               >
@@ -208,7 +214,7 @@ export default function SeriesDetails() {
       <div className={styles.content}>
         <div className={styles.seasonSelector}>
           <h2>Episodes</h2>
-          {series.seasons.length > 1 && (
+          {series.seasons?.length > 1 && (
             <select
               value={activeSeason}
               onChange={e => setActiveSeason(Number(e.target.value))}
@@ -224,7 +230,7 @@ export default function SeriesDetails() {
         </div>
 
         <div className={styles.episodesList}>
-          {currentSeason && currentSeason.episodes.map(ep => {
+          {currentSeason && currentSeason.episodes?.map(ep => {
             const progress = getEpisodeProgress(currentSeason.seasonNumber, ep.episodeNumber);
             // Rough parsing for progress bar
             let totalSecs = 3600; // default 1h
@@ -268,7 +274,7 @@ export default function SeriesDetails() {
             <h2 className={styles.moreTitle}>More Like This</h2>
             <div className={styles.moreGrid}>
               {similar.map(m => {
-                const isSeriesItem = m.seasons !== undefined;
+                const isSeriesItem = m.type === 'series';
                 return (
                   <div
                     key={m.id}

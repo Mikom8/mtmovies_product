@@ -14,7 +14,7 @@ export default function HeroBanner({ movie }) {
 
   if (!movie) return null;
 
-  const isSeries = movie.seasons !== undefined;
+  const isSeries = movie.type === 'series';
   const detailUrl = isSeries ? `/series/${movie.id}` : `/movie/${movie.id}`;
   const watchUrl = movie.continueWatchUrl || (isSeries ? `/watch-series/${movie.id}/s/1/e/1` : `/watch/${movie.id}`);
 
@@ -64,7 +64,7 @@ export default function HeroBanner({ movie }) {
             <span className={styles.dot} />
             <span>{movie.year}</span>
             <span className={styles.dot} />
-            <span>{movie.duration || (movie.seasons ? `${movie.seasons.length} Seasons` : '')}</span>
+            <span>{movie.duration || (movie.type === 'series' ? `${movie.seasons?.length || 0} Seasons` : '')}</span>
             <span className={styles.dot} />
             <span className={styles.quality}>{movie.quality}</span>
             {movie.hasAmharicDub && (

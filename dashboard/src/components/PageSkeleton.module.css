@@ -1,0 +1,139 @@
+.page {
+  min-height: 100vh;
+  background-color: #141414;
+  padding-bottom: 50px;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -800px 0; }
+  100% { background-position:  800px 0; }
+}
+
+.skeletonHero {
+  height: 85vh;
+  width: 100%;
+  background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  position: relative;
+}
+
+.skeletonHeroContent {
+  position: absolute;
+  bottom: 8rem;
+  left: 4%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: clamp(280px, 42%, 700px);
+}
+
+.skeletonTitle {
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+  height: 52px;
+  width: 65%;
+}
+
+.skeletonMeta {
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+  height: 18px;
+  width: 40%;
+}
+
+.skeletonDesc {
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+  height: 16px;
+  width: 100%;
+}
+
+.skeletonDescShort {
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+  height: 16px;
+  width: 78%;
+}
+
+.skeletonBtnRow {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.skeletonBtn {
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 4px;
+  height: 44px;
+  width: 140px;
+}
+
+.skeletonBtnSm {
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 4px;
+  height: 44px;
+  width: 110px;
+}
+
+.skeletonContent {
+  padding: 0 4% 0;
+  max-width: 1800px;
+  margin: -4rem auto 0;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeletonSectionTitle {
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+  height: 26px;
+  width: 180px;
+}
+
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@media (min-width: 640px)  { .skeletonGrid { grid-template-columns: repeat(4, 1fr); gap: 16px; } }
+@media (min-width: 1024px) { .skeletonGrid { grid-template-columns: repeat(5, 1fr); } }
+@media (min-width: 1440px) { .skeletonGrid { grid-template-columns: repeat(6, 1fr); } }
+
+.skeletonCard {
+  border-radius: 4px;
+  overflow: hidden;
+  background: #111;
+}
+
+.skeletonPoster {
+  background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+}

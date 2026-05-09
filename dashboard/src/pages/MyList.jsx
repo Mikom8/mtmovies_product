@@ -1,16 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useMyList } from '../hooks/useMyList';
+import { useMovies } from '../context/MovieContext';
 import Navbar from '../components/Navbar';
-import { MOVIES } from '../data/movies';
-import { SERIES } from '../data/series';
 import { FaPlay } from 'react-icons/fa';
 import styles from './MyList.module.css';
 
 export default function MyList() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { myList, loading } = useMyList();
+  const { myList, loading: listLoading } = useMyList();
+  const { movies: MOVIES, series: SERIES, loading: moviesLoading } = useMovies();
 
   const handleLogout = () => {
     logout();
@@ -20,9 +20,9 @@ export default function MyList() {
   const getListItems = () => {
     return myList.map(item => {
       if (item.type === 'movie') {
-        return MOVIES.find(m => m.id === item.id) || null;
+        return MOVIES.find(m => String(m.id) === String(item.id)) || null;
       } else {
-        return SERIES.find(s => s.id === item.id) || null;
+        return SERIES.find(s => String(s.id) === String(item.id)) || null;
       }
     }).filter(Boolean);
   };
@@ -30,7 +30,7 @@ export default function MyList() {
   const items = getListItems();
 
   const handleItemClick = (item) => {
-    if (item.seasons) {
+    if (item.type === 'series') {
       navigate(`/series/${item.id}`);
     } else {
       navigate(`/movie/${item.id}`);
@@ -39,7 +39,7 @@ export default function MyList() {
 
   const handlePlayClick = (e, item) => {
     e.stopPropagation();
-    if (item.seasons) {
+    if (item.type === 'series') {
       navigate(`/watch-series/${item.id}/s/1/e/1`);
     } else {
       navigate(`/watch/${item.id}`);
@@ -74,7 +74,7 @@ export default function MyList() {
       <div className={styles.container}>
         <h1 className={styles.title}>My List</h1>
 
-        {loading ? (
+        {listLoading || moviesLoading ? (
           <>
             <SkeletonGrid />
             <SkeletonMobileList />

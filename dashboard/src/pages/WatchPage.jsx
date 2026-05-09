@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MOVIES } from '../data/movies';
 import { useAuth } from '../context/AuthContext';
 import { useMyList } from '../hooks/useMyList';
+import { useMovies } from '../context/MovieContext';
 import Hls from 'hls.js';
 import { FaPlay, FaPause, FaStar, FaFire } from 'react-icons/fa';
 import {
@@ -64,7 +64,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
     return localStorage.getItem('mtmovies_muted') === 'true';
   });
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(() => parseDuration(movie?.duration) || 0);
   const [buffered, setBuffered] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
   const [showSkipFlash, setShowSkipFlash] = useState(null); // 'fwd' | 'bck'
@@ -91,6 +91,9 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
 
   const [isProbing, setIsProbing] = useState(false);
   useEffect(() => {
+    setDuration(parseDuration(movie?.duration) || 0);
+  }, [movie]);
+  useEffect(() => {
     if (!isTelegram) return;
     setIsProbing(true);
     fetch(`https://mtmovies-production.up.railway.app/api/stream/${movie.telegramChatId}/${movie.telegramMessageId}/metadata`)
@@ -104,6 +107,12 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
       .catch(console.error)
       .finally(() => setIsProbing(false));
   }, [movie.id, isTelegram, movie.telegramChatId, movie.telegramMessageId, initialOffset]);
+
+  useEffect(() => {
+    if (streamMeta && streamMeta.duration > 0 && (!duration || !isFinite(duration))) {
+      setDuration(streamMeta.duration);
+    }
+  }, [streamMeta, duration]);
 
   const isAviMime = streamMeta?.mimeType === 'video/avi' || streamMeta?.mimeType === 'video/x-msvideo';
   const useHls = streamMeta?.needsTranscode || isAviMime || forceHls;
@@ -192,6 +201,13 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
     if (isSeeking) return;
     const v = videoRef.current;
     if (!v) return;
+
+    if (!duration || !isFinite(duration)) {
+      if (isFinite(v.duration) && v.duration > 0) {
+        setDuration(v.duration);
+      }
+    }
+
     const currentAbs = useHls ? v.currentTime + hlsStartTime : v.currentTime;
     setCurrentTime(currentAbs);
     if (v.buffered.length > 0) setBuffered(v.buffered.end(v.buffered.length - 1));
@@ -204,11 +220,15 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
       if (useHls) {
         setDuration(parseDuration(movie.duration));
       } else {
-        setDuration(videoRef.current.duration);
+        let dur = videoRef.current.duration;
+        if (!isFinite(dur) || dur <= 0) {
+          dur = parseDuration(movie.duration);
+        }
+        setDuration(dur);
         if (user && user.watchHistory && !hasResumedRef.current) {
           hasResumedRef.current = true;
           const historyItem = user.watchHistory.find(h => h.movieId === String(movie.id));
-          if (historyItem && historyItem.progress > 0 && historyItem.progress < videoRef.current.duration - 15) {
+          if (historyItem && historyItem.progress > 0 && historyItem.progress < dur - 15) {
             videoRef.current.currentTime = historyItem.progress;
           }
         }
@@ -595,6 +615,7 @@ export default function WatchPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, token, updateUser, isAuthenticated } = useAuth();
+  const { movies: MOVIES, loading } = useMovies();
   const [showUI, setShowUI] = useState(true);
   const [isClosing, setIsClosing] = useState(false);
   const isClosingRef = useRef(false);
@@ -642,12 +663,19 @@ export default function WatchPage() {
     return () => clearTimeout(hideTimer.current);
   }, [onUIActivity]);
 
-  if (!isAuthenticated) { navigate('/login'); return null; }
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    } else if (!loading) {
+      const m = MOVIES.find(m => String(m.id) === String(id));
+      if (!m) navigate('/browse');
+    }
+  }, [isAuthenticated, loading, MOVIES, id, navigate]);
 
-  const movie = MOVIES.find(m => String(m.id) === id);
-  if (!movie) { navigate('/browse'); return null; }
+  if (!isAuthenticated || loading) return <div className={styles.page}></div>;
 
-  const similar = getSimilar(movie, MOVIES);
+  const movie = MOVIES.find(m => String(m.id) === String(id));
+  if (!movie) return null;
 
   return (
     <div

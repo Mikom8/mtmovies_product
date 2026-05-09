@@ -14,8 +14,36 @@ const movieSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  descriptionAmharic: {
+  type: {
+    type: String,
+    enum: ['movie', 'series'],
+    default: 'movie'
+  },
+  genres: [{
     type: String
+  }],
+  tags: [{
+    type: String
+  }],
+  year: {
+    type: Number
+  },
+  rating: {
+    type: Number,
+    min: 0,
+    max: 10,
+    default: 0
+  },
+  duration: {
+    type: String
+  },
+  quality: {
+    type: String,
+    default: '1080p'
+  },
+  hasAmharicDub: {
+    type: Boolean,
+    default: false
   },
   poster: {
     type: String,
@@ -24,66 +52,28 @@ const movieSchema = new mongoose.Schema({
   backdrop: {
     type: String
   },
-  videoUrl: {
-    type: String  // streaming URL (e.g. Cloudinary, AWS S3)
-  },
-  trailerUrl: {
+  trailerEmbedId: {
     type: String
   },
-  genre: [{
-    type: String,
-    enum: ['Action', 'Drama', 'Comedy', 'Thriller', 'Romance', 'Horror', 'Sci-Fi', 'Documentary', 'Animation', 'Crime']
-  }],
-  type: {
-    type: String,
-    enum: ['movie', 'series'],
-    default: 'movie'
+  telegram: {
+    chatId: String,
+    messageId: String
   },
-  year: {
-    type: Number
-  },
-  duration: {
-    type: Number  // in minutes for movies
-  },
-  rating: {
-    type: Number,
-    min: 0,
-    max: 10,
-    default: 0
-  },
-  language: {
-    type: String,
-    default: 'English'
-  },
-  hasAmharicDub: {
-    type: Boolean,
-    default: false
-  },
-  hasAmharicSubtitles: {
-    type: Boolean,
-    default: true
-  },
-  quality: {
-    type: String,
-    enum: ['720p', '1080p', '4K'],
-    default: '1080p'
-  },
-  requiredPlan: {
-    type: String,
-    enum: ['free', 'basic', 'popular', 'family'],
-    default: 'basic'
+  stats: {
+    views: { type: Number, default: 0 },
+    likes: { type: Number, default: 0 }
   },
   isFeatured: {
     type: Boolean,
     default: false
   },
-  isNewRelease: {
+  isNew: {
     type: Boolean,
     default: false
   },
-  views: {
-    type: Number,
-    default: 0
+  isFree: {
+    type: Boolean,
+    default: false
   },
   // For series only
   seasons: [{
@@ -91,12 +81,12 @@ const movieSchema = new mongoose.Schema({
     episodes: [{
       episodeNumber: Number,
       title: String,
-      description: String,
-      videoUrl: String,
-      duration: Number
+      duration: String,
+      telegramChatId: String,
+      telegramMessageId: String
     }]
   }]
-}, { timestamps: true });
+}, { timestamps: true, suppressReservedKeysWarning: true });
 
 // Index for fast searching
 movieSchema.index({ title: 'text', description: 'text' });

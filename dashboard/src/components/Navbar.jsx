@@ -3,14 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import styles from './Navbar.module.css';
 import { FiChevronDown, FiChevronUp, FiSettings, FiLogOut, FiSearch, FiX } from 'react-icons/fi';
 import { FaPlay } from 'react-icons/fa';
-import { MOVIES } from '../data/movies';
-import { SERIES } from '../data/series';
-
-const ALL = [
-  ...MOVIES.map(m => ({ ...m, type: 'movie' })),
-  ...SERIES.map(s => ({ ...s, type: 'series' })),
-];
-
+import { useMovies } from '../context/MovieContext';
 function matchesQuery(item, q) {
   const lower = q.toLowerCase();
   return (
@@ -21,6 +14,7 @@ function matchesQuery(item, q) {
 }
 
 export default function Navbar({ user, onLogout, hideLinks = false }) {
+  const { movies: MOVIES, series: SERIES } = useMovies();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -80,6 +74,11 @@ export default function Navbar({ user, onLogout, hideLinks = false }) {
       if (searchOpen) setQuery('');
     }
   };
+
+  const ALL = [
+    ...MOVIES.map(m => ({ ...m, type: 'movie' })),
+    ...SERIES.map(s => ({ ...s, type: 'series' })),
+  ];
 
   const desktopResults = query.trim() ? ALL.filter(i => matchesQuery(i, query.trim())).slice(0, 8) : [];
 

@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { SERIES } from '../data/series';
 import { useAuth } from '../context/AuthContext';
 import { useMyList } from '../hooks/useMyList';
+import { useMovies } from '../context/MovieContext';
 import Hls from 'hls.js';
 import { FaPlay, FaPause } from 'react-icons/fa';
 import {
@@ -50,7 +50,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
     return localStorage.getItem('mtmovies_muted') === 'true';
   });
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(() => parseDuration(episode?.duration) || 0);
   const [buffered, setBuffered] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
   const [showSkipFlash, setShowSkipFlash] = useState(null);
@@ -85,6 +85,10 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
   }, [compoundId]);
 
   useEffect(() => {
+    setDuration(parseDuration(episode?.duration) || 0);
+  }, [episode]);
+
+  useEffect(() => {
     if (!isTelegram) return;
     setIsProbing(true);
     setForceHls(false);
@@ -98,6 +102,12 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
       .catch(console.error)
       .finally(() => setIsProbing(false));
   }, [episode.telegramChatId, episode.telegramMessageId, initialOffset, isTelegram]);
+
+  useEffect(() => {
+    if (streamMeta && streamMeta.duration > 0 && (!duration || !isFinite(duration))) {
+      setDuration(streamMeta.duration);
+    }
+  }, [streamMeta, duration]);
 
   const isAviMime = streamMeta?.mimeType === 'video/avi' || streamMeta?.mimeType === 'video/x-msvideo';
   const useHls = streamMeta?.needsTranscode || isAviMime || forceHls;
@@ -183,6 +193,13 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
     if (isSeeking) return;
     const v = videoRef.current;
     if (!v) return;
+
+    if (!duration || !isFinite(duration)) {
+      if (isFinite(v.duration) && v.duration > 0) {
+        setDuration(v.duration);
+      }
+    }
+
     const currentAbs = useHls ? v.currentTime + hlsStartTime : v.currentTime;
     setCurrentTime(currentAbs);
     if (v.buffered.length > 0) setBuffered(v.buffered.end(v.buffered.length - 1));
@@ -195,11 +212,15 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
       if (useHls) {
         setDuration(parseDuration(episode.duration));
       } else {
-        setDuration(videoRef.current.duration);
+        let dur = videoRef.current.duration;
+        if (!isFinite(dur) || dur <= 0) {
+          dur = parseDuration(episode.duration);
+        }
+        setDuration(dur);
         if (user && user.watchHistory && !hasResumedRef.current) {
           hasResumedRef.current = true;
           const historyItem = user.watchHistory.find(h => h.movieId === compoundId);
-          if (historyItem && historyItem.progress > 0 && historyItem.progress < videoRef.current.duration - 15) {
+          if (historyItem && historyItem.progress > 0 && historyItem.progress < dur - 15) {
             videoRef.current.currentTime = historyItem.progress;
           }
         }
@@ -589,6 +610,7 @@ export default function WatchSeriesPage() {
   const { seriesId, seasonNum, epNum } = useParams();
   const navigate = useNavigate();
   const { user, token, updateUser, isAuthenticated } = useAuth();
+  const { series: SERIES, loading } = useMovies();
   const [showUI, setShowUI] = useState(true);
   const [isClosing, setIsClosing] = useState(false);
   const isClosingRef = useRef(false);
@@ -634,16 +656,37 @@ export default function WatchSeriesPage() {
     return () => clearTimeout(hideTimer.current);
   }, [onUIActivity]);
 
-  if (!isAuthenticated) { navigate('/login'); return null; }
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    } else if (!loading) {
+      const s = SERIES.find(s => String(s.id) === String(seriesId));
+      if (!s) {
+        navigate('/browse');
+      } else {
+        const season = s.seasons?.find(sn => String(sn.seasonNumber) === String(seasonNum));
+        if (!season) {
+          navigate(`/series/${seriesId}`);
+        } else {
+          const ep = season.episodes?.find(e => String(e.episodeNumber) === String(epNum));
+          if (!ep) {
+            navigate(`/series/${seriesId}`);
+          }
+        }
+      }
+    }
+  }, [isAuthenticated, loading, SERIES, seriesId, seasonNum, epNum, navigate]);
 
-  const series = SERIES.find(s => String(s.id) === seriesId);
-  if (!series) { navigate('/browse'); return null; }
+  if (!isAuthenticated || loading) return <div className={styles.page}></div>;
 
-  const season = series.seasons.find(s => String(s.seasonNumber) === seasonNum);
-  if (!season) { navigate(`/series/${seriesId}`); return null; }
+  const series = SERIES.find(s => String(s.id) === String(seriesId));
+  if (!series) return null;
 
-  const episode = season.episodes.find(e => String(e.episodeNumber) === epNum);
-  if (!episode) { navigate(`/series/${seriesId}`); return null; }
+  const season = series.seasons?.find(s => String(s.seasonNumber) === String(seasonNum));
+  if (!season) return null;
+
+  const episode = season.episodes?.find(e => String(e.episodeNumber) === String(epNum));
+  if (!episode) return null;
 
   return (
     <div

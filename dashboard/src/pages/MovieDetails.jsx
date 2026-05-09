@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useMyList } from '../hooks/useMyList';
+import { useMovies } from '../context/MovieContext';
 import Navbar from '../components/Navbar';
-import { SERIES } from '../data/series';
-import { MOVIES } from '../data/movies';
 import { FaPlay, FaPlus, FaCheck } from 'react-icons/fa';
 import { IoIosArrowBack } from 'react-icons/io';
 import styles from './MovieDetails.module.css';
@@ -14,6 +13,7 @@ export default function MovieDetails() {
   const navigate = useNavigate();
   const { user, token, logout } = useAuth();
   const { toggleMyList, isInMyList } = useMyList();
+  const { movies: MOVIES, loading } = useMovies();
 
   const [movie, setMovie] = useState(null);
   const [isExpanding, setIsExpanding] = useState(false);
@@ -22,15 +22,17 @@ export default function MovieDetails() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const m = MOVIES.find(m => String(m.id) === id);
-    if (m) {
-      setMovie(m);
-    } else {
-      navigate('/browse');
+    if (!loading && MOVIES.length > 0) {
+      const m = MOVIES.find(m => String(m.id) === String(id));
+      if (m) {
+        setMovie(m);
+      } else {
+        navigate('/browse');
+      }
     }
-  }, [id, navigate]);
+  }, [id, navigate, loading, MOVIES]);
 
-  if (!movie) return (
+  if (loading || !movie) return (
     <div className={styles.page}>
       <Navbar user={user} onLogout={() => { logout(); navigate('/'); }} />
 
@@ -72,27 +74,27 @@ export default function MovieDetails() {
   };
 
   const getSimilarContent = () => {
-    if (!movie) return [];
+    if (!movie || !movie.genre) return [];
 
     const currentPrimaryGenre = movie.genre.split(' • ')[0];
     const currentGenres = movie.genre.split(' • ');
 
-    const pool = [...MOVIES].filter(item => item.id !== movie.id);
+    const pool = [...MOVIES].filter(item => String(item.id) !== String(movie.id) && item.genre);
 
     const scored = pool.map(item => {
       let score = 0;
       const itemGenres = item.genre.split(' • ');
       const itemPrimaryGenre = itemGenres[0];
 
-      // Primary genre match: +5
+      // Primary genre match: +50
       if (itemPrimaryGenre === currentPrimaryGenre) {
-        score += 5;
+        score += 50;
       }
 
-      // Secondary genres match: +2 per match
+      // Secondary genres match: +20 per match
       itemGenres.forEach(g => {
         if (currentGenres.includes(g) && g !== currentPrimaryGenre) {
-          score += 2;
+          score += 20;
         }
       });
 
@@ -103,7 +105,11 @@ export default function MovieDetails() {
       return { ...item, score };
     });
 
-    return scored.sort((a, b) => b.score - a.score).slice(0, 10);
+    // Only include items that had at least one genre match (score > 10)
+    return scored
+      .filter(item => item.score > 10)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 9); // 9 items total for a 3x3 grid on mobile
   };
 
   const similar = getSimilarContent();
@@ -180,7 +186,7 @@ export default function MovieDetails() {
             <h2 className={styles.moreTitle}>More Like This</h2>
             <div className={styles.moreGrid}>
               {similar.map(m => {
-                const isSeriesItem = m.seasons !== undefined;
+                const isSeriesItem = m.type === 'series';
                 return (
                   <div
                     key={m.id}

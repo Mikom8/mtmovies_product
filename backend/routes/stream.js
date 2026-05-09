@@ -113,6 +113,7 @@ router.get('/:chatId/:messageId/metadata', async (req, res) => {
 
     let codec = 'unknown';
     let pixFmt = 'unknown';
+    let duration = 0;
 
     try {
       const probeData = await new Promise((resolve) => {
@@ -125,11 +126,13 @@ router.get('/:chatId/:messageId/metadata', async (req, res) => {
           resolve({
             codec: videoStream?.codec_name || 'unknown',
             pixFmt: videoStream?.pix_fmt || 'unknown',
+            duration: metadata.format?.duration ? Number(metadata.format.duration) : 0,
           });
         });
       });
       codec = probeData.codec;
       pixFmt = probeData.pixFmt;
+      duration = probeData.duration;
     } catch (e) {
       console.error(`[Probe] ${cacheKey} failed:`, e);
     }
@@ -148,6 +151,7 @@ router.get('/:chatId/:messageId/metadata', async (req, res) => {
       isAvi: false,
       codec,
       pixFmt,
+      duration,
       incompatibleCodec: isIncompatibleCodec,
       incompatiblePixFmt: isIncompatiblePixFmt,
       size: fileSize
