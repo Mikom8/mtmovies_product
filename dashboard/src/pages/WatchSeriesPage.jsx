@@ -108,7 +108,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
   }, [episode.telegramChatId, episode.telegramMessageId, initialOffset, isTelegram]);
 
   useEffect(() => {
-    if (streamMeta && streamMeta.duration > 0 && (!duration || !isFinite(duration))) {
+    if (streamMeta && streamMeta.duration > 0 && streamMeta.duration > duration) {
       setDuration(streamMeta.duration);
     }
   }, [streamMeta, duration]);

@@ -101,8 +101,24 @@ router.get('/:chatId/:messageId/metadata', async (req, res) => {
     const isAvi = mimeType === 'video/avi' || mimeType === 'video/x-msvideo';
     const isNonNative = !new Set(['video/mp4', 'video/webm', 'video/ogg']).has(mimeType);
 
+    // Extract exact duration from Telegram attributes
+    let telegramDuration = 0;
+    if (document.attributes) {
+      const videoAttr = document.attributes.find(a => a.className === 'DocumentAttributeVideo');
+      if (videoAttr && videoAttr.duration) {
+        telegramDuration = Number(videoAttr.duration);
+      }
+    }
+
     if (isAvi || isNonNative) {
-      const result = { mimeType, needsTranscode: true, isAvi, codec: 'unknown', size: fileSize };
+      const result = { 
+        mimeType, 
+        needsTranscode: true, 
+        isAvi, 
+        codec: 'unknown', 
+        size: fileSize,
+        duration: telegramDuration 
+      };
       codecCache.set(cacheKey, result);
       return res.json(result);
     }
@@ -126,7 +142,7 @@ router.get('/:chatId/:messageId/metadata', async (req, res) => {
           resolve({
             codec: videoStream?.codec_name || 'unknown',
             pixFmt: videoStream?.pix_fmt || 'unknown',
-            duration: metadata.format?.duration ? Number(metadata.format.duration) : 0,
+            duration: metadata.format?.duration ? Number(metadata.format.duration) : telegramDuration,
           });
         });
       });

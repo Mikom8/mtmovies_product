@@ -111,7 +111,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
   }, [movie.id, isTelegram, movie.telegramChatId, movie.telegramMessageId, initialOffset]);
 
   useEffect(() => {
-    if (streamMeta && streamMeta.duration > 0 && (!duration || !isFinite(duration))) {
+    if (streamMeta && streamMeta.duration > 0 && streamMeta.duration > duration) {
       setDuration(streamMeta.duration);
     }
   }, [streamMeta, duration]);
