@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import styles from './MovieRow.module.css';
 import { FaPlay, FaStar } from 'react-icons/fa';
 
-function MovieCard({ movie }) {
+function MovieCard({ movie, landscape }) {
   const [hovered, setHovered] = useState(false);
   const navigate = useNavigate();
 
+  // Use mylist image for landscape if available, otherwise backdrop
+  const imageSrc = landscape ? (movie.mylist || movie.backdrop) : movie.poster;
+
   return (
     <div
-      className={styles.card}
+      className={`${styles.card} ${landscape ? styles.landscapeCard : ''}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={() => {
@@ -18,7 +21,12 @@ function MovieCard({ movie }) {
       }}
     >
       <div className={styles.posterWrapper}>
-        <img src={movie.poster} alt={movie.title} className={styles.poster} loading="lazy" />
+        <img
+          src={imageSrc}
+          alt={movie.title}
+          className={`${styles.poster} ${landscape ? styles.landscapePoster : ''}`}
+          loading="lazy"
+        />
 
         {movie.isNew && <span className={styles.newTag}>NEW</span>}
 
@@ -67,11 +75,11 @@ function MovieCard({ movie }) {
   );
 }
 
-export default function MovieRow({ title, movies }) {
+export default function MovieRow({ title, movies, landscape }) {
   const scrollRef = useRef(null);
   const [rowHovered, setRowHovered] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
-  
+
   // Clone movies for seamless infinite scrolling
   const needsScroll = movies.length > 4;
   const displayMovies = needsScroll ? [...movies, ...movies, ...movies] : movies;
@@ -155,10 +163,10 @@ export default function MovieRow({ title, movies }) {
         <h2 className={styles.rowTitle}>{title}</h2>
         {totalSteps > 1 && (() => {
           const maxDots = Math.min(totalSteps, 7);
-          const activeDotIndex = totalSteps <= 7 
-            ? currentStep 
+          const activeDotIndex = totalSteps <= 7
+            ? currentStep
             : Math.round((currentStep / (totalSteps - 1)) * (maxDots - 1));
-            
+
           return (
             <div className={`${styles.scrollIndicator} ${rowHovered ? styles.indicatorVisible : ''}`}>
               {Array.from({ length: maxDots }).map((_, idx) => (
@@ -187,7 +195,7 @@ export default function MovieRow({ title, movies }) {
           onScroll={updateArrows}
         >
           {displayMovies.map((movie, idx) => (
-            <MovieCard key={`${movie.id}-${idx}`} movie={movie} />
+            <MovieCard key={`${movie.id}-${idx}`} movie={movie} landscape={landscape} />
           ))}
         </div>
 

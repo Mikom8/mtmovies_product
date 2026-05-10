@@ -133,7 +133,7 @@
 }
 
 .card:hover {
-  transform: scale(1.06) translateY(-4px);
+  transform: scale(1.06) translateY(-5px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(229, 9, 20, 0.3);
   z-index: 10;
 }
@@ -145,6 +145,15 @@
   display: block;
   background: #1e1e22;
 }
+
+.landscapeCard {
+  width: clamp(200px, 22vw, 260px) !important;
+}
+
+.landscapePoster {
+  aspect-ratio: 16 / 9 !important;
+}
+
 
 .progressBarContainer {
   position: absolute;
@@ -207,12 +216,14 @@
 }
 
 .playCircle {
-  margin-top: 30%;
-  width: 48px;
-  height: 48px;
+  margin: auto;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  background: rgba(229, 9, 20, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(229, 9, 20, 0.85);
   color: #fff;
   font-size: 1rem;
   display: flex;
@@ -222,6 +233,7 @@
   transition: transform 0.2s, background 0.2s;
   padding-left: 3px;
   /* center the ▶ glyph */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .playCircle:hover {

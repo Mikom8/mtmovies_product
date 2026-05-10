@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useMyList } from '../hooks/useMyList';
 import { useMovies } from '../context/MovieContext';
 import Navbar from '../components/Navbar';
-import { FaPlay, FaPlus, FaCheck } from 'react-icons/fa';
+import { FaPlay, FaPlus, FaCheck, FaStar } from 'react-icons/fa';
 import { IoIosArrowBack } from 'react-icons/io';
 import styles from './SeriesDetails.module.css';
 
@@ -182,6 +182,10 @@ export default function SeriesDetails() {
             {series.titleAmharic && <h2 className={styles.subtitle}></h2>}
 
             <div className={styles.meta}>
+              <span className={styles.rating}>
+                <FaStar style={{ marginRight: '5px', color: '#ffd700' }} />
+                {series.rating}
+              </span>
               <span>{series.year}</span>
               <span className={styles.quality}>{series.quality || 'HD'}</span>
               <span>{series.seasons?.length || 0} Season{series.seasons?.length > 1 ? 's' : ''}</span>

@@ -184,7 +184,7 @@ export default function Browse() {
       <HeroBanner movie={featuredItem} />
       <div className={styles.rows}>
 
-        {trending.length > 0 && <MovieRow title="Trending This Week" movies={trending} />}
+        {trending.length > 0 && <MovieRow title="Trending This Week" movies={trending} landscape={true} />}
         {NEW.length > 0 && <MovieRow title="New Releases" movies={NEW} />}
         {continueWatching.length > 0 && (
           <MovieRow title="Continue Watching" movies={continueWatching} />

@@ -320,6 +320,13 @@
   color: #a3a3a3;
 }
 
+.rating {
+  display: flex;
+  align-items: center;
+  color: #ffd700;
+  font-weight: 700;
+}
+
 .match {
   color: #46d369;
   font-weight: 700;

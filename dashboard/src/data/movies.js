@@ -1,4 +1,3 @@
-// Central movie data — trailers are real YouTube embeds
 export const MOVIES = [
   {
     id: 13,
