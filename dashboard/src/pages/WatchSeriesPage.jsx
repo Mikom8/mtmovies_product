@@ -97,7 +97,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
     setIsProbing(true);
     setForceHls(false);
     setStreamMeta(null);
-    fetch(`http://localhost:5000/api/stream/${episode.telegramChatId}/${episode.telegramMessageId}/metadata`)
+    fetch(`https://mtmovies-production.up.railway.app/api/stream/${episode.telegramChatId}/${episode.telegramMessageId}/metadata`)
       .then(r => r.json())
       .then(meta => {
         if (meta.needsTranscode && initialOffset > 0) setHlsStartTime(initialOffset);
@@ -117,7 +117,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
   const useHls = streamMeta?.needsTranscode || isAviMime || forceHls;
   let src = null;
   if (isTelegram && streamMeta && !useHls) {
-    src = `http://localhost:5000/api/stream/${episode.telegramChatId}/${episode.telegramMessageId}`;
+    src = `https://mtmovies-production.up.railway.app/api/stream/${episode.telegramChatId}/${episode.telegramMessageId}`;
   }
 
   useEffect(() => {
@@ -138,7 +138,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
     let hls;
     const v = videoRef.current;
     const query = hlsStartTime > 0 ? `?start=${Math.floor(hlsStartTime)}` : '';
-    const hlsSrc = `http://localhost:5000/api/stream/hls/${episode.telegramChatId}/${episode.telegramMessageId}/playlist.m3u8${query}`;
+    const hlsSrc = `https://mtmovies-production.up.railway.app/api/stream/hls/${episode.telegramChatId}/${episode.telegramMessageId}/playlist.m3u8${query}`;
 
     if (Hls.isSupported()) {
       hls = new Hls({ maxBufferLength: 60 * 5, maxMaxBufferLength: 60 * 10, autoStartLoad: true });
@@ -253,7 +253,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
       if (v && !v.paused && v.currentTime > 5) {
         try {
           const realTime = useHls ? v.currentTime + hlsStartTime : v.currentTime;
-          await fetch('http://localhost:5000/api/users/history', {
+          await fetch('https://mtmovies-production.up.railway.app/api/users/history', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ movieId: compoundId, progress: realTime })

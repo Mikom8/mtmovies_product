@@ -175,134 +175,137 @@ export default function SeriesDetails() {
       <div className={styles.page}>
         <Navbar user={user} onLogout={handleLogout} />
 
-      <div className={styles.hero} style={{ backgroundImage: `url(${series.backdrop})` }}>
-        <div className={styles.heroOverlay}>
-          <div className={styles.heroContent}>
-            <h1 className={styles.title}>{series.title}</h1>
-            {series.titleAmharic && <h2 className={styles.subtitle}></h2>}
+        <div className={styles.hero} style={{ backgroundImage: `url(${series.backdrop})` }}>
+          <div className={styles.heroOverlay}>
+            <div className={styles.heroContent}>
+              <h1 className={styles.title}>{series.title}</h1>
+              {series.titleAmharic && <h2 className={styles.subtitle}></h2>}
 
-            <div className={styles.meta}>
-              <span className={styles.rating}>
-                <FaStar style={{ marginRight: '5px', color: '#ffd700' }} />
-                {series.rating}
-              </span> • 
-              <span>{series.year}</span>•
-              <span className={styles.quality}>{series.quality || 'HD'}</span>•
-              <span>{series.seasons?.length || 0} Season{series.seasons?.length > 1 ? 's' : ''}</span>
-            </div>
+              <div className={styles.meta}>
+                <span className={styles.rating}>
+                  <FaStar style={{ marginRight: '5px', color: '#ffd700' }} />
+                  {series.rating}
+                </span>
+                <span>•</span>
+                <span>{series.year}</span>
+                <span>•</span>
+                <span className={styles.quality}>{series.quality || 'HD'}</span>
+                <span>•</span>
+                <span>{series.seasons?.length || 0} Season{series.seasons?.length > 1 ? 's' : ''}</span>
+              </div>
 
-            <p className={styles.description}>{series.description}</p>
-            <p className={styles.genre}><strong>Genres:</strong> {series.genre}</p>
+              <p className={styles.description}>{series.description}</p>
+              <p className={styles.genre}><strong>Genres:</strong> {series.genre}</p>
 
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginTop: '16px' }}>
-              <button
-                className={styles.playMainBtn}
-                onClick={(e) => {
-                  const firstEp = series.seasons?.[0]?.episodes?.[0];
-                  if (firstEp) handleWatchClick(e, `/watch-series/${series.id}/s/1/e/1`);
-                }}
-              >
-                <FaPlay /> Play
-              </button>
-              <button
-                className={styles.myListBtn}
-                onClick={() => toggleMyList(series)}
-              >
-                {isInMyList(series.id) ? <><FaCheck /> In My List</> : <><FaPlus /> My List</>}
-              </button>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginTop: '16px' }}>
+                <button
+                  className={styles.playMainBtn}
+                  onClick={(e) => {
+                    const firstEp = series.seasons?.[0]?.episodes?.[0];
+                    if (firstEp) handleWatchClick(e, `/watch-series/${series.id}/s/1/e/1`);
+                  }}
+                >
+                  <FaPlay /> Play
+                </button>
+                <button
+                  className={styles.myListBtn}
+                  onClick={() => toggleMyList(series)}
+                >
+                  {isInMyList(series.id) ? <><FaCheck /> In My List</> : <><FaPlus /> My List</>}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className={styles.content}>
-        <div className={styles.seasonSelector}>
-          <h2>Episodes</h2>
-          {series.seasons?.length > 1 && (
-            <select
-              value={activeSeason}
-              onChange={e => setActiveSeason(Number(e.target.value))}
-              className={styles.dropdown}
-            >
-              {series.seasons.map(s => (
-                <option key={s.seasonNumber} value={s.seasonNumber}>
-                  Season {s.seasonNumber}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-
-        <div className={styles.episodesList}>
-          {currentSeason && currentSeason.episodes?.map(ep => {
-            const progress = getEpisodeProgress(currentSeason.seasonNumber, ep.episodeNumber);
-            // Rough parsing for progress bar
-            let totalSecs = 3600; // default 1h
-            const hMatch = ep.duration.match(/(\d+)h/);
-            const mMatch = ep.duration.match(/(\d+)m/);
-            if (hMatch || mMatch) {
-              totalSecs = (hMatch ? parseInt(hMatch[1]) * 3600 : 0) + (mMatch ? parseInt(mMatch[1]) * 60 : 0);
-            }
-            const pct = Math.min(100, Math.max(0, (progress / totalSecs) * 100));
-
-            return (
-              <div
-                key={ep.episodeNumber}
-                className={styles.episodeCard}
-                onClick={(e) => handleWatchClick(e, `/watch-series/${series.id}/s/${currentSeason.seasonNumber}/e/${ep.episodeNumber}`)}
+        <div className={styles.content}>
+          <div className={styles.seasonSelector}>
+            <h2>Episodes</h2>
+            {series.seasons?.length > 1 && (
+              <select
+                value={activeSeason}
+                onChange={e => setActiveSeason(Number(e.target.value))}
+                className={styles.dropdown}
               >
-                <div className={styles.epImageWrap}>
-                  <img src={series.backdrop} alt={ep.title} className={styles.epImage} />
-                  <div className={styles.playIcon}><FaPlay /></div>
-                  {pct > 0 && (
-                    <div className={styles.progressWrap}>
-                      <div className={styles.progressFill} style={{ width: `${pct}%` }}></div>
-                    </div>
-                  )}
-                </div>
+                {series.seasons.map(s => (
+                  <option key={s.seasonNumber} value={s.seasonNumber}>
+                    Season {s.seasonNumber}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
 
-                <div className={styles.epInfo}>
-                  <div className={styles.epHeader}>
-                    <h3 className={styles.epTitle}>{ep.episodeNumber}. {ep.title}</h3>
-                    <span className={styles.epDuration}>{ep.duration}</span>
+          <div className={styles.episodesList}>
+            {currentSeason && currentSeason.episodes?.map(ep => {
+              const progress = getEpisodeProgress(currentSeason.seasonNumber, ep.episodeNumber);
+              // Rough parsing for progress bar
+              let totalSecs = 3600; // default 1h
+              const hMatch = ep.duration.match(/(\d+)h/);
+              const mMatch = ep.duration.match(/(\d+)m/);
+              if (hMatch || mMatch) {
+                totalSecs = (hMatch ? parseInt(hMatch[1]) * 3600 : 0) + (mMatch ? parseInt(mMatch[1]) * 60 : 0);
+              }
+              const pct = Math.min(100, Math.max(0, (progress / totalSecs) * 100));
+
+              return (
+                <div
+                  key={ep.episodeNumber}
+                  className={styles.episodeCard}
+                  onClick={(e) => handleWatchClick(e, `/watch-series/${series.id}/s/${currentSeason.seasonNumber}/e/${ep.episodeNumber}`)}
+                >
+                  <div className={styles.epImageWrap}>
+                    <img src={series.backdrop} alt={ep.title} className={styles.epImage} />
+                    <div className={styles.playIcon}><FaPlay /></div>
+                    {pct > 0 && (
+                      <div className={styles.progressWrap}>
+                        <div className={styles.progressFill} style={{ width: `${pct}%` }}></div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={styles.epInfo}>
+                    <div className={styles.epHeader}>
+                      <h3 className={styles.epTitle}>{ep.episodeNumber}. {ep.title}</h3>
+                      <span className={styles.epDuration}>{ep.duration}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
 
-        {/* More Like This */}
-        {similar.length > 0 && (
-          <div className={styles.moreSection}>
-            <h2 className={styles.moreTitle}>More Like This</h2>
-            <div className={styles.moreGrid}>
-              {similar.map(m => {
-                const isSeriesItem = m.type === 'series';
-                return (
-                  <div
-                    key={m.id}
-                    className={styles.moreCard}
-                    onClick={() => navigate(isSeriesItem ? `/series/${m.id}` : `/movie/${m.id}`)}
-                  >
-                    <img src={m.poster} alt={m.title} className={styles.morePoster} loading="lazy" />
-                    <div className={styles.moreOverlay}>
-                      <FaPlay size={26} className={styles.morePlay} />
-                    </div>
-                    <div className={styles.moreInfo}>
-                      <p className={styles.moreMovieTitle}>{m.title}</p>
-                      <div className={styles.moreMeta}>
-                        <span className={styles.moreMetaGenre}>{m.genre.split(' • ')[0]}</span>
-                        <span>{isSeriesItem ? 'Series' : 'Movie'} &bull; {m.year}</span>
+          {/* More Like This */}
+          {similar.length > 0 && (
+            <div className={styles.moreSection}>
+              <h2 className={styles.moreTitle}>More Like This</h2>
+              <div className={styles.moreGrid}>
+                {similar.map(m => {
+                  const isSeriesItem = m.type === 'series';
+                  return (
+                    <div
+                      key={m.id}
+                      className={styles.moreCard}
+                      onClick={() => navigate(isSeriesItem ? `/series/${m.id}` : `/movie/${m.id}`)}
+                    >
+                      <img src={m.poster} alt={m.title} className={styles.morePoster} loading="lazy" />
+                      <div className={styles.moreOverlay}>
+                        <FaPlay size={26} className={styles.morePlay} />
+                      </div>
+                      <div className={styles.moreInfo}>
+                        <p className={styles.moreMovieTitle}>{m.title}</p>
+                        <div className={styles.moreMeta}>
+                          <span className={styles.moreMetaGenre}>{m.genre.split(' • ')[0]}</span>
+                          <span>{isSeriesItem ? 'Series' : 'Movie'} &bull; {m.year}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       </div>
     </>
   );

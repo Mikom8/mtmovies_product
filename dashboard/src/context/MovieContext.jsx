@@ -19,8 +19,8 @@ export function MovieProvider({ children }) {
         setLoading(true);
         // Fetch movies and series concurrently
         const [moviesRes, seriesRes] = await Promise.all([
-          fetch('http://localhost:5000/api/movies?limit=500'),
-          fetch('http://localhost:5000/api/series?limit=500')
+          fetch('https://mtmovies-production.up.railway.app/api/movies?limit=500'),
+          fetch('https://mtmovies-production.up.railway.app/api/series?limit=500')
         ]);
         
         let moviesData = { movies: [] };

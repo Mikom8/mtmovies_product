@@ -156,9 +156,9 @@ export default function MovieDetails() {
                 <span className={styles.rating}>
                   <FaStar style={{ marginRight: '5px', color: '#ffd700' }} />
                   {movie.rating}
-                </span> •
-                <span>{movie.year}</span> •
-                <span>{movie.duration}</span> •
+                </span> <span>•</span>
+                <span>{movie.year}</span><span>•</span>
+                <span>{movie.duration}</span><span>•</span>
                 <span className={styles.quality}>{movie.quality || 'HD'}</span>
               </div>
 
