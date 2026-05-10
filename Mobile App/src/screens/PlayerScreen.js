@@ -1,8 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, Dimensions, Text, TouchableOpacity } from 'react-native';
-import { Video } from 'expo-av';
-import * as ScreenOrientation from 'expo-screen-orientation';
-import { ChevronLeft } from 'lucide-react-native';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  Dimensions,
+  Text,
+  TouchableOpacity,
+} from "react-native";
+import { Video } from "expo-av";
+import * as ScreenOrientation from "expo-screen-orientation";
+import { ChevronLeft } from "lucide-react-native";
 
 const PlayerScreen = ({ route, navigation }) => {
   const { chatId, messageId, title } = route.params;
@@ -17,7 +24,9 @@ const PlayerScreen = ({ route, navigation }) => {
 
     return () => {
       // Restore to portrait when leaving
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+      ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT_UP,
+      );
     };
   }, []);
 
@@ -34,7 +43,7 @@ const PlayerScreen = ({ route, navigation }) => {
         style={styles.video}
         onLoadStart={() => setLoading(true)}
         onLoad={() => setLoading(false)}
-        onError={(e) => console.error('Video Error:', e)}
+        onError={(e) => console.error("Video Error:", e)}
       />
 
       {loading && (
@@ -54,23 +63,23 @@ const PlayerScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  video: { width: '100%', height: '100%' },
+  container: { flex: 1, backgroundColor: "#000" },
+  video: { width: "100%", height: "100%" },
   loader: {
     ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)'
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   backButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 40,
     left: 20,
     zIndex: 10,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: "rgba(0,0,0,0.3)",
     borderRadius: 20,
-    padding: 5
-  }
+    padding: 5,
+  },
 });
 
 export default PlayerScreen;
