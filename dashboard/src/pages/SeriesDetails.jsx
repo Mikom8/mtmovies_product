@@ -185,9 +185,9 @@ export default function SeriesDetails() {
               <span className={styles.rating}>
                 <FaStar style={{ marginRight: '5px', color: '#ffd700' }} />
                 {series.rating}
-              </span>
-              <span>{series.year}</span>
-              <span className={styles.quality}>{series.quality || 'HD'}</span>
+              </span> • 
+              <span>{series.year}</span>•
+              <span className={styles.quality}>{series.quality || 'HD'}</span>•
               <span>{series.seasons?.length || 0} Season{series.seasons?.length > 1 ? 's' : ''}</span>
             </div>
 

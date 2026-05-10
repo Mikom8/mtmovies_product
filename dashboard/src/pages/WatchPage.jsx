@@ -217,10 +217,10 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
     if (videoRef.current) {
       videoRef.current.volume = volume;
       videoRef.current.muted = muted;
-      
+
       let dbDur = parseDuration(movie?.duration) || 0;
       let realDur = videoRef.current.duration;
-      
+
       let finalDur = dbDur;
       if (isFinite(realDur) && realDur > dbDur) {
         finalDur = realDur;

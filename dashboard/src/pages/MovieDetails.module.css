@@ -7,17 +7,20 @@
 
 /* ── Skeleton ──────────────────────────────────────────────────────────── */
 @keyframes shimmer {
-  0%   { background-position: -800px 0; }
-  100% { background-position:  800px 0; }
+  0% {
+    background-position: -800px 0;
+  }
+
+  100% {
+    background-position: 800px 0;
+  }
 }
 
 .skeletonBase {
-  background: linear-gradient(
-    90deg,
-    #1f1f1f 25%,
-    #2a2a2a 50%,
-    #1f1f1f 75%
-  );
+  background: linear-gradient(90deg,
+      #1f1f1f 25%,
+      #2a2a2a 50%,
+      #1f1f1f 75%);
   background-size: 800px 100%;
   animation: shimmer 1.4s infinite linear;
   border-radius: 6px;
@@ -26,12 +29,10 @@
 .skeletonHero {
   height: 70vh;
   width: 100%;
-  background: linear-gradient(
-    90deg,
-    #1a1a1a 25%,
-    #252525 50%,
-    #1a1a1a 75%
-  );
+  background: linear-gradient(90deg,
+      #1a1a1a 25%,
+      #252525 50%,
+      #1a1a1a 75%);
   background-size: 800px 100%;
   animation: shimmer 1.4s infinite linear;
   position: relative;
@@ -138,9 +139,24 @@
   gap: 8px;
 }
 
-@media (min-width: 640px)  { .skeletonGrid { grid-template-columns: repeat(4, 1fr); gap: 16px; } }
-@media (min-width: 1024px) { .skeletonGrid { grid-template-columns: repeat(5, 1fr); } }
-@media (min-width: 1440px) { .skeletonGrid { grid-template-columns: repeat(6, 1fr); } }
+@media (min-width: 640px) {
+  .skeletonGrid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .skeletonGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (min-width: 1440px) {
+  .skeletonGrid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
 
 .skeletonCard {
   border-radius: 8px;

@@ -211,10 +211,10 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
     if (videoRef.current) {
       videoRef.current.volume = volume;
       videoRef.current.muted = muted;
-      
+
       let dbDur = parseDuration(episode?.duration) || 0;
       let realDur = videoRef.current.duration;
-      
+
       let finalDur = dbDur;
       if (isFinite(realDur) && realDur > dbDur) {
         finalDur = realDur;

@@ -146,75 +146,75 @@ export default function MovieDetails() {
       <div className={styles.page}>
         <Navbar user={user} onLogout={handleLogout} />
 
-      <div className={styles.hero} style={{ backgroundImage: `url(${movie.backdrop})` }}>
-        <div className={styles.heroOverlay}>
-          <div className={styles.heroContent}>
-            <h1 className={styles.title}>{movie.title}</h1>
-            {movie.titleAmharic && <h2 className={styles.subtitle}></h2>}
+        <div className={styles.hero} style={{ backgroundImage: `url(${movie.backdrop})` }}>
+          <div className={styles.heroOverlay}>
+            <div className={styles.heroContent}>
+              <h1 className={styles.title}>{movie.title}</h1>
+              {movie.titleAmharic && <h2 className={styles.subtitle}></h2>}
 
-            <div className={styles.meta}>
-              <span className={styles.rating}>
-                <FaStar style={{ marginRight: '5px', color: '#ffd700' }} />
-                {movie.rating}
-              </span>
-              <span>{movie.year}</span>
-              <span>{movie.duration}</span>
-              <span className={styles.quality}>{movie.quality || 'HD'}</span>
-            </div>
+              <div className={styles.meta}>
+                <span className={styles.rating}>
+                  <FaStar style={{ marginRight: '5px', color: '#ffd700' }} />
+                  {movie.rating}
+                </span> •
+                <span>{movie.year}</span> •
+                <span>{movie.duration}</span> •
+                <span className={styles.quality}>{movie.quality || 'HD'}</span>
+              </div>
 
-            <p className={styles.description}>{movie.description}</p>
-            <p className={styles.genre}><strong>Genres:</strong> {movie.genre}</p>
+              <p className={styles.description}>{movie.description}</p>
+              <p className={styles.genre}><strong>Genres:</strong> {movie.genre}</p>
 
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <button
-                className={styles.playMainBtn}
-                onClick={handleWatchClick}
-              >
-                <FaPlay /> Watch Movie
-              </button>
-              <button
-                className={styles.myListBtn}
-                onClick={() => toggleMyList(movie)}
-              >
-                {isInMyList(movie.id) ? <><FaCheck /> In My List</> : <><FaPlus /> My List</>}
-              </button>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  className={styles.playMainBtn}
+                  onClick={handleWatchClick}
+                >
+                  <FaPlay /> Watch Movie
+                </button>
+                <button
+                  className={styles.myListBtn}
+                  onClick={() => toggleMyList(movie)}
+                >
+                  {isInMyList(movie.id) ? <><FaCheck /> In My List</> : <><FaPlus /> My List</>}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className={styles.content}>
-        {/* More Like This */}
-        {similar.length > 0 && (
-          <div className={styles.moreSection}>
-            <h2 className={styles.moreTitle}>More Like This</h2>
-            <div className={styles.moreGrid}>
-              {similar.map(m => {
-                const isSeriesItem = m.type === 'series';
-                return (
-                  <div
-                    key={m.id}
-                    className={styles.moreCard}
-                    onClick={() => navigate(isSeriesItem ? `/series/${m.id}` : `/movie/${m.id}`)}
-                  >
-                    <img src={m.poster} alt={m.title} className={styles.morePoster} loading="lazy" />
-                    <div className={styles.moreOverlay}>
-                      <FaPlay size={26} className={styles.morePlay} />
-                    </div>
-                    <div className={styles.moreInfo}>
-                      <p className={styles.moreMovieTitle}>{m.title}</p>
-                      <div className={styles.moreMeta}>
-                        <span className={styles.moreMetaGenre}>{m.genre.split(' • ')[0]}</span>
-                        <span>{isSeriesItem ? 'Series' : 'Movie'} &bull; {m.year}</span>
+        <div className={styles.content}>
+          {/* More Like This */}
+          {similar.length > 0 && (
+            <div className={styles.moreSection}>
+              <h2 className={styles.moreTitle}>More Like This</h2>
+              <div className={styles.moreGrid}>
+                {similar.map(m => {
+                  const isSeriesItem = m.type === 'series';
+                  return (
+                    <div
+                      key={m.id}
+                      className={styles.moreCard}
+                      onClick={() => navigate(isSeriesItem ? `/series/${m.id}` : `/movie/${m.id}`)}
+                    >
+                      <img src={m.poster} alt={m.title} className={styles.morePoster} loading="lazy" />
+                      <div className={styles.moreOverlay}>
+                        <FaPlay size={26} className={styles.morePlay} />
+                      </div>
+                      <div className={styles.moreInfo}>
+                        <p className={styles.moreMovieTitle}>{m.title}</p>
+                        <div className={styles.moreMeta}>
+                          <span className={styles.moreMetaGenre}>{m.genre.split(' • ')[0]}</span>
+                          <span>{isSeriesItem ? 'Series' : 'Movie'} &bull; {m.year}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       </div>
     </>
   );
