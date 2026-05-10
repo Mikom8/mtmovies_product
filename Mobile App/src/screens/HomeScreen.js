@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   heroSubtitle: { color: '#ccc', fontSize: 14, marginTop: 5 },
   sectionTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginLeft: 15, marginBottom: 10 },
   list: { paddingLeft: 15 },
-  card: { width: 120, marginRight: 15, marginBottom: 20 },
+  card: { width: 120, marginRight: 8, marginBottom: 20 },
   poster: { width: 120, height: 180, borderRadius: 8 },
   title: { color: '#fff', fontSize: 12, marginTop: 5, textAlign: 'center' },
 });
