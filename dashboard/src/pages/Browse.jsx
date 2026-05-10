@@ -169,6 +169,17 @@ export default function Browse() {
   if (loading || !featuredItem) return <PageSkeleton />;
 
   const NEW = [...MOVIES, ...SERIES].filter(item => item.isNew);
+  
+  const trending = [...MOVIES, ...SERIES]
+    .map(item => {
+      const views = item.stats?.views || 0;
+      const likes = item.stats?.likes || 0;
+      return { item, score: views + (likes * 2) };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10)
+    .map(x => x.item);
+
   const ACTION = MOVIES.filter(m => m.genre && m.genre.includes('Action'));
   const CRIME = MOVIES.filter(m => m.genre && m.genre.includes('Crime'));
   const scifi = MOVIES.filter(m => m.genre && m.genre.includes('Sci-Fi'));
@@ -183,6 +194,7 @@ export default function Browse() {
       <HeroBanner movie={featuredItem} />
       <div className={styles.rows}>
 
+        {trending.length > 0 && <MovieRow title="Trending This Week" movies={trending} />}
         {NEW.length > 0 && <MovieRow title="New Releases" movies={NEW} />}
         {continueWatching.length > 0 && (
           <MovieRow title="Continue Watching" movies={continueWatching} />
