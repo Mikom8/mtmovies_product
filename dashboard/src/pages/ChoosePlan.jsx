@@ -75,7 +75,7 @@ export default function ChoosePlan() {
     
     try {
       const token = localStorage.getItem('mt_token');
-      const res = await fetch('https://mtmovies-production.up.railway.app/api/payments/verify', {
+      const res = await fetch('http://localhost:5000/api/payments/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

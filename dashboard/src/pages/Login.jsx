@@ -7,7 +7,7 @@ import { BiLoaderAlt, BiErrorCircle } from 'react-icons/bi';
 import { FcGoogle } from 'react-icons/fc';
 import { useGoogleLogin } from '@react-oauth/google';
 
-const API = 'https://mtmovies-production.up.railway.app/api';
+const API = 'http://localhost:5000/api';
 
 export default function Login() {
   const navigate = useNavigate();

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const API = 'https://mtmovies-production.up.railway.app/api/users/watchlist';
+const API = 'http://localhost:5000/api/users/watchlist';
 
 function getToken() {
   return localStorage.getItem('mt_token');
