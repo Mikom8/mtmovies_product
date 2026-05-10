@@ -14,11 +14,6 @@ const movieSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  type: {
-    type: String,
-    enum: ['movie', 'series'],
-    default: 'movie'
-  },
   genres: [{
     type: String
   }],
@@ -74,18 +69,7 @@ const movieSchema = new mongoose.Schema({
   isFree: {
     type: Boolean,
     default: false
-  },
-  // For series only
-  seasons: [{
-    seasonNumber: Number,
-    episodes: [{
-      episodeNumber: Number,
-      title: String,
-      duration: String,
-      telegramChatId: String,
-      telegramMessageId: String
-    }]
-  }]
+  }
 }, { timestamps: true, suppressReservedKeysWarning: true });
 
 // Index for fast searching

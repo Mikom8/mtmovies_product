@@ -12,6 +12,7 @@ if (!fs.existsSync(hlsDir)) {
 
 const authRoutes = require('./routes/auth');
 const movieRoutes = require('./routes/movies');
+const seriesRoutes = require('./routes/series');
 const userRoutes = require('./routes/users');
 const streamRoutes = require('./routes/stream');
 const paymentRoutes = require('./routes/payments');
@@ -38,6 +39,7 @@ app.use('/api/stream/hls', (req, res, next) => {
 // ── Routes ──
 app.use('/api/auth', authRoutes);
 app.use('/api/movies', movieRoutes);
+app.use('/api/series', seriesRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/stream', streamRoutes);
 app.use('/api/payments', paymentRoutes);

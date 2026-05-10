@@ -16,23 +16,29 @@ export function MovieProvider({ children }) {
     const fetchContent = async () => {
       try {
         setLoading(true);
-        // We fetch all movies and series from our backend
-        const res = await fetch('https://mtmovies-production.up.railway.app/api/movies?limit=500');
-        if (!res.ok) throw new Error('Failed to fetch movies');
-        const data = await res.json();
+        // Fetch movies and series concurrently
+        const [moviesRes, seriesRes] = await Promise.all([
+          fetch('https://mtmovies-production.up.railway.app/api/movies?limit=500'),
+          fetch('https://mtmovies-production.up.railway.app/api/series?limit=500')
+        ]);
         
-        // Transform the backend format back to what the frontend expects
-        const transformedData = data.movies.map(m => ({
+        let moviesData = { movies: [] };
+        if (moviesRes.ok) moviesData = await moviesRes.json();
+        
+        let seriesData = { series: [] };
+        if (seriesRes.ok) seriesData = await seriesRes.json();
+        
+        const transform = m => ({
           ...m,
-          id: m._id, // map Mongo _id to id so frontend doesn't break
+          id: m._id,
           genre: m.genres ? m.genres.join(' • ') : '',
           telegramChatId: m.telegram?.chatId,
           telegramMessageId: m.telegram?.messageId,
           year: m.year,
-        }));
+        });
 
-        setMovies(transformedData.filter(m => m.type === 'movie'));
-        setSeries(transformedData.filter(m => m.type === 'series'));
+        setMovies(moviesData.movies.map(transform));
+        setSeries(seriesData.series.map(transform));
       } catch (err) {
         setError(err.message);
         console.error("Error fetching movies from DB:", err);

@@ -77,10 +77,16 @@ router.post('/history', async (req, res) => {
       // If watched > 30 mins (1800s) and not yet counted
       if (progress >= 1800 && !existing.countedView) {
         existing.countedView = true;
+        const isSeries = String(movieId).includes('_');
         const baseId = String(movieId).split('_')[0];
-        const Movie = require('../models/Movie');
         try {
-          await Movie.findByIdAndUpdate(baseId, { $inc: { 'stats.views': 1 } });
+          if (isSeries) {
+            const Series = require('../models/Series');
+            await Series.findByIdAndUpdate(baseId, { $inc: { 'stats.views': 1 } });
+          } else {
+            const Movie = require('../models/Movie');
+            await Movie.findByIdAndUpdate(baseId, { $inc: { 'stats.views': 1 } });
+          }
         } catch (e) { /* ignore */ }
       }
     } else {
@@ -88,10 +94,16 @@ router.post('/history', async (req, res) => {
       user.watchHistory.push({ movieId: String(movieId), progress, countedView: isOver30 });
       
       if (isOver30) {
+        const isSeries = String(movieId).includes('_');
         const baseId = String(movieId).split('_')[0];
-        const Movie = require('../models/Movie');
         try {
-          await Movie.findByIdAndUpdate(baseId, { $inc: { 'stats.views': 1 } });
+          if (isSeries) {
+            const Series = require('../models/Series');
+            await Series.findByIdAndUpdate(baseId, { $inc: { 'stats.views': 1 } });
+          } else {
+            const Movie = require('../models/Movie');
+            await Movie.findByIdAndUpdate(baseId, { $inc: { 'stats.views': 1 } });
+          }
         } catch (e) { /* ignore */ }
       }
     }

@@ -896,14 +896,13 @@ export const SERIES = [
       },
       {
         seasonNumber: 3,
-        episodes: Array.from({ length: 13 }, (_, i) => ({
-          episodeNumber: i + 1,
-          title: `Episode ${i + 1}`,
-          duration: "50m",
-          telegramChatId: "-1003934460497",
-          telegramMessageId: String(749 + i)
-        }))
-      }
+        episodes: [
+          { episodeNumber: 1, title: "Shatter", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "758" },
+          { episodeNumber: 2, title: "When Go", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "759" },
+          { episodeNumber: 3, title: "Mouse Trap", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "760" },
+          { episodeNumber: 4, title: "There and Back Again", duration: "50m", telegramChatId: "-1003934460497", telegramMessageId: "924" },
+        ]
+      },
     ]
   },
   {
