@@ -46,7 +46,8 @@ const userSchema = new mongoose.Schema({
   watchHistory: [{
     movieId: { type: String, required: true },
     watchedAt: { type: Date, default: Date.now },
-    progress: { type: Number, default: 0 } // seconds watched
+    progress: { type: Number, default: 0 }, // seconds watched
+    countedView: { type: Boolean, default: false }
   }],
   isActive: {
     type: Boolean,

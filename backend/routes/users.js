@@ -73,14 +73,27 @@ router.post('/history', async (req, res) => {
     if (existing) {
       existing.progress = progress;
       existing.watchedAt = new Date();
+      
+      // If watched > 30 mins (1800s) and not yet counted
+      if (progress >= 1800 && !existing.countedView) {
+        existing.countedView = true;
+        const baseId = String(movieId).split('_')[0];
+        const Movie = require('../models/Movie');
+        try {
+          await Movie.findByIdAndUpdate(baseId, { $inc: { 'stats.views': 1 } });
+        } catch (e) { /* ignore */ }
+      }
     } else {
-      user.watchHistory.push({ movieId: String(movieId), progress });
-      // Increment views for the first watch
-      const baseId = String(movieId).split('_')[0];
-      const Movie = require('../models/Movie');
-      try {
-        await Movie.findByIdAndUpdate(baseId, { $inc: { 'stats.views': 1 } });
-      } catch (e) { /* ignore */ }
+      const isOver30 = progress >= 1800;
+      user.watchHistory.push({ movieId: String(movieId), progress, countedView: isOver30 });
+      
+      if (isOver30) {
+        const baseId = String(movieId).split('_')[0];
+        const Movie = require('../models/Movie');
+        try {
+          await Movie.findByIdAndUpdate(baseId, { $inc: { 'stats.views': 1 } });
+        } catch (e) { /* ignore */ }
+      }
     }
 
     await user.save();
