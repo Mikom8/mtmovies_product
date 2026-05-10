@@ -427,8 +427,9 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
     return () => window.removeEventListener('keydown', onKey);
   }, [togglePlay, skip, toggleFullscreen]);
 
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-  const bufProgress = duration > 0 ? ((useHls ? buffered + hlsStartTime : buffered) / duration) * 100 : 0;
+  const displayDuration = Math.max(duration, currentTime);
+  const progress = displayDuration > 0 ? (currentTime / displayDuration) * 100 : 0;
+  const bufProgress = displayDuration > 0 ? ((useHls ? buffered + hlsStartTime : buffered) / displayDuration) * 100 : 0;
 
   return (
     <div
@@ -577,7 +578,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
                   onChange={changeVolume}
                   className={styles.volumeSlider}
                 />
-                <span className={styles.timeLabel}>{fmt(currentTime)} / {duration ? fmt(duration) : '--:--'}</span>
+                <span className={styles.timeLabel}>{fmt(currentTime)} / {displayDuration ? fmt(displayDuration) : '--:--'}</span>
               </div>
 
               {/* Desktop title in center */}
