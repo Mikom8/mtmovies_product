@@ -24,17 +24,7 @@ export default function Browse() {
   const { user, token, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const { myList } = useMyList();
-  const { movies: MOVIES, series: SERIES, loading } = useMovies();
-  const [featuredItem, setFeaturedItem] = useState(null);
-
-  useEffect(() => {
-    if (!loading && !featuredItem) {
-      const pool = [...MOVIES.filter(m => m.isFeatured), ...SERIES.filter(s => s.isFeatured || s.id === 'sq1')];
-      const fallbackPool = [...MOVIES.slice(0, 5), ...SERIES.slice(0, 5)];
-      const activePool = pool.length > 0 ? pool : fallbackPool;
-      setFeaturedItem(activePool[Math.floor(Math.random() * activePool.length)]);
-    }
-  }, [loading, MOVIES, SERIES, featuredItem]);
+  const { movies: MOVIES, series: SERIES, featuredItem, loading } = useMovies();
 
   const myListItems = myList.map(item => {
     if (item.type === 'movie') return MOVIES.find(m => String(m.id) === String(item.id));

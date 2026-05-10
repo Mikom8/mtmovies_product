@@ -9,6 +9,7 @@ export function useMovies() {
 export function MovieProvider({ children }) {
   const [movies, setMovies] = useState([]);
   const [series, setSeries] = useState([]);
+  const [featuredItem, setFeaturedItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -56,8 +57,19 @@ export function MovieProvider({ children }) {
           year: m.year,
         });
 
-        setMovies(moviesData.movies.map(transformMovie));
-        setSeries(seriesData.series.map(transformSeries));
+        const transformedMovies = moviesData.movies.map(transformMovie);
+        const transformedSeries = seriesData.series.map(transformSeries);
+
+        setMovies(transformedMovies);
+        setSeries(transformedSeries);
+
+        // Select featured item ONCE per session
+        const pool = [...transformedMovies.filter(m => m.isFeatured), ...transformedSeries.filter(s => s.isFeatured || s.id === 'sq1')];
+        const fallbackPool = [...transformedMovies.slice(0, 5), ...transformedSeries.slice(0, 5)];
+        const activePool = pool.length > 0 ? pool : fallbackPool;
+        if (activePool.length > 0) {
+          setFeaturedItem(activePool[Math.floor(Math.random() * activePool.length)]);
+        }
       } catch (err) {
         setError(err.message);
         console.error("Error fetching movies from DB:", err);
@@ -70,7 +82,7 @@ export function MovieProvider({ children }) {
   }, []);
 
   return (
-    <MovieContext.Provider value={{ movies, series, loading, error }}>
+    <MovieContext.Provider value={{ movies, series, featuredItem, loading, error }}>
       {children}
     </MovieContext.Provider>
   );
