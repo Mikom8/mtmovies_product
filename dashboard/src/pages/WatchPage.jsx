@@ -64,7 +64,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
     return localStorage.getItem('mtmovies_muted') === 'true';
   });
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(() => parseDuration(movie?.duration) || 0);
   const [buffered, setBuffered] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
   const [showSkipFlash, setShowSkipFlash] = useState(null); // 'fwd' | 'bck'
@@ -204,10 +204,8 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
     const v = videoRef.current;
     if (!v) return;
 
-    if (!duration || !isFinite(duration)) {
-      if (isFinite(v.duration) && v.duration > 0) {
-        setDuration(v.duration);
-      }
+    if (isFinite(v.duration) && v.duration > duration + 1) {
+      setDuration(v.duration);
     }
 
     const currentAbs = useHls ? v.currentTime + hlsStartTime : v.currentTime;
@@ -219,20 +217,21 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
     if (videoRef.current) {
       videoRef.current.volume = volume;
       videoRef.current.muted = muted;
-      if (useHls) {
-        setDuration(parseDuration(movie.duration));
-      } else {
-        let dur = videoRef.current.duration;
-        if (!isFinite(dur) || dur <= 0) {
-          dur = parseDuration(movie.duration);
-        }
-        setDuration(dur);
-        if (user && user.watchHistory && !hasResumedRef.current) {
-          hasResumedRef.current = true;
-          const historyItem = user.watchHistory.find(h => h.movieId === String(movie.id));
-          if (historyItem && historyItem.progress > 0 && historyItem.progress < dur - 15) {
-            videoRef.current.currentTime = historyItem.progress;
-          }
+      
+      let dbDur = parseDuration(movie?.duration) || 0;
+      let realDur = videoRef.current.duration;
+      
+      let finalDur = dbDur;
+      if (isFinite(realDur) && realDur > dbDur) {
+        finalDur = realDur;
+      }
+      setDuration(finalDur);
+
+      if (user && user.watchHistory && !hasResumedRef.current) {
+        hasResumedRef.current = true;
+        const historyItem = user.watchHistory.find(h => h.movieId === String(movie.id));
+        if (historyItem && historyItem.progress > 0 && historyItem.progress < finalDur - 15) {
+          videoRef.current.currentTime = historyItem.progress;
         }
       }
     }

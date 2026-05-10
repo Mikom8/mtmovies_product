@@ -76,6 +76,10 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
   const hasResumedRef = useRef(false);
 
   useEffect(() => {
+    setDuration(parseDuration(episode?.duration) || 0);
+  }, [episode]);
+
+  useEffect(() => {
     if (user && user.watchHistory) {
       const h = user.watchHistory.find(x => x.movieId === compoundId);
       setInitialOffset(h && h.progress > 0 ? h.progress : 0);
@@ -194,10 +198,8 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
     const v = videoRef.current;
     if (!v) return;
 
-    if (isFinite(v.duration) && v.duration > 0) {
-      if (Math.abs(duration - v.duration) > 1) {
-        setDuration(v.duration);
-      }
+    if (isFinite(v.duration) && v.duration > duration + 1) {
+      setDuration(v.duration);
     }
 
     const currentAbs = useHls ? v.currentTime + hlsStartTime : v.currentTime;
@@ -209,20 +211,21 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
     if (videoRef.current) {
       videoRef.current.volume = volume;
       videoRef.current.muted = muted;
-      if (useHls) {
-        setDuration(parseDuration(episode.duration));
-      } else {
-        let dur = videoRef.current.duration;
-        if (!isFinite(dur) || dur <= 0) {
-          dur = parseDuration(episode.duration);
-        }
-        setDuration(dur);
-        if (user && user.watchHistory && !hasResumedRef.current) {
-          hasResumedRef.current = true;
-          const historyItem = user.watchHistory.find(h => h.movieId === compoundId);
-          if (historyItem && historyItem.progress > 0 && historyItem.progress < dur - 15) {
-            videoRef.current.currentTime = historyItem.progress;
-          }
+      
+      let dbDur = parseDuration(episode?.duration) || 0;
+      let realDur = videoRef.current.duration;
+      
+      let finalDur = dbDur;
+      if (isFinite(realDur) && realDur > dbDur) {
+        finalDur = realDur;
+      }
+      setDuration(finalDur);
+
+      if (user && user.watchHistory && !hasResumedRef.current) {
+        hasResumedRef.current = true;
+        const historyItem = user.watchHistory.find(h => h.movieId === compoundId);
+        if (historyItem && historyItem.progress > 0 && historyItem.progress < finalDur - 15) {
+          videoRef.current.currentTime = historyItem.progress;
         }
       }
     }
