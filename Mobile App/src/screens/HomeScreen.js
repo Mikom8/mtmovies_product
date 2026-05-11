@@ -142,7 +142,7 @@ const HomeScreen = () => {
               }}
               style={styles.heroImage}
             />
-            
+
             {/* Cinematic Gradient Shadow */}
             <View style={StyleSheet.absoluteFill}>
               <Svg height="100%" width="100%">
@@ -160,11 +160,11 @@ const HomeScreen = () => {
             <View style={styles.heroOverlay}>
               <View style={[styles.featuredBadge, heroItem.isNew && styles.newReleaseBadge]}>
                 <Text style={styles.featuredText}>
-                  {heroItem.isNew ? "NEW RELEASE" : "FEATURED"}
+                  {heroItem.isNew ? "NEW RELEASE" : " "}
                 </Text>
               </View>
               <Text style={styles.heroTitle}>{heroItem.title}</Text>
-              
+
               <View style={styles.heroMetaRow}>
                 <Text style={styles.heroMetaText}>{heroItem.year || "2024"}</Text>
                 <View style={styles.metaDivider} />
@@ -182,7 +182,7 @@ const HomeScreen = () => {
                 {heroItem.genres?.join(" • ")}
               </Text>
               <View style={styles.heroActions}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.playBtn}
                   onPress={() =>
                     navigation.navigate("Details", {
@@ -203,15 +203,15 @@ const HomeScreen = () => {
         )}
 
         {/* Genre Selector */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
           style={styles.genreScroll}
           contentContainerStyle={styles.genreContent}
         >
           {filterGenres.map(genre => (
-            <TouchableOpacity 
-              key={genre} 
+            <TouchableOpacity
+              key={genre}
               style={[styles.genreChip, selectedGenre === genre && styles.genreChipActive]}
               onPress={() => setSelectedGenre(genre)}
             >
@@ -225,21 +225,21 @@ const HomeScreen = () => {
         {/* Dynamic Genre Sections when 'Movies' or 'Series' or 'All' is selected */}
         {(selectedGenre === "All" || selectedGenre === "Movies" || selectedGenre === "Series" || selectedGenre === "Free") ? (
           <>
-            <Section 
-              title="New Releases" 
+            <Section
+              title="New Releases"
               data={
                 [...filteredMovies, ...filteredSeries]
                   .filter(item => item.isNew)
                   .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-              } 
+              }
             />
-            
+
             {/* Consistently show a single Trending row based on the current tab */}
-            <Section 
+            <Section
               title={
                 selectedGenre === "Movies" ? "Trending Movies This Week" :
-                selectedGenre === "Series" ? "Trending Series This Week" :
-                "Trending This Week"
+                  selectedGenre === "Series" ? "Trending Series This Week" :
+                    "Trending This Week"
               }
               variant="landscape"
               icon={<MaterialIcons name="trending-up" size={24} color="#E50914" />}
@@ -251,13 +251,13 @@ const HomeScreen = () => {
 
             {/* Render Genre Specific Sections */}
             {displayGenres.map(genre => (
-              <Section 
+              <Section
                 key={genre}
                 title={`${genre} ${selectedGenre === "Series" ? "Series" : "Movies"}`}
                 data={
-                  selectedGenre === "Series" 
-                  ? series.filter(s => s.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
-                  : movies.filter(m => m.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
+                  selectedGenre === "Series"
+                    ? series.filter(s => s.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
+                    : movies.filter(m => m.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
                 }
               />
             ))}
@@ -269,7 +269,7 @@ const HomeScreen = () => {
             <Section title={`${selectedGenre} Series`} data={filteredSeries} />
           </>
         )}
-        
+
         <View style={{ height: 40 }} />
       </ScrollView>
     </View>
@@ -284,9 +284,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  
+
   // Hero Styles
-  hero: { width: width, height: 350, position: 'relative' },
+  hero: { width: width, height: 450, position: 'relative' },
   heroImage: { width: "100%", height: "100%", resizeMode: 'cover' },
   heroOverlay: {
     position: "absolute",
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   featuredBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(0, 8, 8, 0)',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
   },
   seeAllText: { color: '#E50914', fontSize: 13, fontWeight: '600' },
   list: { paddingLeft: 15 },
-  
+
   // Card Styles
   card: { width: 130, marginRight: 12 },
   cardLandscape: { width: 240 },
@@ -402,12 +402,12 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   newBadgeText: { color: '#fff', fontSize: 9, fontWeight: '900' },
-  title: { 
-    color: "rgba(255,255,255,0.9)", 
-    fontSize: 13, 
-    marginTop: 8, 
+  title: {
+    color: "rgba(255,255,255,0.9)",
+    fontSize: 13,
+    marginTop: 8,
     fontWeight: '600',
-    textAlign: 'left' 
+    textAlign: 'left'
   },
 });
 
