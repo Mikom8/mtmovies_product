@@ -20,8 +20,8 @@ export const MovieProvider = ({ children }) => {
     try {
       setLoading(true);
       const [moviesRes, seriesRes, featuredMoviesRes, featuredSeriesRes] = await Promise.all([
-        client.get('/movies?limit=20'),
-        client.get('/series?limit=20'),
+        client.get('/movies?limit=200'),
+        client.get('/series?limit=200'),
         client.get('/movies/featured'),
         client.get('/series/featured')
       ]);

@@ -14,6 +14,8 @@ import {
 import { useMovies } from "../context/MovieContext";
 import { useNavigation } from "@react-navigation/native";
 import Feather from '@expo/vector-icons/Feather';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Svg, { Defs, LinearGradient as SvgGradient, Rect, Stop } from 'react-native-svg';
 
 const { width } = Dimensions.get("window");
 
@@ -21,16 +23,25 @@ const HomeScreen = () => {
   const { movies, series, featuredItems, loading, error } = useMovies();
   const navigation = useNavigation();
   const [selectedGenre, setSelectedGenre] = useState("All");
+  const [heroItem, setHeroItem] = useState(null);
 
   const filterGenres = ["All", "Movies", "Series", "Free", "Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Animation"];
   const displayGenres = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Animation"];
+
+  // Pick a random hero item once when featuredItems are loaded
+  useMemo(() => {
+    if (featuredItems.length > 0 && !heroItem) {
+      const randomIndex = Math.floor(Math.random() * featuredItems.length);
+      setHeroItem(featuredItems[randomIndex]);
+    }
+  }, [featuredItems]);
 
   const filteredMovies = useMemo(() => {
     let list = movies;
     if (selectedGenre === "Series") return [];
     if (selectedGenre === "Free") list = list.filter(m => m.isFree);
     else if (selectedGenre !== "All" && selectedGenre !== "Movies") {
-      list = list.filter(m => m.genres?.includes(selectedGenre));
+      list = list.filter(m => m.genres?.some(g => g.toLowerCase() === selectedGenre.toLowerCase()));
     }
     return list;
   }, [movies, selectedGenre]);
@@ -40,7 +51,7 @@ const HomeScreen = () => {
     if (selectedGenre === "Movies") return [];
     if (selectedGenre === "Free") list = list.filter(s => s.isFree);
     else if (selectedGenre !== "All" && selectedGenre !== "Series") {
-      list = list.filter(s => s.genres?.includes(selectedGenre));
+      list = list.filter(s => s.genres?.some(g => g.toLowerCase() === selectedGenre.toLowerCase()));
     }
     return list;
   }, [series, selectedGenre]);
@@ -83,13 +94,16 @@ const HomeScreen = () => {
     );
   };
 
-  const Section = ({ title, data, variant = "portrait" }) => {
+  const Section = ({ title, data, variant = "portrait", icon }) => {
     if (!data || data.length === 0) return null;
     const isNewRelease = title === "New Releases";
     return (
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{title}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {icon}
+            <Text style={styles.sectionTitle}>{title}</Text>
+          </View>
           <TouchableOpacity>
             <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
@@ -111,38 +125,69 @@ const HomeScreen = () => {
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Hero Section */}
-        {featuredItems.length > 0 && (
+        {heroItem && (
           <TouchableOpacity
             activeOpacity={0.9}
             style={styles.hero}
             onPress={() =>
               navigation.navigate("Details", {
-                id: featuredItems[0]._id,
-                type: featuredItems[0].seasons ? "series" : "movie",
+                id: heroItem._id,
+                type: heroItem.seasons ? "series" : "movie",
               })
             }
           >
             <Image
               source={{
-                uri: featuredItems[0].backdrop || featuredItems[0].poster,
+                uri: heroItem.backdrop || heroItem.poster,
               }}
               style={styles.heroImage}
             />
+            
+            {/* Cinematic Gradient Shadow */}
+            <View style={StyleSheet.absoluteFill}>
+              <Svg height="100%" width="100%">
+                <Defs>
+                  <SvgGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0" stopColor="transparent" stopOpacity="0" />
+                    <Stop offset="0.5" stopColor="black" stopOpacity="0.2" />
+                    <Stop offset="1" stopColor="black" stopOpacity="1" />
+                  </SvgGradient>
+                </Defs>
+                <Rect x="0" y="0" width="100%" height="100%" fill="url(#grad)" />
+              </Svg>
+            </View>
+
             <View style={styles.heroOverlay}>
-              <View style={styles.featuredBadge}>
-                <Text style={styles.featuredText}>FEATURED</Text>
+              <View style={[styles.featuredBadge, heroItem.isNew && styles.newReleaseBadge]}>
+                <Text style={styles.featuredText}>
+                  {heroItem.isNew ? "NEW RELEASE" : "FEATURED"}
+                </Text>
               </View>
-              <Text style={styles.heroTitle}>{featuredItems[0].title}</Text>
+              <Text style={styles.heroTitle}>{heroItem.title}</Text>
+              
+              <View style={styles.heroMetaRow}>
+                <Text style={styles.heroMetaText}>{heroItem.year || "2024"}</Text>
+                <View style={styles.metaDivider} />
+                <View style={styles.qualityBadge}>
+                  <Text style={styles.qualityText}>{heroItem.quality || "HD"}</Text>
+                </View>
+                <View style={styles.metaDivider} />
+                <View style={styles.heroRating}>
+                  <Feather name="star" size={12} color="#FFD700" />
+                  <Text style={styles.heroMetaText}>{heroItem.rating || "8.5"}</Text>
+                </View>
+              </View>
+
               <Text style={styles.heroSubtitle}>
-                {featuredItems[0].genres?.join(" • ")}
+                {heroItem.genres?.join(" • ")}
               </Text>
               <View style={styles.heroActions}>
                 <TouchableOpacity 
                   style={styles.playBtn}
                   onPress={() =>
                     navigation.navigate("Details", {
-                      id: featuredItems[0]._id,
-                      type: featuredItems[0].seasons ? "series" : "movie",
+                      id: heroItem._id,
+                      type: heroItem.seasons ? "series" : "movie",
                     })
                   }
                 >
@@ -189,22 +234,20 @@ const HomeScreen = () => {
               } 
             />
             
-            {/* If All or Movies, show trending movies */}
-            {(selectedGenre === "All" || selectedGenre === "Movies") && (
-               <Section 
-                 title="Trending This Week" 
-                 variant="landscape"
-                 data={movies.slice().sort((a, b) => (b.stats?.views || 0) - (a.stats?.views || 0))} 
-               />
-            )}
-
-            {/* If All or Series, show popular series */}
-            {(selectedGenre === "All" || selectedGenre === "Series") && (
-               <Section 
-                 title="Popular Series" 
-                 data={series.slice().sort((a, b) => (b.stats?.views || 0) - (a.stats?.views || 0))} 
-               />
-            )}
+            {/* Consistently show a single Trending row based on the current tab */}
+            <Section 
+              title={
+                selectedGenre === "Movies" ? "Trending Movies This Week" :
+                selectedGenre === "Series" ? "Trending Series This Week" :
+                "Trending This Week"
+              }
+              variant="landscape"
+              icon={<MaterialIcons name="trending-up" size={24} color="#E50914" />}
+              data={
+                [...filteredMovies, ...filteredSeries]
+                  .sort((a, b) => (b.stats?.views || 0) - (a.stats?.views || 0))
+              }
+            />
 
             {/* Render Genre Specific Sections */}
             {displayGenres.map(genre => (
@@ -213,8 +256,8 @@ const HomeScreen = () => {
                 title={`${genre} ${selectedGenre === "Series" ? "Series" : "Movies"}`}
                 data={
                   selectedGenre === "Series" 
-                  ? series.filter(s => s.genres?.includes(genre))
-                  : movies.filter(m => m.genres?.includes(genre))
+                  ? series.filter(s => s.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
+                  : movies.filter(m => m.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
                 }
               />
             ))}
@@ -243,30 +286,47 @@ const styles = StyleSheet.create({
   },
   
   // Hero Styles
-  hero: { width: width, height: 500, position: 'relative' },
+  hero: { width: width, height: 350, position: 'relative' },
   heroImage: { width: "100%", height: "100%", resizeMode: 'cover' },
   heroOverlay: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: '60%',
+    height: '100%',
     padding: 20,
-    paddingBottom: 30,
+    paddingBottom: 40,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.3)', // Semi-transparent black gradient fallback
   },
   featuredBadge: {
-    backgroundColor: '#E50914',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
     alignSelf: 'flex-start',
-    marginBottom: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  featuredText: { color: '#fff', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
-  heroTitle: { color: "#fff", fontSize: 32, fontWeight: "900", letterSpacing: -0.5 },
-  heroSubtitle: { color: "rgba(255,255,255,0.7)", fontSize: 14, marginTop: 4, fontWeight: '500' },
+  newReleaseBadge: {
+    backgroundColor: '#E50914',
+    borderColor: '#E50914',
+  },
+  featuredText: { color: '#fff', fontSize: 11, fontWeight: '900', letterSpacing: 1.2 },
+  heroTitle: { color: "#fff", fontSize: 36, fontWeight: "900", letterSpacing: -1, marginBottom: 8 },
+  heroMetaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 10 },
+  heroMetaText: { color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: '600' },
+  metaDivider: { width: 4, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.3)' },
+  qualityBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
+  },
+  qualityText: { color: '#fff', fontSize: 10, fontWeight: '800' },
+  heroRating: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  heroSubtitle: { color: "rgba(255,255,255,0.6)", fontSize: 15, fontWeight: '500' },
   heroActions: { flexDirection: 'row', alignItems: 'center', marginTop: 20, gap: 12 },
   playBtn: {
     flexDirection: 'row',
