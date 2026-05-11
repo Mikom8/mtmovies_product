@@ -41,6 +41,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleLogin = async (accessToken) => {
+    try {
+      const response = await client.post('/auth/google', { access_token: accessToken });
+      const { token, user, isNewUser } = response.data;
+      await SecureStore.setItemAsync('token', token);
+      setUser(user);
+      return { success: true, isNewUser: !!isNewUser };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Google login failed' };
+    }
+  };
+
   const register = async (name, email, password) => {
     try {
       const response = await client.post('/auth/register', { name, email, password });
@@ -59,7 +71,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, googleLogin }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,12 +1,13 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
-import { Home, Search, User, PlayCircle } from "lucide-react-native";
+import Feather from '@expo/vector-icons/Feather';
 
 import HomeScreen from "../screens/HomeScreen";
 import DetailsScreen from "../screens/DetailsScreen";
 import PlayerScreen from "../screens/PlayerScreen";
 import LoginScreen from "../screens/LoginScreen";
+import ProfileScreen from "../screens/ProfileScreen";
 import { useAuth } from "../context/AuthContext";
 import { View, ActivityIndicator } from "react-native";
 
@@ -27,7 +28,7 @@ const HomeTabs = () => (
       component={HomeScreen}
       options={{
         tabBarLabel: "Home",
-        tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+        tabBarIcon: ({ color, size }) => <Feather name="home" color={color} size={size} />,
       }}
     />
     <Tab.Screen
@@ -35,15 +36,15 @@ const HomeTabs = () => (
       component={HomeScreen} // Placeholder
       options={{
         tabBarLabel: "Search",
-        tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,
+        tabBarIcon: ({ color, size }) => <Feather name="search" color={color} size={size} />,
       }}
     />
     <Tab.Screen
       name="Profile"
-      component={HomeScreen} // Placeholder
+      component={ProfileScreen}
       options={{
         tabBarLabel: "Profile",
-        tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+        tabBarIcon: ({ color, size }) => <Feather name="user" color={color} size={size} />,
       }}
     />
   </Tab.Navigator>
@@ -62,17 +63,18 @@ const AppNavigator = () => {
     );
   }
 
+  // Always register main screens so navigation.reset can target them even when
+  // the user is not authenticated yet. Use initialRouteName to decide which
+  // screen is shown first based on auth state.
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {user ? (
-        <>
-          <Stack.Screen name="Main" component={HomeTabs} />
-          <Stack.Screen name="Details" component={DetailsScreen} />
-          <Stack.Screen name="Player" component={PlayerScreen} />
-        </>
-      ) : (
-        <Stack.Screen name="Login" component={LoginScreen} />
-      )}
+    <Stack.Navigator
+      initialRouteName={user ? 'Main' : 'Login'}
+      screenOptions={{ headerShown: false }}
+    >
+      <Stack.Screen name="Main" component={HomeTabs} />
+      <Stack.Screen name="Details" component={DetailsScreen} />
+      <Stack.Screen name="Player" component={PlayerScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
     </Stack.Navigator>
   );
 };

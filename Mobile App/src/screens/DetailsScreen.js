@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { Play, Info, Plus } from "lucide-react-native";
+import Feather from '@expo/vector-icons/Feather';
 import client from "../api/client";
 
 const DetailsScreen = ({ route, navigation }) => {
@@ -76,7 +76,7 @@ const DetailsScreen = ({ route, navigation }) => {
         </View>
 
         <TouchableOpacity style={styles.playButton} onPress={handleWatch}>
-          <Play fill="#000" size={20} color="#000" />
+          <Feather name="play" size={20} color="#000" />
           <Text style={styles.playButtonText}>Watch Now</Text>
         </TouchableOpacity>
 
@@ -111,7 +111,7 @@ const DetailsScreen = ({ route, navigation }) => {
                   <Text style={styles.episodeText}>
                     E{ep.episodeNumber}: {ep.title}
                   </Text>
-                  <Play size={16} color="#ccc" />
+                  <Feather name="play" size={16} color="#ccc" />
                 </TouchableOpacity>
               ))}
             </View>

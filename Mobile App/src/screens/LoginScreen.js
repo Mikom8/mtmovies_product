@@ -13,13 +13,18 @@ import {
   Platform,
   Image,
 } from "react-native";
-import { Mail, Lock, Eye, EyeOff, ChevronRight, Globe } from "lucide-react-native";
+import Feather from '@expo/vector-icons/Feather';
 import { useAuth } from "../context/AuthContext";
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import Constants from 'expo-constants';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const { width, height } = Dimensions.get("window");
 
-const LoginScreen = ({ navigation }) => {
-  const { login, register } = useAuth();
+const LoginScreen = ({ navigation, route }) => {
+  const { login, register, googleLogin } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -86,6 +91,55 @@ const LoginScreen = ({ navigation }) => {
     });
   };
 
+  useEffect(() => {
+    // If a navigation param `mode` is provided (signup/signin), set initial mode
+    if (route?.params?.mode) {
+      setMode(route.params.mode);
+    }
+    // clear params so returning doesn't re-trigger
+    // Note: mutating route.params is okay for our simple flow
+    try {
+      if (route?.params) route.params.mode = undefined;
+    } catch (e) {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Google auth request — client IDs loaded from Expo config extra (from .env)
+  const cfg = (Constants.expoConfig && Constants.expoConfig.extra) || (Constants.manifest && Constants.manifest.extra) || {};
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    expoClientId: cfg.EXPO_GOOGLE_CLIENT_ID || '',
+    iosClientId: cfg.IOS_GOOGLE_CLIENT_ID || '',
+    androidClientId: cfg.ANDROID_GOOGLE_CLIENT_ID || '',
+    webClientId: cfg.WEB_GOOGLE_CLIENT_ID || '',
+    scopes: ['profile', 'email'],
+  });
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { authentication } = response;
+      const accessToken = authentication?.accessToken;
+      if (accessToken) handleGoogleBackendLogin(accessToken);
+    }
+  }, [response]);
+
+  const handleGoogleBackendLogin = async (accessToken) => {
+    setLoading(true);
+    try {
+      const res = await googleLogin(accessToken);
+      if (!res.success) {
+        setError(res.error || 'Google login failed');
+        return;
+      }
+      if (res.isNewUser) {
+        navigation.navigate('ChoosePlan');
+      } else {
+        navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     setError("");
     if (!email || !password) {
@@ -134,10 +188,17 @@ const LoginScreen = ({ navigation }) => {
         {/* Skip Button */}
         <TouchableOpacity
           style={styles.skipBtn}
-          onPress={() => navigation?.reset({
-            index: 0,
-            routes: [{ name: "Main" }],
-          })}
+          onPress={() => {
+            // If we can go back in navigation stack, do so. Otherwise reset to Main.
+            if (navigation?.canGoBack && navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation?.reset({
+                index: 0,
+                routes: [{ name: "Main" }],
+              });
+            }
+          }}
         >
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
@@ -163,7 +224,7 @@ const LoginScreen = ({ navigation }) => {
           </Text>
           <Text style={styles.subtitle}>
             {mode === "signup"
-              ? "Join MT Movies — watch English movies in Amharic"
+              ? "Join MTMovies — watch English movies in Amharic"
               : "Welcome back! Sign in to keep watching"}
           </Text>
         </View>
@@ -171,15 +232,16 @@ const LoginScreen = ({ navigation }) => {
         {/* Email Field */}
         <View style={styles.field}>
           <View style={styles.inputWrapper}>
-            <Mail
+            <Feather
+              name="mail"
               size={18}
-              color="rgba(255, 255, 255, 0.5)"
+              color="rgba(255, 255, 255, 1)"
               style={styles.icon}
             />
             <TextInput
               style={styles.input}
               placeholder="Email Address"
-              placeholderTextColor="rgba(255, 255, 255, 0.3)"
+              placeholderTextColor="rgba(255, 255, 255, 0.7)"
               value={email}
               onChangeText={handleEmailChange}
               onBlur={handleEmailBlur}
@@ -188,10 +250,7 @@ const LoginScreen = ({ navigation }) => {
               editable={!loading}
             />
             {checking && (
-              <ActivityIndicator
-                size="small"
-                color="rgba(255, 255, 255, 0.5)"
-              />
+              <ActivityIndicator size="small" color="rgba(255, 255, 255, 1)" />
             )}
           </View>
         </View>
@@ -199,15 +258,16 @@ const LoginScreen = ({ navigation }) => {
         {/* Password Field */}
         <View style={styles.field}>
           <View style={styles.inputWrapper}>
-            <Lock
+            <Feather
+              name="lock"
               size={18}
-              color="rgba(255, 255, 255, 0.5)"
+              color="rgba(255, 255, 255, 1)"
               style={styles.icon}
             />
             <TextInput
               style={styles.input}
               placeholder="Password"
-              placeholderTextColor="rgba(255, 255, 255, 0.3)"
+              placeholderTextColor="rgba(255, 255, 255, 0.7)"
               value={password}
               onChangeText={(val) => {
                 setPassword(val);
@@ -219,9 +279,9 @@ const LoginScreen = ({ navigation }) => {
             />
             <TouchableOpacity onPress={() => setShowPass(!showPass)}>
               {showPass ? (
-                <EyeOff size={18} color="rgba(255, 255, 255, 0.4)" />
+                <Feather name="eye-off" size={18} color="rgba(255, 255, 255, 1)" />
               ) : (
-                <Eye size={18} color="rgba(255, 255, 255, 0.4)" />
+                <Feather name="eye" size={18} color="rgba(255, 255, 255, 1)" />
               )}
             </TouchableOpacity>
           </View>
@@ -263,7 +323,7 @@ const LoginScreen = ({ navigation }) => {
           disabled={loading}
         >
           <Text style={styles.submitBtnText}>{btnLabel}</Text>
-          {!loading && <ChevronRight size={18} color="#fff" />}
+          {!loading && <Feather name="chevron-right" size={18} color="#fff" />}
         </TouchableOpacity>
 
         {/* Forgot Password */}
@@ -283,13 +343,23 @@ const LoginScreen = ({ navigation }) => {
         </View>
 
         {/* Google Button */}
-        <TouchableOpacity style={styles.googleBtn}>
-          <Globe size={18} color="#fff" style={{ marginRight: 8 }} />
+        <TouchableOpacity
+          style={styles.googleBtn}
+          onPress={() => {
+            // initiate Google auth
+            promptAsync();
+          }}
+          disabled={!request}
+        >
+          <Image
+            source={require('../../assets/img/transparent-google-logo-google-logo-in-black-circle-colorful-1710875294177-removebg-preview.png')}
+            style={{ width: 18, height: 18, marginRight: 8 }}
+          />
           <Text style={styles.googleBtnText}>Continue with Google</Text>
         </TouchableOpacity>
 
-        {/* Sign Up Link */}
-        {mode === "signin" && (
+        {/* Sign Up Link (when not in signup mode) */}
+        {mode !== "signup" && (
           <View style={styles.signupWrap}>
             <Text style={styles.signupText}>
               Don't have an account?{" "}
@@ -307,6 +377,25 @@ const LoginScreen = ({ navigation }) => {
           </View>
         )}
 
+        {/* Sign In Link (when in signup mode) */}
+        {mode === "signup" && (
+          <View style={styles.signupWrap}>
+            <Text style={styles.signupText}>
+              Already have an account?{" "}
+              <Text
+                style={styles.signupLink}
+                onPress={() => {
+                  setEmail("");
+                  setPassword("");
+                  setMode("signin");
+                }}
+              >
+                Sign in
+              </Text>
+            </Text>
+          </View>
+        )}
+
         {/* Terms */}
         <Text style={styles.terms}>
           By continuing, you agree to our{" "}
@@ -315,9 +404,7 @@ const LoginScreen = ({ navigation }) => {
         </Text>
 
         {/* Footer */}
-        <Text style={styles.footer}>
-          MTMovies © 2024 — English Movies & Series in Amharic
-        </Text>
+        <Text style={styles.footer}>MTMovies © {new Date().getFullYear()}</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -326,7 +413,7 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "#280000",
   },
   scrollContent: {
     flexGrow: 1,
@@ -342,7 +429,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(229, 9, 20, 0.5)",
+    borderColor: "rgba(229, 9, 20, 0.8)",
   },
   skipText: {
     color: "#E50914",
@@ -485,10 +572,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
   },
   dividerText: {
-    color: "rgba(255, 255, 255, 0.35)",
+    color: "rgba(255, 255, 255, 0.7)",
     fontSize: 12,
   },
   googleBtn: {
@@ -507,7 +594,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   signupText: {
-    color: "rgba(255, 255, 255, 0.6)",
+    color: "rgba(255, 255, 255, 0.9)",
     fontSize: 13,
   },
   signupLink: {
@@ -521,17 +608,17 @@ const styles = StyleSheet.create({
   },
   terms: {
     fontSize: 11,
-    color: "rgba(255, 255, 255, 0.3)",
+    color: "rgba(255, 255, 255, 0.6)",
     textAlign: "center",
-    marginBottom: 16,
+    marginBottom: 5,
     lineHeight: 18,
   },
   termsLink: {
-    color: "rgba(255, 77, 77, 0.7)",
+    color: "rgba(255, 77, 77, 1)",
   },
   footer: {
     fontSize: 12,
-    color: "rgba(255, 255, 255, 0.3)",
+    color: "rgba(255, 255, 255, 0.5)",
     textAlign: "center",
     marginBottom: 20,
   },
