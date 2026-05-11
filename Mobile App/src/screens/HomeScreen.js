@@ -138,7 +138,7 @@ const HomeScreen = () => {
           >
             <Image
               source={{
-                uri: heroItem.backdrop || heroItem.poster,
+                uri: heroItem.featurePhone || heroItem.backdrop || heroItem.poster,
               }}
               style={styles.heroImage}
             />
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: '100%',
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 30,
     justifyContent: 'flex-end',
   },
   featuredBadge: {
