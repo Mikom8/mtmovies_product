@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,13 +8,42 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Dimensions,
+  StatusBar,
 } from "react-native";
 import { useMovies } from "../context/MovieContext";
 import { useNavigation } from "@react-navigation/native";
+import Feather from '@expo/vector-icons/Feather';
+
+const { width } = Dimensions.get("window");
 
 const HomeScreen = () => {
   const { movies, series, featuredItems, loading, error } = useMovies();
   const navigation = useNavigation();
+  const [selectedGenre, setSelectedGenre] = useState("All");
+
+  const filterGenres = ["All", "Movies", "Series", "Free", "Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Animation"];
+  const displayGenres = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Animation"];
+
+  const filteredMovies = useMemo(() => {
+    let list = movies;
+    if (selectedGenre === "Series") return [];
+    if (selectedGenre === "Free") list = list.filter(m => m.isFree);
+    else if (selectedGenre !== "All" && selectedGenre !== "Movies") {
+      list = list.filter(m => m.genres?.includes(selectedGenre));
+    }
+    return list;
+  }, [movies, selectedGenre]);
+
+  const filteredSeries = useMemo(() => {
+    let list = series;
+    if (selectedGenre === "Movies") return [];
+    if (selectedGenre === "Free") list = list.filter(s => s.isFree);
+    else if (selectedGenre !== "All" && selectedGenre !== "Series") {
+      list = list.filter(s => s.genres?.includes(selectedGenre));
+    }
+    return list;
+  }, [series, selectedGenre]);
 
   if (loading) {
     return (
@@ -24,104 +53,302 @@ const HomeScreen = () => {
     );
   }
 
-  const renderContentItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() =>
-        navigation.navigate("Details", {
-          id: item._id,
-          type: item.seasons ? "series" : "movie",
-        })
-      }
-    >
-      <Image source={{ uri: item.poster }} style={styles.poster} />
-      <Text style={styles.title} numberOfLines={1}>
-        {item.title}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderContentItem = ({ item, hideNewBadge = false, variant = "portrait" }) => {
+    const isLandscape = variant === "landscape";
+    const imageUri = isLandscape ? (item.mylist || item.backdrop || item.poster) : item.poster;
+
+    return (
+      <TouchableOpacity
+        style={[styles.card, isLandscape && styles.cardLandscape]}
+        activeOpacity={0.8}
+        onPress={() =>
+          navigation.navigate("Details", {
+            id: item._id,
+            type: item.seasons ? "series" : "movie",
+          })
+        }
+      >
+        <Image source={{ uri: imageUri }} style={[styles.poster, isLandscape && styles.posterLandscape]} />
+        {item.isNew && !hideNewBadge && (
+          <View style={styles.cardOverlay}>
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>NEW</Text>
+            </View>
+          </View>
+        )}
+        <Text style={styles.title} numberOfLines={1}>
+          {item.title}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const Section = ({ title, data, variant = "portrait" }) => {
+    if (!data || data.length === 0) return null;
+    const isNewRelease = title === "New Releases";
+    return (
+      <View style={styles.sectionContainer}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{title}</Text>
+          <TouchableOpacity>
+            <Text style={styles.seeAllText}>See All</Text>
+          </TouchableOpacity>
+        </View>
+        <FlatList
+          horizontal
+          data={data}
+          renderItem={({ item }) => renderContentItem({ item, hideNewBadge: isNewRelease, variant })}
+          keyExtractor={(item) => item._id}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.list}
+        />
+      </View>
+    );
+  };
 
   return (
-    <ScrollView style={styles.container}>
-      {featuredItems.length > 0 && (
-        <TouchableOpacity
-          style={styles.hero}
-          onPress={() =>
-            navigation.navigate("Details", {
-              id: featuredItems[0]._id,
-              type: featuredItems[0].seasons ? "series" : "movie",
-            })
-          }
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Hero Section */}
+        {featuredItems.length > 0 && (
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.hero}
+            onPress={() =>
+              navigation.navigate("Details", {
+                id: featuredItems[0]._id,
+                type: featuredItems[0].seasons ? "series" : "movie",
+              })
+            }
+          >
+            <Image
+              source={{
+                uri: featuredItems[0].backdrop || featuredItems[0].poster,
+              }}
+              style={styles.heroImage}
+            />
+            <View style={styles.heroOverlay}>
+              <View style={styles.featuredBadge}>
+                <Text style={styles.featuredText}>FEATURED</Text>
+              </View>
+              <Text style={styles.heroTitle}>{featuredItems[0].title}</Text>
+              <Text style={styles.heroSubtitle}>
+                {featuredItems[0].genres?.join(" • ")}
+              </Text>
+              <View style={styles.heroActions}>
+                <TouchableOpacity 
+                  style={styles.playBtn}
+                  onPress={() =>
+                    navigation.navigate("Details", {
+                      id: featuredItems[0]._id,
+                      type: featuredItems[0].seasons ? "series" : "movie",
+                    })
+                  }
+                >
+                  <Feather name="play" size={18} color="#fff" />
+                  <Text style={styles.playBtnText}>Watch Now</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.listBtn}>
+                  <Feather name="plus" size={20} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {/* Genre Selector */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          style={styles.genreScroll}
+          contentContainerStyle={styles.genreContent}
         >
-          <Image
-            source={{
-              uri: featuredItems[0].backdrop || featuredItems[0].poster,
-            }}
-            style={styles.heroImage}
-          />
-          <View style={styles.heroOverlay}>
-            <Text style={styles.heroTitle}>{featuredItems[0].title}</Text>
-            <Text style={styles.heroSubtitle}>
-              {featuredItems[0].genres?.join(" • ")}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      )}
+          {filterGenres.map(genre => (
+            <TouchableOpacity 
+              key={genre} 
+              style={[styles.genreChip, selectedGenre === genre && styles.genreChipActive]}
+              onPress={() => setSelectedGenre(genre)}
+            >
+              <Text style={[styles.genreText, selectedGenre === genre && styles.genreTextActive]}>
+                {genre}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-      <Text style={styles.sectionTitle}>Trending Movies</Text>
-      <FlatList
-        horizontal
-        data={movies}
-        renderItem={renderContentItem}
-        keyExtractor={(item) => item._id}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.list}
-      />
+        {/* Dynamic Genre Sections when 'Movies' or 'Series' or 'All' is selected */}
+        {(selectedGenre === "All" || selectedGenre === "Movies" || selectedGenre === "Series" || selectedGenre === "Free") ? (
+          <>
+            <Section 
+              title="New Releases" 
+              data={
+                [...filteredMovies, ...filteredSeries]
+                  .filter(item => item.isNew)
+                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+              } 
+            />
+            
+            {/* If All or Movies, show trending movies */}
+            {(selectedGenre === "All" || selectedGenre === "Movies") && (
+               <Section 
+                 title="Trending This Week" 
+                 variant="landscape"
+                 data={movies.slice().sort((a, b) => (b.stats?.views || 0) - (a.stats?.views || 0))} 
+               />
+            )}
 
-      <Text style={styles.sectionTitle}>Popular Series</Text>
-      <FlatList
-        horizontal
-        data={series}
-        renderItem={renderContentItem}
-        keyExtractor={(item) => item._id}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.list}
-      />
-    </ScrollView>
+            {/* If All or Series, show popular series */}
+            {(selectedGenre === "All" || selectedGenre === "Series") && (
+               <Section 
+                 title="Popular Series" 
+                 data={series.slice().sort((a, b) => (b.stats?.views || 0) - (a.stats?.views || 0))} 
+               />
+            )}
+
+            {/* Render Genre Specific Sections */}
+            {displayGenres.map(genre => (
+              <Section 
+                key={genre}
+                title={`${genre} ${selectedGenre === "Series" ? "Series" : "Movies"}`}
+                data={
+                  selectedGenre === "Series" 
+                  ? series.filter(s => s.genres?.includes(genre))
+                  : movies.filter(m => m.genres?.includes(genre))
+                }
+              />
+            ))}
+          </>
+        ) : (
+          // Single filter mode (Action, Comedy, etc.)
+          <>
+            <Section title={`${selectedGenre} Movies`} data={filteredMovies} />
+            <Section title={`${selectedGenre} Series`} data={filteredSeries} />
+          </>
+        )}
+        
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
+  container: { flex: 1, backgroundColor: "#080808" },
   centered: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "#080808",
     justifyContent: "center",
     alignItems: "center",
   },
-  hero: { width: "100%", height: 400, marginBottom: 20 },
-  heroImage: { width: "100%", height: "100%" },
+  
+  // Hero Styles
+  hero: { width: width, height: 500, position: 'relative' },
+  heroImage: { width: "100%", height: "100%", resizeMode: 'cover' },
   heroOverlay: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
+    height: '60%',
     padding: 20,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingBottom: 30,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.3)', // Semi-transparent black gradient fallback
   },
-  heroTitle: { color: "#fff", fontSize: 24, fontWeight: "bold" },
-  heroSubtitle: { color: "#ccc", fontSize: 14, marginTop: 5 },
-  sectionTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 15,
+  featuredBadge: {
+    backgroundColor: '#E50914',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
     marginBottom: 10,
   },
+  featuredText: { color: '#fff', fontSize: 10, fontWeight: '800', letterSpacing: 1 },
+  heroTitle: { color: "#fff", fontSize: 32, fontWeight: "900", letterSpacing: -0.5 },
+  heroSubtitle: { color: "rgba(255,255,255,0.7)", fontSize: 14, marginTop: 4, fontWeight: '500' },
+  heroActions: { flexDirection: 'row', alignItems: 'center', marginTop: 20, gap: 12 },
+  playBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E50914',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  playBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  listBtn: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    padding: 12,
+    borderRadius: 8,
+  },
+
+  // Genre Styles
+  genreScroll: { marginTop: 10, marginBottom: 10 },
+  genreContent: { paddingHorizontal: 15, gap: 10, paddingVertical: 10 },
+  genreChip: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  genreChipActive: {
+    backgroundColor: '#E50914',
+    borderColor: '#E50914',
+  },
+  genreText: { color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: '600' },
+  genreTextActive: { color: '#fff' },
+
+  // Section Styles
+  sectionContainer: { marginTop: 15, marginBottom: 10 },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    marginBottom: 15,
+  },
+  sectionTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "800",
+    letterSpacing: -0.2,
+  },
+  seeAllText: { color: '#E50914', fontSize: 13, fontWeight: '600' },
   list: { paddingLeft: 15 },
-  card: { width: 120, marginRight: 8, marginBottom: 20 },
-  poster: { width: 120, height: 180, borderRadius: 8 },
-  title: { color: "#fff", fontSize: 12, marginTop: 5, textAlign: "center" },
+  
+  // Card Styles
+  card: { width: 130, marginRight: 12 },
+  cardLandscape: { width: 240 },
+  poster: { width: 130, height: 190, borderRadius: 12 },
+  posterLandscape: { width: 240, height: 135 },
+  cardOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: 8,
+    justifyContent: 'flex-start',
+  },
+  newBadge: {
+    backgroundColor: '#E50914',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  newBadgeText: { color: '#fff', fontSize: 9, fontWeight: '900' },
+  title: { 
+    color: "rgba(255,255,255,0.9)", 
+    fontSize: 13, 
+    marginTop: 8, 
+    fontWeight: '600',
+    textAlign: 'left' 
+  },
 });
 
 export default HomeScreen;

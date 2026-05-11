@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import Feather from '@expo/vector-icons/Feather';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -29,10 +30,10 @@ const ProfileScreen = ({ navigation }) => {
     return (
       <View style={styles.centered}>
         <View style={styles.emptyIconCircle}>
-          <Feather name="user" size={50} color="#E50914" />
+          <Feather name="user" size={50} color="#d8000bff" />
         </View>
-        <Text style={styles.promptTitle}>Premium Streaming</Text>
-        <Text style={styles.promptSubtitle}>Join MTMovies to sync your watch history and access premium content across all devices.</Text>
+        <Text style={styles.promptTitle}>Welcome Back</Text>
+        <Text style={styles.promptSubtitle}>Join MTMovies to watch your favorite movies and Tv shows.</Text>
         <View style={styles.authButtons}>
           <TouchableOpacity
             style={[styles.ctaBtn, styles.primaryBtn]}
@@ -51,11 +52,21 @@ const ProfileScreen = ({ navigation }) => {
     );
   }
 
-  const SettingRow = ({ icon, title, meta, color = '#fff' }) => (
+  // Map backend plan names to display labels and prices
+  const planInfo = {
+    free: { label: 'FREE PLAN', price: '0 Birr/mo' },
+    basic: { label: 'BASIC PLAN', price: '150 Birr/mo' },
+    popular: { label: 'POPULAR PLAN', price: '250 Birr/mo' }, // Adjusted to a more realistic price than the '2' in dashboard
+    family: { label: 'FAMILY PLAN', price: '350 Birr/mo' },
+  };
+
+  const currentPlan = planInfo[user.plan] || { label: (user.plan || 'FREE').toUpperCase() + ' PLAN', price: 'Custom' };
+
+  const SettingRow = ({ icon, lib: IconLib = Feather, title, meta, color = '#fff' }) => (
     <TouchableOpacity style={styles.row}>
       <View style={styles.rowLeft}>
         <View style={[styles.iconBox, { backgroundColor: `${color}15` }]}>
-          <Feather name={icon} size={18} color={color} />
+          <IconLib name={icon} size={18} color={color} />
         </View>
         <Text style={styles.rowTitle}>{title}</Text>
       </View>
@@ -85,9 +96,9 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.email}>{user.email}</Text>
 
           <View style={styles.badgeRow}>
-            <View style={styles.premiumBadge}>
-              <Feather name="star" size={12} color="#FFD700" style={{ marginRight: 4 }} />
-              <Text style={styles.premiumText}>PREMIUM MEMBER</Text>
+            <View style={[styles.premiumBadge, user.plan === 'free' && styles.freeBadge]}>
+              <Feather name="star" size={12} color={user.plan === 'free' ? '#888' : '#FFD700'} style={{ marginRight: 4 }} />
+              <Text style={[styles.premiumText, user.plan === 'free' && styles.freeText]}>{currentPlan.label}</Text>
             </View>
           </View>
         </View>
@@ -105,8 +116,13 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>SUBSCRIPTION</Text>
           <View style={styles.sectionCard}>
-            <SettingRow icon="credit-card" title="Plan Details" meta="200 Birr/mo" color="#62980cff" />
-            <SettingRow icon="activity" title="Billing History" color="#62980cff" />
+            <SettingRow
+              icon="credit-card"
+              title="Plan Details"
+              meta={`${user.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) : 'Free'} Plan`}
+              color="#62980cff"
+            />
+            <SettingRow icon="receipt-long" lib={MaterialIcons} title="Billing History" meta={currentPlan.price} color="#62980cff" />
           </View>
         </View>
 
@@ -187,7 +203,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(229,9,20,0.1)',
+    backgroundColor: 'rgba(216,0,11,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
@@ -216,8 +232,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primaryBtn: {
-    backgroundColor: '#E50914',
-    shadowColor: '#E50914',
+    backgroundColor: '#d8000bff',
+    shadowColor: '#d8000bff',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -245,20 +261,7 @@ const styles = StyleSheet.create({
     height: 110,
     borderRadius: 55,
     borderWidth: 3,
-    borderColor: '#E50914',
-  },
-  editBadge: {
-    position: 'absolute',
-    bottom: 5,
-    right: 5,
-    backgroundColor: '#E50914',
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: '#0a0a0a',
+    borderColor: '#d8000bff',
   },
   name: {
     color: '#fff',
@@ -291,36 +294,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1,
   },
-
-  statsContainer: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    marginHorizontal: 20,
-    borderRadius: 20,
-    paddingVertical: 20,
-    marginBottom: 30,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+  freeBadge: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  statBox: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statVal: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  statLabel: {
-    color: 'rgba(255,255,255,0.4)',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  statDivider: {
-    width: 1,
-    height: '60%',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    alignSelf: 'center',
+  freeText: {
+    color: '#888',
   },
 
   section: {
@@ -382,13 +361,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginHorizontal: 20,
     marginTop: 10,
-    backgroundColor: 'rgba(229,9,20,0.1)',
+    backgroundColor: 'rgba(216,0,11,0.1)',
     paddingVertical: 16,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(229,9,20,0.2)',
+    borderColor: 'rgba(216,0,11,0.2)',
   },
   signoutText: {
     color: '#ff4d4d',
@@ -422,7 +401,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(229,9,20,0.1)',
+    backgroundColor: 'rgba(216,0,11,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -461,11 +440,11 @@ const styles = StyleSheet.create({
   },
   modalConfirmBtn: {
     flex: 1,
-    backgroundColor: '#E50914',
+    backgroundColor: '#d8000bff',
     paddingVertical: 14,
     borderRadius: 16,
     alignItems: 'center',
-    shadowColor: '#E50914',
+    shadowColor: '#d8000bff',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -475,6 +454,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '800',
     fontSize: 16,
+  },
+  centered: {
+    flex: 1,
+    backgroundColor: '#0a0a0a',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 30,
   },
 });
 
