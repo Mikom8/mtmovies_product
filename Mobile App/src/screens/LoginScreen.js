@@ -130,8 +130,10 @@ const LoginScreen = ({ navigation, route }) => {
         setError(res.error || 'Google login failed');
         return;
       }
-      if (res.isNewUser) {
-        navigation.navigate('ChoosePlan');
+      
+      // If there's a previous screen to go back to, go there. Otherwise go to Main.
+      if (navigation.canGoBack()) {
+        navigation.goBack();
       } else {
         navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
       }
@@ -149,16 +151,27 @@ const LoginScreen = ({ navigation, route }) => {
     setLoading(true);
 
     try {
+      let res;
       if (mode === "signin") {
-        const res = await login(email, password);
-        if (!res.success) {
-          setError(res.error);
-        }
+        res = await login(email, password);
       } else {
-        const res = await register(email.split("@")[0], email, password);
-        if (!res.success) {
-          setError(res.error);
-        }
+        res = await register(email.split("@")[0], email, password);
+      }
+
+      if (!res.success) {
+        setError(res.error || "Authentication failed");
+        return;
+      }
+
+      // Success navigation logic:
+      // If signup (first time), go to Main.
+      // If signin, try to go back to where they came from.
+      if (mode === "signup") {
+        navigation.reset({ index: 0, routes: [{ name: "Main" }] });
+      } else if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        navigation.reset({ index: 0, routes: [{ name: "Main" }] });
       }
     } catch (err) {
       setError("Cannot reach server. Is the backend running?");

@@ -92,24 +92,6 @@ const ProfileScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Stats / Quick Info */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statBox}>
-            <Text style={styles.statVal}>12</Text>
-            <Text style={styles.statLabel}>My List</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statBox}>
-            <Text style={styles.statVal}>HD</Text>
-            <Text style={styles.statLabel}>Quality</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statBox}>
-            <Text style={styles.statVal}>Active</Text>
-            <Text style={styles.statLabel}>Status</Text>
-          </View>
-        </View>
-
         {/* Menu Sections */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>ACCOUNT</Text>
