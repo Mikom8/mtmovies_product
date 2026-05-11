@@ -128,7 +128,7 @@ router.post('/login', async (req, res) => {
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch)
-      return res.status(401).json({ error: 'Incorrect password.' });
+      return res.status(401).json({ error: 'Incorrect password or email.' });
 
     res.json({
       message: 'Login successful!',

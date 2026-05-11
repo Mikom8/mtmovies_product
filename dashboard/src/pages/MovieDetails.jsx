@@ -170,7 +170,7 @@ export default function MovieDetails() {
                   className={styles.playMainBtn}
                   onClick={handleWatchClick}
                 >
-                  <FaPlay /> Watch Movie
+                  <FaPlay /> Play
                 </button>
                 <button
                   className={styles.myListBtn}
