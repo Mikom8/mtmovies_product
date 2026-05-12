@@ -5,7 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Image,
-  TouchableOpacity,
+  Pressable,
   FlatList,
   ActivityIndicator,
   Dimensions,
@@ -69,9 +69,8 @@ const HomeScreen = () => {
     const imageUri = isLandscape ? (item.mylist || item.backdrop || item.poster) : item.poster;
 
     return (
-      <TouchableOpacity
+      <Pressable
         style={[styles.card, isLandscape && styles.cardLandscape]}
-        activeOpacity={0.8}
         onPress={() =>
           navigation.navigate("Details", {
             id: item._id,
@@ -79,18 +78,25 @@ const HomeScreen = () => {
           })
         }
       >
-        <Image source={{ uri: imageUri }} style={[styles.poster, isLandscape && styles.posterLandscape]} />
-        {item.isNew && !hideNewBadge && (
-          <View style={styles.cardOverlay}>
-            <View style={styles.newBadge}>
-              <Text style={styles.newBadgeText}>NEW</Text>
+        {({ pressed }) => (
+          <>
+            <View style={{ borderRadius: 12, overflow: 'hidden' }}>
+              <Image source={{ uri: imageUri }} style={[styles.poster, isLandscape && styles.posterLandscape]} />
+              {pressed && <View style={styles.pressedOverlay} />}
             </View>
-          </View>
+            {item.isNew && !hideNewBadge && (
+              <View style={styles.cardOverlay}>
+                <View style={styles.newBadge}>
+                  <Text style={styles.newBadgeText}>NEW</Text>
+                </View>
+              </View>
+            )}
+            <Text style={styles.title} numberOfLines={1}>
+              {item.title}
+            </Text>
+          </>
         )}
-        <Text style={styles.title} numberOfLines={1}>
-          {item.title}
-        </Text>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
@@ -104,9 +110,6 @@ const HomeScreen = () => {
             {icon}
             <Text style={styles.sectionTitle}>{title}</Text>
           </View>
-          <TouchableOpacity>
-            <Text style={styles.seeAllText}>See All</Text>
-          </TouchableOpacity>
         </View>
         <FlatList
           horizontal
@@ -126,8 +129,7 @@ const HomeScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Hero Section */}
         {heroItem && (
-          <TouchableOpacity
-            activeOpacity={0.9}
+          <Pressable
             style={styles.hero}
             onPress={() =>
               navigation.navigate("Details", {
@@ -136,12 +138,15 @@ const HomeScreen = () => {
               })
             }
           >
-            <Image
-              source={{
-                uri: heroItem.featurePhone || heroItem.backdrop || heroItem.poster,
-              }}
-              style={styles.heroImage}
-            />
+            {({ pressed }) => (
+              <>
+                <Image
+                  source={{
+                    uri: heroItem.featurePhone || heroItem.backdrop || heroItem.poster,
+                  }}
+                  style={styles.heroImage}
+                />
+                {pressed && <View style={styles.pressedOverlay} />}
 
             {/* Cinematic Gradient Shadow */}
             <View style={StyleSheet.absoluteFill}>
@@ -182,25 +187,35 @@ const HomeScreen = () => {
                 {heroItem.genres?.join(" • ")}
               </Text>
               <View style={styles.heroActions}>
-                <TouchableOpacity
-                  style={styles.playBtn}
+                <Pressable
                   onPress={() =>
                     navigation.navigate("Details", {
                       id: heroItem._id,
                       type: heroItem.seasons ? "series" : "movie",
                     })
                   }
+                  style={({ pressed }) => [
+                    styles.playBtn,
+                    pressed && { backgroundColor: '#B20710' } // Darker red on press
+                  ]}
                 >
                   <Feather name="play" size={18} color="#fff" />
                   <Text style={styles.playBtnText}>Watch Now</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.listBtn}>
+                </Pressable>
+                <Pressable 
+                  style={({ pressed }) => [
+                    styles.listBtn,
+                    pressed && { backgroundColor: 'rgba(255,255,255,0.4)' }
+                  ]}
+                >
                   <Feather name="plus" size={20} color="#fff" />
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </View>
-          </TouchableOpacity>
+          </>
         )}
+      </Pressable>
+    )}
 
         {/* Genre Selector */}
         <ScrollView
@@ -210,15 +225,19 @@ const HomeScreen = () => {
           contentContainerStyle={styles.genreContent}
         >
           {filterGenres.map(genre => (
-            <TouchableOpacity
+            <Pressable
               key={genre}
-              style={[styles.genreChip, selectedGenre === genre && styles.genreChipActive]}
               onPress={() => setSelectedGenre(genre)}
+              style={({ pressed }) => [
+                styles.genreChip,
+                selectedGenre === genre && styles.genreChipActive,
+                pressed && { backgroundColor: 'rgba(255,255,255,0.2)' }
+              ]}
             >
               <Text style={[styles.genreText, selectedGenre === genre && styles.genreTextActive]}>
                 {genre}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </ScrollView>
 
@@ -402,6 +421,11 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   newBadgeText: { color: '#fff', fontSize: 9, fontWeight: '900' },
+  pressedOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    zIndex: 10,
+  },
   title: {
     color: "rgba(255,255,255,0.9)",
     fontSize: 13,

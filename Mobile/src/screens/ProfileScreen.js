@@ -3,7 +3,7 @@ import {
   View,
   Text,
   Image,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   ScrollView,
   Dimensions,
@@ -35,18 +35,26 @@ const ProfileScreen = ({ navigation }) => {
         <Text style={styles.promptTitle}>Welcome Back</Text>
         <Text style={styles.promptSubtitle}>Join MTMovies to watch your favorite movies and Tv shows.</Text>
         <View style={styles.authButtons}>
-          <TouchableOpacity
-            style={[styles.ctaBtn, styles.primaryBtn]}
+          <Pressable
+            style={({ pressed }) => [
+              styles.ctaBtn, 
+              styles.primaryBtn,
+              pressed && { backgroundColor: '#B20710' }
+            ]}
             onPress={() => navigation.navigate('Login', { mode: 'signup' })}
           >
             <Text style={styles.ctaText}>Create Account</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.ctaBtn, styles.secondaryBtn]}
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.ctaBtn, 
+              styles.secondaryBtn,
+              pressed && { backgroundColor: 'rgba(255,255,255,0.1)' }
+            ]}
             onPress={() => navigation.navigate('Login', { mode: 'signin' })}
           >
             <Text style={styles.secondaryText}>Log In</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     );
@@ -63,7 +71,12 @@ const ProfileScreen = ({ navigation }) => {
   const currentPlan = planInfo[user.plan] || { label: (user.plan || 'FREE').toUpperCase() + ' PLAN', price: 'Custom' };
 
   const SettingRow = ({ icon, lib: IconLib = Feather, title, meta, color = '#fff' }) => (
-    <TouchableOpacity style={styles.row}>
+    <Pressable 
+      style={({ pressed }) => [
+        styles.row,
+        pressed && { backgroundColor: 'rgba(255,255,255,0.08)' }
+      ]}
+    >
       <View style={styles.rowLeft}>
         <View style={[styles.iconBox, { backgroundColor: `${color}15` }]}>
           <IconLib name={icon} size={18} color={color} />
@@ -74,7 +87,7 @@ const ProfileScreen = ({ navigation }) => {
         {meta && <Text style={styles.rowMeta}>{meta}</Text>}
         <Feather name="chevron-right" size={16} color="rgba(255,255,255,0.3)" />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   return (
@@ -135,10 +148,16 @@ const ProfileScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.signoutBtn} onPress={() => setShowLogoutModal(true)}>
+        <Pressable 
+          style={({ pressed }) => [
+            styles.signoutBtn,
+            pressed && { backgroundColor: 'rgba(216,0,11,0.2)' }
+          ]} 
+          onPress={() => setShowLogoutModal(true)}
+        >
           <Feather name="log-out" size={18} color="#fff" style={{ marginRight: 8 }} />
           <Text style={styles.signoutText}>Log Out</Text>
-        </TouchableOpacity>
+        </Pressable>
 
         <Text style={styles.versionText}>MTMovies © {new Date().getFullYear()}</Text>
       </ScrollView>
@@ -161,19 +180,25 @@ const ProfileScreen = ({ navigation }) => {
                 <Text style={styles.modalSubtitle}>Are you sure you want to log out?</Text>
 
                 <View style={styles.modalActionRow}>
-                  <TouchableOpacity
-                    style={styles.modalCancelBtn}
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.modalCancelBtn,
+                      pressed && { backgroundColor: 'rgba(255,255,255,0.1)' }
+                    ]}
                     onPress={() => setShowLogoutModal(false)}
                   >
                     <Text style={styles.modalCancelText}>Stay</Text>
-                  </TouchableOpacity>
+                  </Pressable>
 
-                  <TouchableOpacity
-                    style={styles.modalConfirmBtn}
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.modalConfirmBtn,
+                      pressed && { backgroundColor: '#B20710' }
+                    ]}
                     onPress={handleLogout}
                   >
                     <Text style={styles.modalConfirmText}>Sign Out</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
               </View>
             </TouchableWithoutFeedback>

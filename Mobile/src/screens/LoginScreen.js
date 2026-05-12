@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   ScrollView,
   ActivityIndicator,
   Dimensions,
@@ -38,6 +38,7 @@ const LoginScreen = ({ navigation, route }) => {
     label: "",
   });
   const emailTimer = useRef(null);
+  const passwordRef = useRef(null);
 
   const checkEmail = async (val) => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
@@ -199,10 +200,12 @@ const LoginScreen = ({ navigation, route }) => {
         showsVerticalScrollIndicator={false}
       >
         {/* Skip Button */}
-        <TouchableOpacity
-          style={styles.skipBtn}
+        <Pressable
+          style={({ pressed }) => [
+            styles.skipBtn,
+            pressed && { backgroundColor: 'rgba(229, 9, 20, 0.2)' }
+          ]}
           onPress={() => {
-            // If we can go back in navigation stack, do so. Otherwise reset to Main.
             if (navigation?.canGoBack && navigation.canGoBack()) {
               navigation.goBack();
             } else {
@@ -214,7 +217,7 @@ const LoginScreen = ({ navigation, route }) => {
           }}
         >
           <Text style={styles.skipText}>Skip</Text>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Brand */}
         <View style={styles.brandContainer}>
@@ -261,6 +264,8 @@ const LoginScreen = ({ navigation, route }) => {
               keyboardType="email-address"
               autoCapitalize="none"
               editable={!loading}
+              returnKeyType="next"
+              onSubmitEditing={() => passwordRef.current?.focus()}
             />
             {checking && (
               <ActivityIndicator size="small" color="rgba(255, 255, 255, 1)" />
@@ -278,6 +283,7 @@ const LoginScreen = ({ navigation, route }) => {
               style={styles.icon}
             />
             <TextInput
+              ref={passwordRef}
               style={styles.input}
               placeholder="Password"
               placeholderTextColor="rgba(255, 255, 255, 0.7)"
@@ -289,14 +295,22 @@ const LoginScreen = ({ navigation, route }) => {
               secureTextEntry={!showPass}
               maxLength={20}
               editable={!loading}
+              returnKeyType="go"
+              onSubmitEditing={handleSubmit}
             />
-            <TouchableOpacity onPress={() => setShowPass(!showPass)}>
+            <Pressable 
+              onPress={() => setShowPass(!showPass)}
+              style={({ pressed }) => [
+                { padding: 4, borderRadius: 10 },
+                pressed && { backgroundColor: 'rgba(255,255,255,0.1)' }
+              ]}
+            >
               {showPass ? (
                 <Feather name="eye-off" size={18} color="rgba(255, 255, 255, 1)" />
               ) : (
                 <Feather name="eye" size={18} color="rgba(255, 255, 255, 1)" />
               )}
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
           {/* Strength bar for signup */}
@@ -330,21 +344,25 @@ const LoginScreen = ({ navigation, route }) => {
         ) : null}
 
         {/* Submit Button */}
-        <TouchableOpacity
-          style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
+        <Pressable
+          style={({ pressed }) => [
+            styles.submitBtn,
+            loading && styles.submitBtnDisabled,
+            pressed && !loading && styles.submitPressed
+          ]}
           onPress={handleSubmit}
           disabled={loading}
         >
           <Text style={styles.submitBtnText}>{btnLabel}</Text>
           {!loading && <Feather name="chevron-right" size={18} color="#fff" />}
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Forgot Password */}
         {mode === "signin" && (
           <View style={styles.forgotWrap}>
-            <TouchableOpacity>
+            <Pressable style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}>
               <Text style={styles.forgotText}>Forgot Password?</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         )}
 
@@ -356,12 +374,12 @@ const LoginScreen = ({ navigation, route }) => {
         </View>
 
         {/* Google Button */}
-        <TouchableOpacity
-          style={styles.googleBtn}
-          onPress={() => {
-            // initiate Google auth
-            promptAsync();
-          }}
+        <Pressable
+          style={({ pressed }) => [
+            styles.googleBtn,
+            pressed && { backgroundColor: 'rgba(255,255,255,0.15)' }
+          ]}
+          onPress={() => promptAsync()}
           disabled={!request}
         >
           <Image
@@ -369,7 +387,7 @@ const LoginScreen = ({ navigation, route }) => {
             style={{ width: 18, height: 18, marginRight: 8 }}
           />
           <Text style={styles.googleBtnText}>Continue with Google</Text>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Sign Up Link (when not in signup mode) */}
         {mode !== "signup" && (
@@ -426,7 +444,7 @@ const LoginScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#280000",
+    backgroundColor: "#000000ff",
   },
   scrollContent: {
     flexGrow: 1,
@@ -499,7 +517,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.18)",
     borderRadius: 12,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 9,
   },
   icon: {
     marginRight: 10,
@@ -634,6 +652,10 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.5)",
     textAlign: "center",
     marginBottom: 20,
+  },
+  submitPressed: {
+    backgroundColor: '#B20710',
+    transform: [{ scale: 0.98 }],
   },
 });
 
