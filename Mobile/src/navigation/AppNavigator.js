@@ -2,7 +2,9 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import Feather from '@expo/vector-icons/Feather';
-
+import Octicons from '@expo/vector-icons/Octicons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import HomeScreen from "../screens/HomeScreen";
 import DetailsScreen from "../screens/DetailsScreen";
 import PlayerScreen from "../screens/PlayerScreen";
@@ -28,7 +30,9 @@ const HomeTabs = () => (
       component={HomeScreen}
       options={{
         tabBarLabel: "Home",
-        tabBarIcon: ({ color, size }) => <Feather name="home" color={color} size={size} />,
+        tabBarIcon: ({ color, size, focused }) => (
+          <Octicons name={focused ? "home-fill" : "home"} color={color} size={size} />
+        ),
       }}
     />
     <Tab.Screen
@@ -36,7 +40,7 @@ const HomeTabs = () => (
       component={HomeScreen} // Placeholder
       options={{
         tabBarLabel: "Search",
-        tabBarIcon: ({ color, size }) => <Feather name="search" color={color} size={size} />,
+        tabBarIcon: ({ color, size, focused }) => (focused ? <Ionicons name="search-circle-sharp" size={size + 5} color={color} /> : <Feather name="search" color={color} size={size} />),
       }}
     />
     <Tab.Screen
@@ -44,7 +48,11 @@ const HomeTabs = () => (
       component={ProfileScreen}
       options={{
         tabBarLabel: "Profile",
-        tabBarIcon: ({ color, size }) => <Feather name="user" color={color} size={size} />,
+        tabBarIcon: ({ color, size, focused }) => (
+          focused
+            ? <FontAwesome5 name="user-alt" color={color} size={size - 4} />
+            : <Feather name="user" color={color} size={size} />
+        ),
       }}
     />
   </Tab.Navigator>
