@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -98,6 +99,14 @@ const ProfileScreen = ({ navigation }) => {
       >
         {/* Premium Header */}
         <View style={styles.header}>
+          {navigation.canGoBack() && (
+            <Pressable 
+              onPress={() => navigation.goBack()}
+              style={styles.backBtn}
+            >
+              <Ionicons name="chevron-back" size={28} color="#fff" />
+            </Pressable>
+          )}
           <View style={styles.avatarWrapper}>
             <Image
               source={{ uri: user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80' }}
@@ -276,6 +285,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: Platform.OS === 'ios' ? 80 : 60,
     paddingBottom: 30,
+    position: 'relative',
+  },
+  backBtn: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 30,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
   },
   avatarWrapper: {
     position: 'relative',

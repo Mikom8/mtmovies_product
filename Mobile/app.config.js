@@ -16,5 +16,8 @@ module.exports = ({ config }) => {
         projectId: "fdadf6fd-60cc-49ca-9408-78d4ca38bede"
       }
     },
+    plugins: [
+      "expo-font"
+    ],
   };
 };

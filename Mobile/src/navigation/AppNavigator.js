@@ -83,6 +83,7 @@ const AppNavigator = () => {
       <Stack.Screen name="Details" component={DetailsScreen} />
       <Stack.Screen name="Player" component={PlayerScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
     </Stack.Navigator>
   );
 };

@@ -10,8 +10,11 @@ import {
   ActivityIndicator,
   Dimensions,
   StatusBar,
+  Platform,
 } from "react-native";
+import { useFonts } from "expo-font";
 import { useMovies } from "../context/MovieContext";
+import { useAuth } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import Feather from '@expo/vector-icons/Feather';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -20,7 +23,15 @@ import Svg, { Defs, LinearGradient as SvgGradient, Rect, Stop } from 'react-nati
 const { width } = Dimensions.get("window");
 
 const HomeScreen = () => {
+  const [fontsLoaded] = useFonts({
+    "Broche-Cut": require("../../assets/fonts/Broche Cut.ttf"),
+    "Coolvetica": require("../../assets/fonts/Coolvetica Rg.otf"),
+    "Code": require("../../assets/fonts/CODE Bold.otf"),
+    "TT": require("../../assets/fonts/TT Chocolates Trial Light.otf")
+  });
+
   const { movies, series, featuredItems, loading, error } = useMovies();
+  const { user } = useAuth();
   const navigation = useNavigation();
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [heroItem, setHeroItem] = useState(null);
@@ -55,6 +66,10 @@ const HomeScreen = () => {
     }
     return list;
   }, [series, selectedGenre]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   if (loading) {
     return (
@@ -148,74 +163,104 @@ const HomeScreen = () => {
                 />
                 {pressed && <View style={styles.pressedOverlay} />}
 
-            {/* Cinematic Gradient Shadow */}
-            <View style={StyleSheet.absoluteFill}>
-              <Svg height="100%" width="100%">
-                <Defs>
-                  <SvgGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                    <Stop offset="0" stopColor="transparent" stopOpacity="0" />
-                    <Stop offset="0.5" stopColor="black" stopOpacity="0.2" />
-                    <Stop offset="1" stopColor="black" stopOpacity="1" />
-                  </SvgGradient>
-                </Defs>
-                <Rect x="0" y="0" width="100%" height="100%" fill="url(#grad)" />
-              </Svg>
-            </View>
-
-            <View style={styles.heroOverlay}>
-              <View style={[styles.featuredBadge, heroItem.isNew && styles.newReleaseBadge]}>
-                <Text style={styles.featuredText}>
-                  {heroItem.isNew ? "NEW RELEASE" : " "}
-                </Text>
-              </View>
-              <Text style={styles.heroTitle}>{heroItem.title}</Text>
-
-              <View style={styles.heroMetaRow}>
-                <Text style={styles.heroMetaText}>{heroItem.year || "2024"}</Text>
-                <View style={styles.metaDivider} />
-                <View style={styles.qualityBadge}>
-                  <Text style={styles.qualityText}>{heroItem.quality || "HD"}</Text>
+                {/* Top Navigation Bar */}
+                <View style={styles.topHeader}>
+                  <View style={styles.headerLeft}>
+                    <Image
+                      source={require("../../assets/img/unnamed-removebg-preview.png")}
+                      style={styles.logoImage}
+                    />
+                    <Text style={styles.homeHeaderText}>Home</Text>
+                  </View>
+                  <Pressable
+                    onPress={() => navigation.navigate("Profile")}
+                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                  >
+                    <Image
+                      source={{ uri: user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80' }}
+                      style={styles.avatarMini}
+                    />
+                  </Pressable>
                 </View>
-                <View style={styles.metaDivider} />
-                <View style={styles.heroRating}>
-                  <Feather name="star" size={12} color="#FFD700" />
-                  <Text style={styles.heroMetaText}>{heroItem.rating || "8.5"}</Text>
-                </View>
-              </View>
 
-              <Text style={styles.heroSubtitle}>
-                {heroItem.genres?.join(" • ")}
-              </Text>
-              <View style={styles.heroActions}>
-                <Pressable
-                  onPress={() =>
-                    navigation.navigate("Details", {
-                      id: heroItem._id,
-                      type: heroItem.seasons ? "series" : "movie",
-                    })
-                  }
-                  style={({ pressed }) => [
-                    styles.playBtn,
-                    pressed && { backgroundColor: '#B20710' } // Darker red on press
-                  ]}
-                >
-                  <Feather name="play" size={18} color="#fff" />
-                  <Text style={styles.playBtnText}>Watch Now</Text>
-                </Pressable>
-                <Pressable 
-                  style={({ pressed }) => [
-                    styles.listBtn,
-                    pressed && { backgroundColor: 'rgba(255,255,255,0.4)' }
-                  ]}
-                >
-                  <Feather name="plus" size={20} color="#fff" />
-                </Pressable>
-              </View>
-            </View>
-          </>
+                {/* Cinematic Gradient Shadows */}
+                <View style={StyleSheet.absoluteFill}>
+                  <Svg height="100%" width="100%">
+                    <Defs>
+                      {/* Bottom Shadow */}
+                      <SvgGradient id="gradBottom" x1="0" y1="0" x2="0" y2="1">
+                        <Stop offset="0" stopColor="transparent" stopOpacity="0.5" />
+                        <Stop offset="0.5" stopColor="black" stopOpacity="0.2" />
+                        <Stop offset="1" stopColor="black" stopOpacity="1" />
+                      </SvgGradient>
+                      {/* Top Shadow */}
+                      <SvgGradient id="gradTop" x1="0" y1="0" x2="0" y2="1">
+                        <Stop offset="0" stopColor="black" stopOpacity="0.7" />
+                        <Stop offset="0.3" stopColor="transparent" stopOpacity="0" />
+                      </SvgGradient>
+                    </Defs>
+                    {/* Apply Gradients */}
+                    <Rect x="0" y="0" width="100%" height="100%" fill="url(#gradTop)" />
+                    <Rect x="0" y="0" width="100%" height="100%" fill="url(#gradBottom)" />
+                  </Svg>
+                </View>
+
+                <View style={styles.heroOverlay}>
+                  <View style={[styles.featuredBadge, heroItem.isNew && styles.newReleaseBadge]}>
+                    <Text style={styles.featuredText}>
+                      {heroItem.isNew ? "NEW RELEASE" : " "}
+                    </Text>
+                  </View>
+                  <Text style={styles.heroTitle}>{heroItem.title}</Text>
+
+                  <View style={styles.heroMetaRow}>
+                    <Text style={styles.heroMetaText}>{heroItem.year || "2024"}</Text>
+                    <View style={styles.metaDivider} />
+                    <View style={styles.qualityBadge}>
+                      <Text style={styles.qualityText}>{heroItem.quality || "HD"}</Text>
+                    </View>
+                    <View style={styles.metaDivider} />
+                    <View style={styles.heroRating}>
+                      <MaterialIcons name="star" size={14} color="#FFD700" />
+                      <Text style={styles.heroMetaText}>{heroItem.rating || "8.5"}</Text>
+                    </View>
+                    <View style={styles.metaDivider} />
+                    <Text style={styles.heroMetaTergum}>{"በትርጉም"}</Text>
+                  </View>
+
+                  <Text style={styles.heroSubtitle}>
+                    {heroItem.genres?.join(" • ")}
+                  </Text>
+                  <View style={styles.heroActions}>
+                    <Pressable
+                      onPress={() =>
+                        navigation.navigate("Details", {
+                          id: heroItem._id,
+                          type: heroItem.seasons ? "series" : "movie",
+                        })
+                      }
+                      style={({ pressed }) => [
+                        styles.playBtn,
+                        pressed && { backgroundColor: '#B20710' } // Darker red on press
+                      ]}
+                    >
+                      <MaterialIcons name="play-arrow" size={20} color="#fff" />
+                      <Text style={styles.playBtnText}>Watch Now</Text>
+                    </Pressable>
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.listBtn,
+                        pressed && { backgroundColor: 'rgba(255,255,255,0.4)' }
+                      ]}
+                    >
+                      <Feather name="plus" size={20} color="#fff" />
+                    </Pressable>
+                  </View>
+                </View>
+              </>
+            )}
+          </Pressable>
         )}
-      </Pressable>
-    )}
 
         {/* Genre Selector */}
         <ScrollView
@@ -305,8 +350,51 @@ const styles = StyleSheet.create({
   },
 
   // Hero Styles
-  hero: { width: width, height: 450, position: 'relative' },
-  heroImage: { width: "100%", height: "100%", resizeMode: 'cover' },
+  hero: {
+    width: width,
+    height: width * 1.4,
+    backgroundColor: "#000",
+  },
+  topHeader: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 40,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    zIndex: 100,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  logoImage: {
+    width: 32,
+    height: 32,
+    resizeMode: 'contain',
+  },
+  homeHeaderText: {
+    color: '#fff',
+    fontSize: 26,
+    fontFamily: 'Coolvetica',
+    letterSpacing: 0.5,
+  },
+  avatarMini: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  heroImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
   heroOverlay: {
     position: "absolute",
     bottom: 0,
@@ -324,18 +412,19 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignSelf: 'flex-start',
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 0,
+    borderColor: 'rgba(255,255,255,0)',
   },
   newReleaseBadge: {
     backgroundColor: '#E50914',
     borderColor: '#E50914',
   },
-  featuredText: { color: '#fff', fontSize: 11, fontWeight: '900', letterSpacing: 1.2 },
-  heroTitle: { color: "#fff", fontSize: 36, fontWeight: "900", letterSpacing: -1, marginBottom: 8 },
+  featuredText: { color: '#fff', fontSize: 10, fontFamily: 'Broche-Cut', letterSpacing: 1.2 },
+  heroTitle: { color: "#fff", fontSize: 32, fontFamily: 'Code', letterSpacing: -1, marginBottom: 8 },
   heroMetaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 10 },
-  heroMetaText: { color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: '600' },
+  heroMetaText: { color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: '600', fontFamily: 'Coolvetica' },
   metaDivider: { width: 4, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.3)' },
+  heroMetaTergum: { color: '#fff', paddingHorizontal: 6 },
   qualityBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -345,7 +434,7 @@ const styles = StyleSheet.create({
   },
   qualityText: { color: '#fff', fontSize: 10, fontWeight: '800' },
   heroRating: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  heroSubtitle: { color: "rgba(255,255,255,0.6)", fontSize: 15, fontWeight: '500' },
+  heroSubtitle: { color: "rgba(255,255,255,0.6)", fontSize: 15, fontWeight: '500', fontFamily: 'Coolvetica' },
   heroActions: { flexDirection: 'row', alignItems: 'center', marginTop: 20, gap: 12 },
   playBtn: {
     flexDirection: 'row',
@@ -356,7 +445,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 8,
   },
-  playBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  playBtnText: { color: '#fff', fontSize: 15, fontFamily: 'Coolvetica' },
   listBtn: {
     backgroundColor: 'rgba(255,255,255,0.2)',
     padding: 12,
@@ -378,7 +467,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E50914',
     borderColor: '#E50914',
   },
-  genreText: { color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: '600' },
+  genreText: { color: 'rgba(255,255,255,0.6)', fontSize: 14, fontFamily: 'Coolvetica' },
   genreTextActive: { color: '#fff' },
 
   // Section Styles
@@ -393,8 +482,8 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: "#fff",
     fontSize: 20,
-    fontWeight: "800",
     letterSpacing: -0.2,
+    fontFamily: 'Coolvetica'
   },
   seeAllText: { color: '#E50914', fontSize: 13, fontWeight: '600' },
   list: { paddingLeft: 15 },
@@ -427,10 +516,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   title: {
-    color: "rgba(255,255,255,0.9)",
+    color: "rgba(255,255,255,1)",
     fontSize: 13,
-    marginTop: 8,
-    fontWeight: '600',
+    marginTop: 7,
+    fontFamily: 'TT',
     textAlign: 'left'
   },
 });
