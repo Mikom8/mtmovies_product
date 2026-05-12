@@ -36,11 +36,28 @@ const HomeTabs = () => (
       }}
     />
     <Tab.Screen
+      name="Telegram"
+      component={HomeScreen} // Placeholder
+      options={{
+        tabBarLabel: "Contact",
+        tabBarIcon: ({ color, size, focused }) => (<FontAwesome5 name={focused ? "telegram" : "telegram-plane"} color={color} size={size - 2} />
+        ),
+      }}
+    />
+    <Tab.Screen
       name="Search"
       component={HomeScreen} // Placeholder
       options={{
         tabBarLabel: "Search",
         tabBarIcon: ({ color, size, focused }) => (focused ? <Ionicons name="search-circle-sharp" size={size + 5} color={color} /> : <Feather name="search" color={color} size={size} />),
+      }}
+    />
+    <Tab.Screen
+      name="Downloads"
+      component={HomeScreen} // Placeholder
+      options={{
+        tabBarLabel: "Downloads",
+        tabBarIcon: ({ color, size }) => <Feather name="download" color={color} size={size} />,
       }}
     />
     <Tab.Screen

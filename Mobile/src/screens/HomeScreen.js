@@ -169,18 +169,9 @@ const HomeScreen = () => {
                     <Image
                       source={require("../../assets/img/unnamed-removebg-preview.png")}
                       style={styles.logoImage}
+
                     />
-                    <Text style={styles.homeHeaderText}>Home</Text>
                   </View>
-                  <Pressable
-                    onPress={() => navigation.navigate("Profile")}
-                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-                  >
-                    <Image
-                      source={{ uri: user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80' }}
-                      style={styles.avatarMini}
-                    />
-                  </Pressable>
                 </View>
 
                 {/* Cinematic Gradient Shadows */}
@@ -364,23 +355,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 15,
     zIndex: 100,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 0,
   },
   logoImage: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
     resizeMode: 'contain',
   },
   homeHeaderText: {
     color: '#fff',
-    fontSize: 26,
-    fontFamily: 'Coolvetica',
+    fontSize: 12,
+    fontFamily: 'There',
     letterSpacing: 0.5,
   },
   avatarMini: {
@@ -389,6 +380,11 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.2)',
+  },
+  homeProfilleText: {
+    color: '#fff',
+    fontFamily: 'TT',
+    fontSize: 12,
   },
   heroImage: {
     width: "100%",
@@ -430,9 +426,9 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
+    borderColor: 'rgba(33, 226, 65, 0.6)',
   },
-  qualityText: { color: '#fff', fontSize: 10, fontWeight: '800' },
+  qualityText: { color: '#1af03d', fontSize: 10, fontWeight: '800' },
   heroRating: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   heroSubtitle: { color: "rgba(255,255,255,0.6)", fontSize: 15, fontWeight: '500', fontFamily: 'Coolvetica' },
   heroActions: { flexDirection: 'row', alignItems: 'center', marginTop: 20, gap: 12 },

@@ -11,6 +11,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from 'react-native';
+import { useFonts } from "expo-font";
 import { useAuth } from '../context/AuthContext';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -22,10 +23,19 @@ const ProfileScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  const [fontsLoaded] = useFonts({
+    "Broche-Cut": require("../../assets/fonts/Broche Cut.ttf"),
+    "Coolvetica": require("../../assets/fonts/Coolvetica Rg.otf"),
+    "Code": require("../../assets/fonts/CODE Bold.otf"),
+    "TT": require("../../assets/fonts/TT Chocolates Trial Light.otf")
+  });
+
   const handleLogout = () => {
     setShowLogoutModal(false);
     logout();
   };
+
+  if (!fontsLoaded) return null;
 
   if (!user) {
     return (
@@ -38,7 +48,7 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.authButtons}>
           <Pressable
             style={({ pressed }) => [
-              styles.ctaBtn, 
+              styles.ctaBtn,
               styles.primaryBtn,
               pressed && { backgroundColor: '#B20710' }
             ]}
@@ -48,7 +58,7 @@ const ProfileScreen = ({ navigation }) => {
           </Pressable>
           <Pressable
             style={({ pressed }) => [
-              styles.ctaBtn, 
+              styles.ctaBtn,
               styles.secondaryBtn,
               pressed && { backgroundColor: 'rgba(255,255,255,0.1)' }
             ]}
@@ -71,8 +81,8 @@ const ProfileScreen = ({ navigation }) => {
 
   const currentPlan = planInfo[user.plan] || { label: (user.plan || 'FREE').toUpperCase() + ' PLAN', price: 'Custom' };
 
-  const SettingRow = ({ icon, lib: IconLib = Feather, title, meta, color = '#fff' }) => (
-    <Pressable 
+  const SettingRow = ({ icon, lib: IconLib = Feather, title, meta, color = '#fff', fontFamily }) => (
+    <Pressable
       style={({ pressed }) => [
         styles.row,
         pressed && { backgroundColor: 'rgba(255,255,255,0.08)' }
@@ -82,7 +92,7 @@ const ProfileScreen = ({ navigation }) => {
         <View style={[styles.iconBox, { backgroundColor: `${color}15` }]}>
           <IconLib name={icon} size={18} color={color} />
         </View>
-        <Text style={styles.rowTitle}>{title}</Text>
+        <Text style={[styles.rowTitle, fontFamily && { fontFamily }]}>{title}</Text>
       </View>
       <View style={styles.rowRight}>
         {meta && <Text style={styles.rowMeta}>{meta}</Text>}
@@ -99,14 +109,6 @@ const ProfileScreen = ({ navigation }) => {
       >
         {/* Premium Header */}
         <View style={styles.header}>
-          {navigation.canGoBack() && (
-            <Pressable 
-              onPress={() => navigation.goBack()}
-              style={styles.backBtn}
-            >
-              <Ionicons name="chevron-back" size={28} color="#fff" />
-            </Pressable>
-          )}
           <View style={styles.avatarWrapper}>
             <Image
               source={{ uri: user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80' }}
@@ -114,8 +116,10 @@ const ProfileScreen = ({ navigation }) => {
             />
           </View>
 
-          <Text style={styles.name}>{user.name || 'MT User'}</Text>
-          <Text style={styles.email}>{user.email}</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.name}>{user.name || 'MT User'}</Text>
+            <Text style={styles.email}>{user.email}</Text>
+          </View>
 
           <View style={styles.badgeRow}>
             <View style={[styles.premiumBadge, user.plan === 'free' && styles.freeBadge]}>
@@ -129,9 +133,9 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>ACCOUNT</Text>
           <View style={styles.sectionCard}>
-            <SettingRow icon="user" title="Personal Info" meta="Edit profile" color="#4dabf7" />
-            <SettingRow icon="shield" title="Security" meta="Password" color="#4dabf7" />
-            <SettingRow icon="bell" title="Notifications" color="#4dabf7" />
+            <SettingRow icon="user" title="Personal Info" meta="Edit profile" color="#4dabf7" fontFamily='Coolvetica' />
+            <SettingRow icon="shield" title="Security" meta="Password" color="#4dabf7" fontFamily='Coolvetica' />
+            <SettingRow icon="bell" title="Notifications" color="#4dabf7" fontFamily='Coolvetica' />
           </View>
         </View>
 
@@ -142,26 +146,26 @@ const ProfileScreen = ({ navigation }) => {
               icon="credit-card"
               title="Plan Details"
               meta={`${user.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) : 'Free'} Plan`}
-              color="#62980cff"
+              color="#62980cff" fontFamily='Coolvetica'
             />
-            <SettingRow icon="receipt-long" lib={MaterialIcons} title="Billing History" meta={currentPlan.price} color="#62980cff" />
+            <SettingRow icon="receipt-long" lib={MaterialIcons} title="Billing History" meta={currentPlan.price} color="#62980cff" fontFamily='Coolvetica' />
           </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>APP SETTINGS</Text>
           <View style={styles.sectionCard}>
-            <SettingRow icon="download" title="Downloads" color="#845ef7" />
-            <SettingRow icon="settings" title="Playback" meta="Auto-play ON" color="#845ef7" />
-            <SettingRow icon="help-circle" title="Help Center" color="#adb5bd" />
+            <SettingRow icon="download" title="Downloads" color="#845ef7" fontFamily='Coolvetica' />
+            <SettingRow icon="settings" title="Playback" meta="Auto-play ON" color="#845ef7" fontFamily='Coolvetica' />
+            <SettingRow icon="help-circle" title="Help Center" color="#adb5bd" fontFamily='Coolvetica' />
           </View>
         </View>
 
-        <Pressable 
+        <Pressable
           style={({ pressed }) => [
             styles.signoutBtn,
             pressed && { backgroundColor: 'rgba(216,0,11,0.2)' }
-          ]} 
+          ]}
           onPress={() => setShowLogoutModal(true)}
         >
           <Feather name="log-out" size={18} color="#fff" style={{ marginRight: 8 }} />
@@ -225,6 +229,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 50,
+    paddingTop: 10,
   },
   centered: {
     flex: 1,
@@ -282,19 +287,12 @@ const styles = StyleSheet.create({
   secondaryText: { color: '#fff', fontWeight: '600', fontSize: 16 },
 
   header: {
-    alignItems: 'center',
-    paddingTop: Platform.OS === 'ios' ? 80 : 60,
+    paddingTop: Platform.OS === 'ios' ? 40 : 70,
     paddingBottom: 30,
     position: 'relative',
   },
-  backBtn: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 30,
-    left: 20,
-    zIndex: 10,
-    padding: 8,
-  },
   avatarWrapper: {
+    alignItems: 'center',
     position: 'relative',
     marginBottom: 16,
   },
@@ -304,21 +302,28 @@ const styles = StyleSheet.create({
     borderRadius: 55,
     borderWidth: 3,
     borderColor: '#d8000bff',
+
+  },
+  infoRow: {
+    alignItems: 'center',
   },
   name: {
     color: '#fff',
     fontSize: 24,
-    fontWeight: '800',
+    fontFamily: 'Coolvetica',
     letterSpacing: 0.5,
+
   },
   email: {
     color: 'rgba(255,255,255,0.5)',
     fontSize: 14,
+    fontFamily: 'TT',
     marginTop: 4,
     marginBottom: 16,
   },
   badgeRow: {
     flexDirection: 'row',
+    justifyContent: 'center',
   },
   premiumBadge: {
     flexDirection: 'row',
@@ -333,7 +338,7 @@ const styles = StyleSheet.create({
   premiumText: {
     color: '#FFD700',
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: 'TT',
     letterSpacing: 1,
   },
   freeBadge: {
@@ -342,6 +347,7 @@ const styles = StyleSheet.create({
   },
   freeText: {
     color: '#888',
+    fontFamily: 'TT',
   },
 
   section: {
@@ -349,9 +355,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   sectionLabel: {
-    color: 'rgba(255,255,255,0.3)',
+    color: 'rgba(255,255,255,0.6)',
     fontSize: 12,
-    fontWeight: '800',
+    fontFamily: "TT",
     letterSpacing: 1.5,
     marginBottom: 12,
     marginLeft: 4,
@@ -385,7 +391,7 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   rowTitle: {
-    color: '#fff',
+    color: 'rgba(255,255,255,0.89)',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -397,6 +403,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.4)',
     fontSize: 13,
     marginRight: 8,
+    fontFamily: 'TT',
   },
 
   signoutBtn: {
@@ -413,12 +420,13 @@ const styles = StyleSheet.create({
   },
   signoutText: {
     color: '#ff4d4d',
-    fontWeight: '800',
+    fontFamily: 'TT',
     fontSize: 16,
   },
   versionText: {
-    color: 'rgba(255,255,255,0.2)',
+    color: 'rgba(255,255,255,0.39)',
     textAlign: 'center',
+    fontFamily: 'Code',
     marginTop: 30,
     fontSize: 12,
   },
