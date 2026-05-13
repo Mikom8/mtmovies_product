@@ -27,7 +27,8 @@ const ProfileScreen = ({ navigation }) => {
     "Broche-Cut": require("../../assets/fonts/Broche Cut.ttf"),
     "Coolvetica": require("../../assets/fonts/Coolvetica Rg.otf"),
     "Code": require("../../assets/fonts/CODE Bold.otf"),
-    "TT": require("../../assets/fonts/TT Chocolates Trial Light.otf")
+    "TT": require("../../assets/fonts/TT Chocolates Trial Light.otf"),
+    "TT Medium": require("../../assets/fonts/TT Chocolates Trial Medium.otf")
   });
 
   const handleLogout = () => {
@@ -136,6 +137,7 @@ const ProfileScreen = ({ navigation }) => {
             <SettingRow icon="user" title="Personal Info" meta="Edit profile" color="#4dabf7" fontFamily='Coolvetica' />
             <SettingRow icon="shield" title="Security" meta="Password" color="#4dabf7" fontFamily='Coolvetica' />
             <SettingRow icon="bell" title="Notifications" color="#4dabf7" fontFamily='Coolvetica' />
+            <SettingRow icon="bookmark" lib={MaterialIcons} title="My List" color="#ff00ee" fontFamily='Coolvetica' />
           </View>
         </View>
 
@@ -146,9 +148,9 @@ const ProfileScreen = ({ navigation }) => {
               icon="credit-card"
               title="Plan Details"
               meta={`${user.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) : 'Free'} Plan`}
-              color="#62980cff" fontFamily='Coolvetica'
+              color="#62980c" fontFamily='Coolvetica'
             />
-            <SettingRow icon="receipt-long" lib={MaterialIcons} title="Billing History" meta={currentPlan.price} color="#62980cff" fontFamily='Coolvetica' />
+            <SettingRow icon="receipt-long" lib={MaterialIcons} title="Billing History" meta={currentPlan.price} color="#62980c" fontFamily='Coolvetica' />
           </View>
         </View>
 
@@ -250,13 +252,14 @@ const styles = StyleSheet.create({
   promptTitle: {
     color: '#fff',
     fontSize: 26,
-    fontWeight: '800',
+    fontFamily: 'Coolvetica',
     marginBottom: 12,
   },
   promptSubtitle: {
     color: 'rgba(255,255,255,0.5)',
     textAlign: 'center',
     fontSize: 15,
+    fontFamily: 'TT',
     lineHeight: 22,
     marginBottom: 32,
   },
@@ -283,8 +286,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
-  ctaText: { color: '#fff', fontWeight: '800', fontSize: 16 },
-  secondaryText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  ctaText: { color: '#fff', fontSize: 16, fontFamily: 'Code' },
+  secondaryText: { color: '#fff', fontSize: 16, fontFamily: 'TT Medium' },
 
   header: {
     paddingTop: Platform.OS === 'ios' ? 40 : 70,

@@ -13,6 +13,7 @@ import {
   Platform,
   Image,
 } from "react-native";
+import { useFonts } from 'expo-font';
 import Feather from '@expo/vector-icons/Feather';
 import { useAuth } from "../context/AuthContext";
 import * as WebBrowser from 'expo-web-browser';
@@ -39,6 +40,15 @@ const LoginScreen = ({ navigation, route }) => {
   });
   const emailTimer = useRef(null);
   const passwordRef = useRef(null);
+
+  //fonts
+  const [fontsLoaded] = useFonts({
+    "Broche-Cut": require("../../assets/fonts/Broche Cut.ttf"),
+    "Coolvetica": require("../../assets/fonts/Coolvetica Rg.otf"),
+    "Code": require("../../assets/fonts/CODE Bold.otf"),
+    "TT": require("../../assets/fonts/TT Chocolates Trial Light.otf"),
+    "TT Medium": require("../../assets/fonts/TT Chocolates Trial Medium.otf")
+  });
 
   const checkEmail = async (val) => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
@@ -101,7 +111,7 @@ const LoginScreen = ({ navigation, route }) => {
     // Note: mutating route.params is okay for our simple flow
     try {
       if (route?.params) route.params.mode = undefined;
-    } catch (e) {}
+    } catch (e) { }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -131,7 +141,7 @@ const LoginScreen = ({ navigation, route }) => {
         setError(res.error || 'Google login failed');
         return;
       }
-      
+
       // If there's a previous screen to go back to, go there. Otherwise go to Main.
       if (navigation.canGoBack()) {
         navigation.goBack();
@@ -189,6 +199,7 @@ const LoginScreen = ({ navigation, route }) => {
       ? "Sign Up"
       : "Sign In";
 
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -222,9 +233,9 @@ const LoginScreen = ({ navigation, route }) => {
         {/* Brand */}
         <View style={styles.brandContainer}>
           <Image
-            source={{
-              uri: "https://res.cloudinary.com/dyop5rdpn/image/upload/v1699352390/MT%20Movies/mt_movies_transparent_dark_x5j2m8.png",
-            }}
+            source={
+              require("../../assets/img/unnamed-removebg-preview.png")
+            }
             style={styles.logo}
           />
           <Text style={styles.brandText}>
@@ -298,7 +309,7 @@ const LoginScreen = ({ navigation, route }) => {
               returnKeyType="go"
               onSubmitEditing={handleSubmit}
             />
-            <Pressable 
+            <Pressable
               onPress={() => setShowPass(!showPass)}
               style={({ pressed }) => [
                 { padding: 4, borderRadius: 10 },
@@ -466,6 +477,7 @@ const styles = StyleSheet.create({
     color: "#E50914",
     fontSize: 14,
     fontWeight: "600",
+    fontFamily: 'TT Medium',
   },
   brandContainer: {
     alignItems: "center",
@@ -480,11 +492,12 @@ const styles = StyleSheet.create({
   },
   brandText: {
     fontSize: 20,
-    fontWeight: "700",
+    fontFamily: 'Broche-Cut',
   },
   brandBold: {
     color: "#fff",
     letterSpacing: 1,
+    fontFamily: 'Broche-Cut',
   },
   brandRegular: {
     color: "#ff6666",
@@ -495,13 +508,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "800",
     color: "#fff",
     marginBottom: 8,
     textAlign: "center",
+    fontFamily: 'TT Medium'
   },
   subtitle: {
     fontSize: 14,
+    fontFamily: 'TT Medium',
     color: "rgba(255, 255, 255, 0.5)",
     textAlign: "center",
     lineHeight: 20,
@@ -526,7 +540,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: "#fff",
     fontSize: 14,
-    fontFamily: Platform.OS === "ios" ? "System" : "Roboto",
+    fontFamily: Platform.OS === "ios" ? "System" : "TT Medium",
   },
   strengthWrap: {
     flexDirection: "row",
@@ -560,6 +574,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 12,
+    fontFamily: 'TT Medium',
     color: "#ff6b6b",
   },
   submitBtn: {
@@ -583,7 +598,7 @@ const styles = StyleSheet.create({
   submitBtnText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: 'TT Medium',
     letterSpacing: 0.4,
   },
   forgotWrap: {
@@ -593,6 +608,7 @@ const styles = StyleSheet.create({
   forgotText: {
     color: "#ff6666",
     fontSize: 13,
+    fontFamily: 'TT'
   },
   divider: {
     flexDirection: "row",
@@ -608,6 +624,7 @@ const styles = StyleSheet.create({
   dividerText: {
     color: "rgba(255, 255, 255, 0.7)",
     fontSize: 12,
+    fontFamily: 'TT',
   },
   googleBtn: {
     flexDirection: "row",
@@ -622,19 +639,21 @@ const styles = StyleSheet.create({
   },
   signupWrap: {
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 15,
   },
   signupText: {
-    color: "rgba(255, 255, 255, 0.9)",
+    color: "rgba(255, 255, 255, 0.85)",
     fontSize: 13,
+    fontFamily: 'TT',
   },
   signupLink: {
     color: "#ff6666",
-    fontWeight: "700",
+    fontFamily: 'TT Medium',
   },
   googleBtnText: {
     color: "#fff",
     fontSize: 14,
+    fontFamily: 'TT Medium',
     fontWeight: "600",
   },
   terms: {
@@ -643,15 +662,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 5,
     lineHeight: 18,
+    fontFamily: 'TT'
   },
   termsLink: {
     color: "rgba(255, 77, 77, 1)",
+    fontFamily: 'TT',
   },
   footer: {
     fontSize: 12,
     color: "rgba(255, 255, 255, 0.5)",
     textAlign: "center",
     marginBottom: 20,
+    fontFamily: 'Code',
   },
   submitPressed: {
     backgroundColor: '#B20710',

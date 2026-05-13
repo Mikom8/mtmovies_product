@@ -18,6 +18,8 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import Feather from '@expo/vector-icons/Feather';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import EvilIcons from '@expo/vector-icons/EvilIcons';
 import Svg, { Defs, LinearGradient as SvgGradient, Rect, Stop } from 'react-native-svg';
 
 const { width } = Dimensions.get("window");
@@ -85,7 +87,7 @@ const HomeScreen = () => {
 
     return (
       <Pressable
-        style={[styles.card, isLandscape && styles.cardLandscape]}
+        style={({ pressed }) => [styles.card, isLandscape && styles.cardLandscape, pressed && { opacity: 0.85 }]}
         onPress={() =>
           navigation.navigate("Details", {
             id: item._id,
@@ -93,27 +95,23 @@ const HomeScreen = () => {
           })
         }
       >
-        {({ pressed }) => (
-          <>
-            <View style={{ borderRadius: 12, overflow: 'hidden' }}>
-              <Image source={{ uri: imageUri }} style={[styles.poster, isLandscape && styles.posterLandscape]} />
-              {pressed && <View style={styles.pressedOverlay} />}
+        <View style={{ borderRadius: 12, overflow: 'hidden' }}>
+          <Image source={{ uri: imageUri }} style={[styles.poster, isLandscape && styles.posterLandscape]} />
+        </View>
+        {item.isNew && !hideNewBadge && (
+          <View style={styles.cardOverlay}>
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>NEW</Text>
             </View>
-            {item.isNew && !hideNewBadge && (
-              <View style={styles.cardOverlay}>
-                <View style={styles.newBadge}>
-                  <Text style={styles.newBadgeText}>NEW</Text>
-                </View>
-              </View>
-            )}
-            <Text style={styles.title} numberOfLines={1}>
-              {item.title}
-            </Text>
-          </>
+          </View>
         )}
+        <Text style={styles.title} numberOfLines={1}>
+          {item.title}
+        </Text>
       </Pressable>
     );
   };
+
 
   const Section = ({ title, data, variant = "portrait", icon }) => {
     if (!data || data.length === 0) return null;
@@ -145,97 +143,97 @@ const HomeScreen = () => {
         {/* Hero Section */}
         {heroItem && (
           <View style={styles.hero}>
+            <Image
+              source={{
+                uri: heroItem.featurePhone || heroItem.backdrop || heroItem.poster,
+              }}
+              style={styles.heroImage}
+            />
+            {/* Top Navigation Bar */}
+            <View style={styles.topHeader}>
+              <View style={styles.headerLeft}>
                 <Image
-                  source={{
-                    uri: heroItem.featurePhone || heroItem.backdrop || heroItem.poster,
-                  }}
-                  style={styles.heroImage}
+                  source={require("../../assets/img/unnamed-removebg-preview.png")}
+                  style={styles.logoImage}
+
                 />
-                {/* Top Navigation Bar */}
-                <View style={styles.topHeader}>
-                  <View style={styles.headerLeft}>
-                    <Image
-                      source={require("../../assets/img/unnamed-removebg-preview.png")}
-                      style={styles.logoImage}
+              </View>
+            </View>
 
-                    />
-                  </View>
+            {/* Cinematic Gradient Shadows */}
+            <View style={StyleSheet.absoluteFill}>
+              <Svg height="100%" width="100%">
+                <Defs>
+                  {/* Bottom Shadow */}
+                  <SvgGradient id="gradBottom" x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0" stopColor="transparent" stopOpacity="0.5" />
+                    <Stop offset="0.5" stopColor="black" stopOpacity="0.2" />
+                    <Stop offset="1" stopColor="black" stopOpacity="1" />
+                  </SvgGradient>
+                  {/* Top Shadow */}
+                  <SvgGradient id="gradTop" x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0" stopColor="black" stopOpacity="0.7" />
+                    <Stop offset="0.3" stopColor="transparent" stopOpacity="0" />
+                  </SvgGradient>
+                </Defs>
+                {/* Apply Gradients */}
+                <Rect x="0" y="0" width="100%" height="100%" fill="url(#gradTop)" />
+                <Rect x="0" y="0" width="100%" height="100%" fill="url(#gradBottom)" />
+              </Svg>
+            </View>
+
+            <View style={styles.heroOverlay}>
+              <View style={[styles.featuredBadge, heroItem.isNew && styles.newReleaseBadge]}>
+                <Text style={styles.featuredText}>
+                  {heroItem.isNew ? "NEW RELEASE" : " "}
+                </Text>
+              </View>
+              <Text style={styles.heroTitle}>{heroItem.title}</Text>
+
+              <View style={styles.heroMetaRow}>
+                <Text style={styles.heroMetaText}>{heroItem.year || "2024"}</Text>
+                <View style={styles.metaDivider} />
+                <View style={styles.qualityBadge}>
+                  <Text style={styles.qualityText}>{heroItem.quality || "HD"}</Text>
                 </View>
-
-                {/* Cinematic Gradient Shadows */}
-                <View style={StyleSheet.absoluteFill}>
-                  <Svg height="100%" width="100%">
-                    <Defs>
-                      {/* Bottom Shadow */}
-                      <SvgGradient id="gradBottom" x1="0" y1="0" x2="0" y2="1">
-                        <Stop offset="0" stopColor="transparent" stopOpacity="0.5" />
-                        <Stop offset="0.5" stopColor="black" stopOpacity="0.2" />
-                        <Stop offset="1" stopColor="black" stopOpacity="1" />
-                      </SvgGradient>
-                      {/* Top Shadow */}
-                      <SvgGradient id="gradTop" x1="0" y1="0" x2="0" y2="1">
-                        <Stop offset="0" stopColor="black" stopOpacity="0.7" />
-                        <Stop offset="0.3" stopColor="transparent" stopOpacity="0" />
-                      </SvgGradient>
-                    </Defs>
-                    {/* Apply Gradients */}
-                    <Rect x="0" y="0" width="100%" height="100%" fill="url(#gradTop)" />
-                    <Rect x="0" y="0" width="100%" height="100%" fill="url(#gradBottom)" />
-                  </Svg>
+                <View style={styles.metaDivider} />
+                <View style={styles.heroRating}>
+                  <MaterialIcons name="star" size={14} color="#FFD700" />
+                  <Text style={styles.heroMetaText}>{heroItem.rating || "8.5"}</Text>
                 </View>
+                <View style={styles.metaDivider} />
+                <Text style={styles.heroMetaTergum}>{"በትርጉም"}</Text>
+              </View>
 
-                <View style={styles.heroOverlay}>
-                  <View style={[styles.featuredBadge, heroItem.isNew && styles.newReleaseBadge]}>
-                    <Text style={styles.featuredText}>
-                      {heroItem.isNew ? "NEW RELEASE" : " "}
-                    </Text>
-                  </View>
-                  <Text style={styles.heroTitle}>{heroItem.title}</Text>
-
-                  <View style={styles.heroMetaRow}>
-                    <Text style={styles.heroMetaText}>{heroItem.year || "2024"}</Text>
-                    <View style={styles.metaDivider} />
-                    <View style={styles.qualityBadge}>
-                      <Text style={styles.qualityText}>{heroItem.quality || "HD"}</Text>
-                    </View>
-                    <View style={styles.metaDivider} />
-                    <View style={styles.heroRating}>
-                      <MaterialIcons name="star" size={14} color="#FFD700" />
-                      <Text style={styles.heroMetaText}>{heroItem.rating || "8.5"}</Text>
-                    </View>
-                    <View style={styles.metaDivider} />
-                    <Text style={styles.heroMetaTergum}>{"በትርጉም"}</Text>
-                  </View>
-
-                  <Text style={styles.heroSubtitle}>
-                    {heroItem.genres?.join(" • ")}
-                  </Text>
-                  <View style={styles.heroActions}>
-                    <Pressable
-                      onPress={() =>
-                        navigation.navigate("Details", {
-                          id: heroItem._id,
-                          type: heroItem.seasons ? "series" : "movie",
-                        })
-                      }
-                      style={({ pressed }) => [
-                        styles.playBtn,
-                        pressed && { backgroundColor: '#B20710' } // Darker red on press
-                      ]}
-                    >
-                      <MaterialIcons name="play-arrow" size={20} color="#fff" />
-                      <Text style={styles.playBtnText}>Watch Now</Text>
-                    </Pressable>
-                    <Pressable
-                      style={({ pressed }) => [
-                        styles.listBtn,
-                        pressed && { backgroundColor: 'rgba(255,255,255,0.4)' }
-                      ]}
-                    >
-                      <Feather name="plus" size={20} color="#fff" />
-                    </Pressable>
-                  </View>
-                </View>
+              <Text style={styles.heroSubtitle}>
+                {heroItem.genres?.join(" • ")}
+              </Text>
+              <View style={styles.heroActions}>
+                <Pressable
+                  onPress={() =>
+                    navigation.navigate("Details", {
+                      id: heroItem._id,
+                      type: heroItem.seasons ? "series" : "movie",
+                    })
+                  }
+                  style={({ pressed }) => [
+                    styles.playBtn,
+                    pressed && { backgroundColor: '#B20710' } // Darker red on press
+                  ]}
+                >
+                  <MaterialIcons name="play-arrow" size={20} color="#fff" />
+                  <Text style={styles.playBtnText}>Watch Now</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.listBtn,
+                    pressed && { backgroundColor: 'rgba(255,255,255,0.4)' }
+                  ]}
+                >
+                  <EvilIcons name="exclamation" size={20} color="#fff" />
+                </Pressable>
+              </View>
+            </View>
           </View>
         )}
 
@@ -427,10 +425,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 8,
   },
-  playBtnText: { color: '#fff', fontSize: 15, fontFamily: 'Coolvetica' },
+  playBtnText: { color: '#fff', fontSize: 15, letterSpacing: 0.6, fontFamily: 'Coolvetica' },
   listBtn: {
     backgroundColor: 'rgba(255,255,255,0.2)',
     padding: 12,
+    paddingHorizontal: 15,
     borderRadius: 8,
   },
 
