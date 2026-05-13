@@ -144,25 +144,13 @@ const HomeScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Hero Section */}
         {heroItem && (
-          <Pressable
-            style={styles.hero}
-            onPress={() =>
-              navigation.navigate("Details", {
-                id: heroItem._id,
-                type: heroItem.seasons ? "series" : "movie",
-              })
-            }
-          >
-            {({ pressed }) => (
-              <>
+          <View style={styles.hero}>
                 <Image
                   source={{
                     uri: heroItem.featurePhone || heroItem.backdrop || heroItem.poster,
                   }}
                   style={styles.heroImage}
                 />
-                {pressed && <View style={styles.pressedOverlay} />}
-
                 {/* Top Navigation Bar */}
                 <View style={styles.topHeader}>
                   <View style={styles.headerLeft}>
@@ -248,9 +236,7 @@ const HomeScreen = () => {
                     </Pressable>
                   </View>
                 </View>
-              </>
-            )}
-          </Pressable>
+          </View>
         )}
 
         {/* Genre Selector */}
@@ -398,7 +384,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: '100%',
     padding: 20,
-    paddingBottom: 30,
+    paddingBottom: 20,
     justifyContent: 'flex-end',
   },
   featuredBadge: {
@@ -449,7 +435,7 @@ const styles = StyleSheet.create({
   },
 
   // Genre Styles
-  genreScroll: { marginTop: 10, marginBottom: 10 },
+  genreScroll: { marginTop: 5, marginBottom: 5 },
   genreContent: { paddingHorizontal: 15, gap: 10, paddingVertical: 10 },
   genreChip: {
     paddingHorizontal: 20,

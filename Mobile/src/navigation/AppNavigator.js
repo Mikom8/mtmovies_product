@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import Feather from '@expo/vector-icons/Feather';
@@ -11,8 +11,10 @@ import PlayerScreen from "../screens/PlayerScreen";
 import LoginScreen from "../screens/LoginScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import { useAuth } from "../context/AuthContext";
-import { View, ActivityIndicator, StyleSheet, Pressable, Text, Dimensions } from "react-native";
+import { useFonts } from "expo-font";
+import { View, ActivityIndicator, StyleSheet, Pressable, Text, Dimensions, Animated } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Defs, LinearGradient as SvgGradient, Rect, Stop } from 'react-native-svg';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -20,51 +22,92 @@ const { width } = Dimensions.get('window');
 
 const CustomTabBar = ({ state, descriptors, navigation }) => {
   const insets = useSafeAreaInsets();
+  const tabWidth = (width * 0.94 - 20) / state.routes.length; // Calculate based on pill width and padding
+  const translateX = useRef(new Animated.Value(0)).current;
+
+  const [fontsLoaded] = useFonts({
+    "TT Medium": require("../../assets/fonts/TT Chocolates Trial Medium.otf")
+  });
+
+  useEffect(() => {
+    Animated.spring(translateX, {
+      toValue: state.index * tabWidth,
+      useNativeDriver: true,
+      bounciness: 4,
+    }).start();
+  }, [state.index, tabWidth]);
 
   return (
-    <View style={[styles.tabBarContainer, { bottom: insets.bottom + 2 }]}>
-      <View style={styles.tabBarPill}>
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const label = options.tabBarLabel !== undefined ? options.tabBarLabel : options.title !== undefined ? options.title : route.name;
-          const isFocused = state.index === index;
+    <View>
+      {/* Cinematic Bottom Shadow */}
+      <View style={styles.shadowGradientWrapper}>
+        <Svg height="100" width={width}>
+          <Defs>
+            <SvgGradient id="bottomShadow" x1="0" y1="1" x2="0" y2="0">
+              <Stop offset="0" stopColor="#000" stopOpacity="1" />
+              <Stop offset="0.5" stopColor="#000" stopOpacity="0.4" />
+              <Stop offset="1" stopColor="#000" stopOpacity="0" />
+            </SvgGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100%" height="100%" fill="url(#bottomShadow)" />
+        </Svg>
+      </View>
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
+      <View style={[styles.tabBarContainer, { bottom: insets.bottom + 10 }]}>
+        <View style={styles.tabBarPill}>
+          {/* Sliding Indicator */}
+          <Animated.View
+            style={[
+              styles.activeIndicator,
+              {
+                width: tabWidth - 2,
+                paddingHorizontal: 35,
+                transform: [{ translateX: translateX }]
+              }
+            ]}
+          />
 
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
+          {state.routes.map((route, index) => {
+            const { options } = descriptors[route.key];
+            const label = options.tabBarLabel !== undefined ? options.tabBarLabel : options.title !== undefined ? options.title : route.name;
+            const isFocused = state.index === index;
 
-          return (
-            <Pressable
-              key={route.key}
-              onPress={onPress}
-              style={({ pressed }) => [
-                styles.tabItem,
-                pressed && { opacity: 0.7 }
-              ]}
-            >
-              {isFocused && <View style={styles.activeIndicator} />}
-              {options.tabBarIcon({
-                color: isFocused ? "#fff" : "rgba(255,255,255,0.5)",
-                size: 20,
-                focused: isFocused
-              })}
-              <Text style={[
-                styles.tabLabel,
-                { color: isFocused ? "#fff" : "rgba(255,255,255,0.5)" }
-              ]}>
-                {label}
-              </Text>
-            </Pressable>
-          );
-        })}
+            const onPress = () => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
+
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            };
+
+            return (
+              <Pressable
+                key={route.key}
+                onPress={onPress}
+                style={({ pressed }) => [
+                  styles.tabItem,
+                  pressed && { opacity: 0.7 }
+                ]}
+              >
+                {options.tabBarIcon({
+                  color: isFocused ? "#fff" : "rgba(255,255,255,0.5)",
+                  size: 20,
+                  focused: isFocused
+                })}
+                <Text style={[
+                  styles.tabLabel,
+                  { color: isFocused ? "#fff" : "rgba(255,255,255,0.5)" }
+                ]}>
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -167,12 +210,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
+    zIndex: 1000,
+  },
+  shadowGradientWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 999,
   },
   tabBarPill: {
     flexDirection: 'row',
     backgroundColor: 'rgba(20, 20, 20, 0.92)',
     width: width * 0.94,
-    height: 64,
+    height: 58,
     borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'space-around',
@@ -193,16 +244,15 @@ const styles = StyleSheet.create({
   },
   activeIndicator: {
     position: 'absolute',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#E50914',
-    zIndex: -1,
-    opacity: 0.9,
+    zIndex: 0,
+    left: 5, // Account for pill padding
   },
   tabLabel: {
     fontSize: 9,
     marginTop: 4,
-    fontWeight: '700',
+    fontFamily: 'TT Medium'
   }
 });

@@ -393,6 +393,7 @@ const styles = StyleSheet.create({
   rowTitle: {
     color: 'rgba(255,255,255,0.89)',
     fontSize: 16,
+    letterSpacing: 0.3,
     fontWeight: '600',
   },
   rowRight: {
@@ -428,6 +429,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'Code',
     marginTop: 30,
+    marginBottom: 20,
     fontSize: 12,
   },
 
