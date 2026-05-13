@@ -8,6 +8,8 @@ const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('ffmpeg-static');
 const fs = require('fs');
 const path = require('path');
+const Movie = require('../models/Movie');
+const Series = require('../models/Series');
 
 // Point fluent-ffmpeg at the bundled binary (no system install needed)
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -347,7 +349,13 @@ router.get('/hls/:chatId/:messageId/playlist.m3u8', async (req, res) => {
     // This tells the mobile player the total duration from the very first second,
     // instead of watching it grow as FFmpeg generates segments one by one.
     const cachedMeta = codecCache.get(`${chatId}_${messageId}`);
-    const knownDuration = cachedMeta?.duration || 0;
+    let knownDuration = cachedMeta?.duration || 0;
+
+    // If no cached duration yet, fall back to DB duration immediately
+    // so the player sees the correct total time even on first play
+    if (!knownDuration) {
+      knownDuration = await getDurationFromDb(messageId);
+    }
     const HLS_SEG_TIME = 6;
 
     if (knownDuration > 0) {
@@ -503,5 +511,51 @@ setInterval(() => {
     });
   });
 }, 30 * 60 * 1000);
+
+// Helper: parse "1h 45m", "105", "2h", "45m" → seconds
+function parseDurationToSeconds(str) {
+  if (!str) return 0;
+  const s = String(str).trim();
+  if (/^\d+$/.test(s)) return parseInt(s, 10) * 60; // plain number = minutes
+  let total = 0;
+  const h = s.match(/(\d+)\s*h/i);
+  const m = s.match(/(\d+)\s*m/i);
+  if (h) total += parseInt(h[1], 10) * 3600;
+  if (m) total += parseInt(m[1], 10) * 60;
+  return total;
+}
+
+// Helper: look up duration (in seconds) from Movie or Series DB by Telegram messageId
+async function getDurationFromDb(messageId) {
+  try {
+    const mid = String(messageId);
+
+    // Try Movie first
+    const movie = await Movie.findOne({ 'telegram.messageId': mid }).select('duration').lean();
+    if (movie?.duration) {
+      const secs = parseDurationToSeconds(movie.duration);
+      if (secs > 0) { console.log(`[DB Duration] Movie found: ${secs}s`); return secs; }
+    }
+
+    // Try Series episodes
+    const series = await Series.findOne({
+      'seasons.episodes.telegramMessageId': mid
+    }).select('seasons').lean();
+
+    if (series) {
+      for (const season of series.seasons || []) {
+        for (const ep of season.episodes || []) {
+          if (String(ep.telegramMessageId) === mid && ep.duration) {
+            const secs = parseDurationToSeconds(ep.duration);
+            if (secs > 0) { console.log(`[DB Duration] Episode found: ${secs}s`); return secs; }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[getDurationFromDb] Error:', e.message);
+  }
+  return 0;
+}
 
 module.exports = router;
