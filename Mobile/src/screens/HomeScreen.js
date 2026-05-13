@@ -141,7 +141,7 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Hero Section */}
         {heroItem && (
           <Pressable
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
     borderColor: '#E50914',
   },
   featuredText: { color: '#fff', fontSize: 10, fontFamily: 'Broche-Cut', letterSpacing: 1.2 },
-  heroTitle: { color: "#fff", fontSize: 32, fontFamily: 'Code', letterSpacing: -1, marginBottom: 8 },
+  heroTitle: { color: "#fff", fontSize: 32, fontFamily: 'Code', letterSpacing: 1, marginBottom: 8 },
   heroMetaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 10 },
   heroMetaText: { color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: '600', fontFamily: 'Coolvetica' },
   metaDivider: { width: 4, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.3)' },

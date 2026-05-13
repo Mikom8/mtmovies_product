@@ -11,18 +11,70 @@ import PlayerScreen from "../screens/PlayerScreen";
 import LoginScreen from "../screens/LoginScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import { useAuth } from "../context/AuthContext";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, StyleSheet, Pressable, Text, Dimensions } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+const { width } = Dimensions.get('window');
+
+const CustomTabBar = ({ state, descriptors, navigation }) => {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={[styles.tabBarContainer, { bottom: insets.bottom + 2 }]}>
+      <View style={styles.tabBarPill}>
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+          const label = options.tabBarLabel !== undefined ? options.tabBarLabel : options.title !== undefined ? options.title : route.name;
+          const isFocused = state.index === index;
+
+          const onPress = () => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          return (
+            <Pressable
+              key={route.key}
+              onPress={onPress}
+              style={({ pressed }) => [
+                styles.tabItem,
+                pressed && { opacity: 0.7 }
+              ]}
+            >
+              {isFocused && <View style={styles.activeIndicator} />}
+              {options.tabBarIcon({
+                color: isFocused ? "#fff" : "rgba(255,255,255,0.5)",
+                size: 20,
+                focused: isFocused
+              })}
+              <Text style={[
+                styles.tabLabel,
+                { color: isFocused ? "#fff" : "rgba(255,255,255,0.5)" }
+              ]}>
+                {label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
 
 const HomeTabs = () => (
   <Tab.Navigator
+    tabBar={props => <CustomTabBar {...props} />}
     screenOptions={{
       headerShown: false,
-      tabBarStyle: { backgroundColor: "#000", borderTopColor: "#333" },
-      tabBarActiveTintColor: "#E50914",
-      tabBarInactiveTintColor: "#888",
     }}
   >
     <Tab.Screen
@@ -106,3 +158,51 @@ const AppNavigator = () => {
 };
 
 export default AppNavigator;
+
+const styles = StyleSheet.create({
+  tabBarContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  tabBarPill: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(20, 20, 20, 0.92)',
+    width: width * 0.94,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.44,
+    shadowRadius: 10.32,
+    elevation: 16,
+  },
+  tabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+    flex: 1,
+  },
+  activeIndicator: {
+    position: 'absolute',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#E50914',
+    zIndex: -1,
+    opacity: 0.9,
+  },
+  tabLabel: {
+    fontSize: 9,
+    marginTop: 4,
+    fontWeight: '700',
+  }
+});

@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a0a0a',
   },
   scrollContent: {
-    paddingBottom: 50,
+    paddingBottom: 110,
     paddingTop: 10,
   },
   centered: {
