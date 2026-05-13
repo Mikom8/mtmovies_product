@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
+import axios from 'axios';
 import { Video, ResizeMode } from 'expo-av';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import Feather from '@expo/vector-icons/Feather';
@@ -16,10 +17,38 @@ const PlayerScreen = ({ route, navigation }) => {
   const videoRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [streamUrl, setStreamUrl] = useState(null);
 
-  const streamUrl = chatId && messageId
-    ? `https://mtmovies-production.up.railway.app/api/stream/hls/${chatId}/${messageId}/playlist.m3u8`
-    : null;
+  useEffect(() => {
+    const initPlayer = async () => {
+      if (!chatId || !messageId) {
+        setError(true);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        // 1. Fetch metadata to see if we need HLS transcode or direct stream
+        const response = await axios.get(`https://mtmovies-production.up.railway.app/api/stream/${chatId}/${messageId}/metadata`);
+        const { needsTranscode } = response.data;
+
+        if (needsTranscode) {
+          // Use HLS for incompatible formats (AVI, MKV, etc.)
+          setStreamUrl(`https://mtmovies-production.up.railway.app/api/stream/hls/${chatId}/${messageId}/playlist.m3u8`);
+        } else {
+          // Use direct byte-stream for MP4 (allows exact duration and seeking)
+          setStreamUrl(`https://mtmovies-production.up.railway.app/api/stream/${chatId}/${messageId}`);
+        }
+      } catch (err) {
+        console.error("Player initialization error:", err);
+        // Fallback to direct stream if metadata fails
+        setStreamUrl(`https://mtmovies-production.up.railway.app/api/stream/${chatId}/${messageId}`);
+      }
+    };
+
+    initPlayer();
+  }, [chatId, messageId]);
 
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
