@@ -491,6 +491,42 @@ router.get('/hls/:chatId/:messageId/playlist.m3u8', async (req, res) => {
   }
 });
 
+// ── GET /api/stream/hls/:chatId/:messageId/:startSeconds/:segment.ts ─────────
+// Waits for a segment to be transcoded before serving it.
+// Prevents the player from getting 404 on segments not yet ready.
+router.get('/hls/:chatId/:messageId/:startSeconds/:segmentFile', async (req, res) => {
+  const { chatId, messageId, startSeconds, segmentFile } = req.params;
+
+  // Only handle .ts segment files
+  if (!segmentFile.endsWith('.ts')) return res.status(404).send('Not found');
+
+  const segmentPath = path.join(
+    HLS_DIR,
+    String(chatId),
+    String(messageId),
+    String(startSeconds),
+    segmentFile
+  );
+
+  // Poll until the segment exists (max 90s)
+  const MAX_WAIT_MS = 90000;
+  const POLL_INTERVAL = 500;
+  const deadline = Date.now() + MAX_WAIT_MS;
+
+  while (Date.now() < deadline) {
+    if (fs.existsSync(segmentPath)) {
+      res.setHeader('Content-Type', 'video/mp2t');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cache-Control', 'no-cache');
+      return res.sendFile(segmentPath);
+    }
+    await new Promise(r => setTimeout(r, POLL_INTERVAL));
+  }
+
+  console.warn(`[Segment] Timeout waiting for: ${segmentFile}`);
+  res.status(504).send('Segment not ready in time');
+});
+
 // Clean up old HLS folders every 30 minutes
 setInterval(() => {
   if (!fs.existsSync(HLS_DIR)) return;

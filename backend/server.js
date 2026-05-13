@@ -29,20 +29,21 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve HLS segments statically
-app.use('/api/stream/hls', (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cache-Control', 'no-cache');
-  next();
-}, express.static(hlsDir));
-
-// ── Routes ──
+// ── Routes (registered BEFORE static so dynamic segment-wait routes take priority) ──
 app.use('/api/auth', authRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/series', seriesRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/stream', streamRoutes);
 app.use('/api/payments', paymentRoutes);
+
+// Serve already-transcoded HLS segments statically (fallback after dynamic routes)
+app.use('/api/stream/hls', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'no-cache');
+  next();
+}, express.static(hlsDir));
+
 
 // ── Health check ──
 app.get('/api/health', (req, res) => {
