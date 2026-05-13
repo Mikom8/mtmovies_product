@@ -341,58 +341,105 @@ router.get('/hls/:chatId/:messageId/playlist.m3u8', async (req, res) => {
     const playlistPath = path.join(outDir, 'playlist.m3u8');
     const staticUrl = `/api/stream/hls/${chatId}/${messageId}/${startSeconds}/playlist.m3u8`;
 
-    // ── VOD MANIFEST GENERATION ──
-    // If we have a duration, generate a full VOD manifest immediately
-    // so the player knows the total time from the start.
-    const metadata = codecCache.get(`${chatId}_${messageId}`);
-    const duration = metadata?.duration || 0;
-
-    if (duration > 0 && !req.query.live) {
-      console.log(`[HLS] Generating VOD manifest for ${transcodeId} (duration: ${duration}s)`);
-      const segmentDuration = 10;
-      const numSegments = Math.ceil(duration / segmentDuration);
-      
-      let manifest = [
-        "#EXTM3U",
-        "#EXT-X-VERSION:3",
-        "#EXT-X-TARGETDURATION:" + segmentDuration,
-        "#EXT-X-MEDIA-SEQUENCE:0",
-        "#EXT-X-PLAYLIST-TYPE:VOD",
-      ];
-
-      for (let i = 0; i < numSegments; i++) {
-        const remaining = duration - (i * segmentDuration);
-        const currentSegDur = Math.min(segmentDuration, remaining);
-        manifest.push(`#EXTINF:${currentSegDur.toFixed(3)},`);
-        manifest.push(`segment_${String(i).padStart(3, '0')}.ts`);
-      }
-
-      manifest.push("#EXT-X-ENDLIST");
-      
-      if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-      if (!activeTranscodes.has(transcodeId)) {
-        startTranscode(chatId, messageId, startSeconds, outDir, transcodeId);
-      }
-
-      res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
-      return res.send(manifest.join("\n"));
-    }
-
+    // If we already have an active transcode for this video at this offset, wait for it
     if (activeTranscodes.has(transcodeId)) {
       for (let i = 0; i < 60; i++) {
-        if (fs.existsSync(playlistPath)) return res.redirect(staticUrl);
+        if (fs.existsSync(playlistPath)) {
+          return res.redirect(staticUrl);
+        }
         await new Promise(r => setTimeout(r, 500));
       }
       return res.status(500).json({ error: 'Playlist generation timeout' });
     }
 
-    if (fs.existsSync(playlistPath)) return res.redirect(staticUrl);
+    // If playlist exists, re-use it
+    if (fs.existsSync(playlistPath)) {
+      return res.redirect(staticUrl);
+    }
 
+    // Start new FFmpeg pipeline
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-    startTranscode(chatId, messageId, startSeconds, outDir, transcodeId);
+    activeTranscodes.set(transcodeId, { startedAt: Date.now() });
 
+    // Verify the message exists
+    const messages = await client.getMessages(chatId, { ids: [messageId] });
+    if (!messages || !messages[0] || !messages[0].media || !messages[0].media.document) {
+      activeTranscodes.delete(transcodeId);
+      return res.status(404).send('Video document not found.');
+    }
+
+    const document = messages[0].media.document;
+    const mimeType = document.mimeType || 'video/mp4';
+    const isAvi = mimeType === 'video/avi' || mimeType === 'video/x-msvideo';
+
+    // ── KEY FIX: Use our own HTTP stream endpoint as FFmpeg input ──────────────
+    // The /api/stream/:chatId/:messageId endpoint supports HTTP Range requests,
+    // so FFmpeg can SEEK freely — this solves the moov-at-end black screen issue.
+    // FFmpeg fetches from localhost so it's fast (no external network needed).
+    const internalStreamUrl = `http://127.0.0.1:${process.env.PORT || 5000}/api/stream/${chatId}/${messageId}`;
+
+    console.log(`[HLS FFmpeg] Starting: ${transcodeId} | AVI=${isAvi} | src=HTTP | start=${startSeconds}`);
+
+    const inputOptions = [
+      '-fflags', '+genpts+igndts',
+      '-avoid_negative_ts', 'make_zero',
+      '-thread_queue_size', '512',
+      '-analyzeduration', '2M',
+      '-probesize', '2M',
+    ];
+    if (startSeconds > 0) {
+      inputOptions.unshift('-ss', String(startSeconds));
+    }
+
+    const cmd = ffmpeg(internalStreamUrl)
+      .inputOptions(inputOptions)
+      .videoCodec('libx264')
+      .audioCodec('aac')
+      .outputOptions([
+        '-map', '0:v:0',
+        '-map', '0:a:0',
+        '-preset', 'veryfast',
+        '-crf', '23',
+        // Force browser-compatible pixel format — fixes black screen from
+        // H.265/HEVC, 10-bit, yuv444p, or any non-standard source
+        '-pix_fmt', 'yuv420p',
+        // Ensure dimensions are divisible by 2 (required by libx264)
+        '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+        '-g', '48',
+        '-keyint_min', '48',
+        '-sc_threshold', '0',
+        '-b:a', '128k',
+        '-ac', '2',
+        '-ar', '44100',
+        '-af', 'aresample=async=1000',
+        '-hls_time', '6',
+        '-hls_list_size', '0',
+        '-hls_flags', 'independent_segments+append_list',
+        '-hls_segment_type', 'mpegts',
+        '-hls_playlist_type', 'event',
+        '-start_number', '0',
+        '-hls_segment_filename', path.join(outDir, 'segment_%03d.ts'),
+        '-f', 'hls'
+      ])
+      .output(playlistPath)
+      .on('start', (cmd) => console.log(`[HLS FFmpeg] Started: ${transcodeId}`))
+      .on('end', () => {
+        console.log(`[HLS FFmpeg] Finished: ${transcodeId}`);
+        activeTranscodes.delete(transcodeId);
+      })
+      .on('error', (err) => {
+        if (err.message.includes('SIGKILL')) return;
+        console.error(`[HLS FFmpeg] Error: ${err.message}`);
+        activeTranscodes.delete(transcodeId);
+      });
+
+    cmd.run();
+
+    // Wait for first playlist to appear (up to 30s)
     for (let i = 0; i < 60; i++) {
-      if (fs.existsSync(playlistPath)) return res.redirect(staticUrl);
+      if (fs.existsSync(playlistPath)) {
+        return res.redirect(staticUrl);
+      }
       await new Promise(r => setTimeout(r, 500));
     }
 
@@ -403,68 +450,6 @@ router.get('/hls/:chatId/:messageId/playlist.m3u8', async (req, res) => {
     res.status(500).send('HLS Streaming error');
   }
 });
-
-function startTranscode(chatId, messageId, startSeconds, outDir, transcodeId) {
-  activeTranscodes.set(transcodeId, { startedAt: Date.now() });
-  const playlistPath = path.join(outDir, 'playlist.m3u8');
-  const internalStreamUrl = `http://127.0.0.1:${process.env.PORT || 5000}/api/stream/${chatId}/${messageId}`;
-
-  const inputOptions = [
-    '-fflags', '+genpts+igndts',
-    '-avoid_negative_ts', 'make_zero',
-    '-thread_queue_size', '512',
-    '-analyzeduration', '2M',
-    '-probesize', '2M',
-  ];
-  if (startSeconds > 0) inputOptions.unshift('-ss', String(startSeconds));
-
-  const metadata = codecCache.get(`${chatId}_${messageId}`);
-  const duration = metadata?.duration;
-
-  const cmd = ffmpeg(internalStreamUrl)
-    .inputOptions(inputOptions)
-    .videoCodec('libx264')
-    .audioCodec('aac');
-
-  if (duration && duration > 0) cmd.duration(duration);
-
-  cmd.outputOptions([
-    '-map', '0:v:0',
-    '-map', '0:a:0',
-    '-preset', 'veryfast',
-    '-crf', '23',
-    '-pix_fmt', 'yuv420p',
-    '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',
-    '-g', '48',
-    '-keyint_min', '48',
-    '-sc_threshold', '0',
-    '-b:a', '128k',
-    '-ac', '2',
-    '-ar', '44100',
-    '-af', 'aresample=async=1000',
-    '-hls_time', '10',
-    '-hls_list_size', '0',
-    '-hls_flags', 'independent_segments',
-    '-hls_segment_type', 'mpegts',
-    '-hls_playlist_type', 'vod',
-    '-start_number', '0',
-    '-hls_segment_filename', path.join(outDir, 'segment_%03d.ts'),
-    '-f', 'hls'
-  ])
-  .output(playlistPath)
-  .on('start', () => console.log(`[HLS FFmpeg] Started: ${transcodeId}`))
-  .on('end', () => {
-    console.log(`[HLS FFmpeg] Finished: ${transcodeId}`);
-    activeTranscodes.delete(transcodeId);
-  })
-  .on('error', (err) => {
-    if (err.message.includes('SIGKILL')) return;
-    console.error(`[HLS FFmpeg] Error: ${err.message}`);
-    activeTranscodes.delete(transcodeId);
-  });
-
-  cmd.run();
-}
 
 // Clean up old HLS folders every 30 minutes
 setInterval(() => {
