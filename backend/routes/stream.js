@@ -492,27 +492,97 @@ router.get('/hls/:chatId/:messageId/playlist.m3u8', async (req, res) => {
 });
 
 // ── GET /api/stream/hls/:chatId/:messageId/:startSeconds/:segment.ts ─────────
-// Waits for a segment to be transcoded before serving it.
-// Prevents the player from getting 404 on segments not yet ready.
+// Seek-aware segment server. When the requested segment is too far ahead of the
+// current transcode, a new FFmpeg process is started at the seek position.
+const seekTranscodeMap = new Map(); // videoKey → { outDir, baseSegNum, transcodeId }
+
 router.get('/hls/:chatId/:messageId/:startSeconds/:segmentFile', async (req, res) => {
   const { chatId, messageId, startSeconds, segmentFile } = req.params;
-
-  // Only handle .ts segment files
   if (!segmentFile.endsWith('.ts')) return res.status(404).send('Not found');
 
-  const segmentPath = path.join(
-    HLS_DIR,
-    String(chatId),
-    String(messageId),
-    String(startSeconds),
-    segmentFile
-  );
+  const segMatch = segmentFile.match(/segment_(\d+)\.ts/);
+  if (!segMatch) return res.status(404).send('Invalid segment name');
 
-  // Poll until the segment exists (max 90s)
-  const MAX_WAIT_MS = 90000;
-  const POLL_INTERVAL = 500;
-  const deadline = Date.now() + MAX_WAIT_MS;
+  const requestedSegNum = parseInt(segMatch[1], 10);
+  const HLS_SEG_TIME = 6;
+  const videoKey = `${chatId}_${messageId}`;
+  const SEEK_AHEAD_THRESHOLD = 15; // segments (~90s) — if farther, start a seek transcode
 
+  // ── Helper: count existing .ts segments in a directory ───────────────────
+  const countSegs = (dir) => {
+    if (!fs.existsSync(dir)) return 0;
+    return fs.readdirSync(dir).filter(f => f.endsWith('.ts')).length;
+  };
+
+  // ── Helper: start a new FFmpeg transcode at a given time offset ───────────
+  const startSeekTranscode = (seekTime, outDir, seekTranscodeId) => {
+    if (activeTranscodes.has(seekTranscodeId)) return;
+    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+    activeTranscodes.set(seekTranscodeId, { startedAt: Date.now() });
+
+    const internalUrl = `http://127.0.0.1:${process.env.PORT || 5000}/api/stream/${chatId}/${messageId}`;
+    const inOpts = [
+      '-fflags', '+genpts+igndts', '-avoid_negative_ts', 'make_zero',
+      '-thread_queue_size', '512', '-analyzeduration', '2M', '-probesize', '2M',
+    ];
+    if (seekTime > 0) inOpts.unshift('-ss', String(seekTime));
+
+    ffmpeg(internalUrl)
+      .inputOptions(inOpts)
+      .videoCodec('libx264').audioCodec('aac')
+      .outputOptions([
+        '-map', '0:v:0', '-map', '0:a:0',
+        '-preset', 'veryfast', '-crf', '23',
+        '-pix_fmt', 'yuv420p', '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+        '-g', '48', '-keyint_min', '48', '-sc_threshold', '0',
+        '-b:a', '128k', '-ac', '2', '-ar', '44100', '-af', 'aresample=async=1000',
+        `-hls_time`, String(HLS_SEG_TIME), '-hls_list_size', '0',
+        '-hls_flags', 'independent_segments',
+        '-hls_segment_type', 'mpegts', '-hls_playlist_type', 'vod',
+        '-start_number', '0',
+        '-hls_segment_filename', path.join(outDir, 'segment_%03d.ts'),
+        '-f', 'hls',
+      ])
+      .output(path.join(outDir, 'playlist.m3u8'))
+      .on('start', () => console.log(`[Seek FFmpeg] Started at ${seekTime}s: ${seekTranscodeId}`))
+      .on('end', () => { activeTranscodes.delete(seekTranscodeId); })
+      .on('error', (e) => { if (!e.message.includes('SIGKILL')) console.error(`[Seek FFmpeg] Error: ${e.message}`); activeTranscodes.delete(seekTranscodeId); })
+      .run();
+  };
+
+  // ── Determine which transcode to use ─────────────────────────────────────
+  let seekInfo = seekTranscodeMap.get(videoKey);
+  let localSegNum;
+
+  if (seekInfo) {
+    localSegNum = requestedSegNum - seekInfo.baseSegNum;
+    const existingCount = countSegs(seekInfo.outDir);
+
+    // Is this segment too far ahead of current transcode? Start a new seek.
+    if (localSegNum < 0 || localSegNum > existingCount + SEEK_AHEAD_THRESHOLD) {
+      seekInfo = null; // fall through to create new seek transcode
+    }
+  }
+
+  if (!seekInfo) {
+    // No mapping yet OR seek to a distant position → start transcode at seek time
+    const seekTime = requestedSegNum * HLS_SEG_TIME;
+    const seekTranscodeId = `${chatId}_${messageId}_seek_${seekTime}`;
+    const seekOutDir = path.join(HLS_DIR, String(chatId), String(messageId), `seek_${seekTime}`);
+
+    seekInfo = { outDir: seekOutDir, baseSegNum: requestedSegNum, transcodeId: seekTranscodeId };
+    seekTranscodeMap.set(videoKey, seekInfo);
+    localSegNum = 0;
+
+    console.log(`[Seek] Starting new transcode at ${seekTime}s for segment_${requestedSegNum}`);
+    startSeekTranscode(seekTime, seekOutDir, seekTranscodeId);
+  }
+
+  // ── Poll for the local segment file ──────────────────────────────────────
+  const localSegFile = `segment_${String(localSegNum).padStart(3, '0')}.ts`;
+  const segmentPath = path.join(seekInfo.outDir, localSegFile);
+
+  const deadline = Date.now() + 60000; // 60s timeout
   while (Date.now() < deadline) {
     if (fs.existsSync(segmentPath)) {
       res.setHeader('Content-Type', 'video/mp2t');
@@ -520,12 +590,13 @@ router.get('/hls/:chatId/:messageId/:startSeconds/:segmentFile', async (req, res
       res.setHeader('Cache-Control', 'no-cache');
       return res.sendFile(segmentPath);
     }
-    await new Promise(r => setTimeout(r, POLL_INTERVAL));
+    await new Promise(r => setTimeout(r, 500));
   }
 
-  console.warn(`[Segment] Timeout waiting for: ${segmentFile}`);
+  console.warn(`[Segment] Timeout: ${segmentFile} (local: ${localSegFile})`);
   res.status(504).send('Segment not ready in time');
 });
+
 
 // Clean up old HLS folders every 30 minutes
 setInterval(() => {
