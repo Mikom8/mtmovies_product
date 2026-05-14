@@ -109,10 +109,10 @@ const DetailsScreen = ({ route, navigation }) => {
   const scrollRef = useRef(null);
 
   const [fontsLoaded] = useFonts({
-    "Coolvetica": require("../../assets/fonts/Coolvetica Rg.otf"),
-    "Code": require("../../assets/fonts/CODE Bold.otf"),
-    "TT": require("../../assets/fonts/TT Chocolates Trial Light.otf"),
-    "TT Medium": require("../../assets/fonts/TT Chocolates Trial Medium.otf"),
+    "Coolvetica": require("../../assets/fonts/Coolvetica-Rg.otf"),
+    "Code": require("../../assets/fonts/CODE-Bold.otf"),
+    "TT": require("../../assets/fonts/TT-Chocolates-Trial-Light.otf"),
+    "TT Medium": require("../../assets/fonts/TT-Chocolates-Trial-Medium.otf"),
   });
 
   useEffect(() => {

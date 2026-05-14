@@ -26,10 +26,10 @@ const { width } = Dimensions.get("window");
 
 const HomeScreen = () => {
   const [fontsLoaded] = useFonts({
-    "Broche-Cut": require("../../assets/fonts/Broche Cut.ttf"),
-    "Coolvetica": require("../../assets/fonts/Coolvetica Rg.otf"),
-    "Code": require("../../assets/fonts/CODE Bold.otf"),
-    "TT": require("../../assets/fonts/TT Chocolates Trial Light.otf")
+    "Broche-Cut": require("../../assets/fonts/Broche-Cut.ttf"),
+    "Coolvetica": require("../../assets/fonts/Coolvetica-Rg.otf"),
+    "Code": require("../../assets/fonts/CODE-Bold.otf"),
+    "TT": require("../../assets/fonts/TT-Chocolates-Trial-Light.otf")
   });
 
   const { movies, series, featuredItems, loading, error } = useMovies();

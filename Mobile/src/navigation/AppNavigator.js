@@ -26,7 +26,7 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
   const translateX = useRef(new Animated.Value(0)).current;
 
   const [fontsLoaded] = useFonts({
-    "TT Medium": require("../../assets/fonts/TT Chocolates Trial Medium.otf")
+    "TT Medium": require("../../assets/fonts/TT-Chocolates-Trial-Medium.otf")
   });
 
   useEffect(() => {
