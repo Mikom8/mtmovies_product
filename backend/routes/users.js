@@ -28,11 +28,39 @@ router.put('/profile', async (req, res) => {
   }
 });
 
+// Helper to populate watchlist item details from Movie or Series models
+const getPopulatedWatchlist = async (watchlist) => {
+  const Series = require('../models/Series');
+  const populated = await Promise.all(
+    watchlist.map(async (item) => {
+      let details = null;
+      try {
+        if (item.itemType === 'series') {
+          details = await Series.findById(item.itemId).lean();
+        } else {
+          details = await Movie.findById(item.itemId).lean();
+        }
+      } catch (err) {
+        // Ignore errors and leave details as null
+      }
+      return {
+        _id: item._id,
+        itemId: item.itemId,
+        itemType: item.itemType,
+        itemDetails: details
+      };
+    })
+  );
+  // Filter out any items whose details could not be found (e.g. deleted movie/series)
+  return populated.filter(item => item.itemDetails !== null);
+};
+
 // ── GET /api/users/watchlist — get user's watchlist ──
 router.get('/watchlist', async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    res.json({ watchlist: user.watchlist });
+    const populatedList = await getPopulatedWatchlist(user.watchlist);
+    res.json({ watchlist: populatedList });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch watchlist.' });
   }
@@ -47,17 +75,24 @@ router.post('/watchlist', async (req, res) => {
     const user = await User.findById(req.user._id);
     const idx = user.watchlist.findIndex(w => w.itemId === String(itemId));
 
+    let action = '';
     if (idx !== -1) {
       // Already in list — remove it
       user.watchlist.splice(idx, 1);
-      await user.save();
-      return res.json({ message: 'Removed from watchlist.', action: 'removed', watchlist: user.watchlist });
+      action = 'removed';
     } else {
       // Not in list — add it
       user.watchlist.push({ itemId: String(itemId), itemType: itemType || 'movie' });
-      await user.save();
-      return res.json({ message: 'Added to watchlist.', action: 'added', watchlist: user.watchlist });
+      action = 'added';
     }
+
+    await user.save();
+    const populatedList = await getPopulatedWatchlist(user.watchlist);
+    res.json({
+      message: action === 'removed' ? 'Removed from watchlist.' : 'Added to watchlist.',
+      action,
+      watchlist: populatedList
+    });
   } catch (err) {
     res.status(400).json({ error: 'Failed to update watchlist.' });
   }
