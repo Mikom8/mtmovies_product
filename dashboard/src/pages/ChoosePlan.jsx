@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import styles from './ChoosePlan.module.css';
 import { BiCheck, BiX } from 'react-icons/bi';
 import { FaStar } from 'react-icons/fa';
+import { API_BASE_URL } from '../config';
 
 // Payment details as requested by user (configurable)
 const PAYMENT_INFO = {
@@ -75,7 +76,7 @@ export default function ChoosePlan() {
     
     try {
       const token = localStorage.getItem('mt_token');
-      const res = await fetch('https://mtmovies-production.up.railway.app/api/payments/verify', {
+      const res = await fetch(`${API_BASE_URL}/payments/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -24,6 +24,9 @@ WebBrowser.maybeCompleteAuthSession();
 
 const { width, height } = Dimensions.get("window");
 
+const cfg = (Constants.expoConfig && Constants.expoConfig.extra) || (Constants.manifest && Constants.manifest.extra) || {};
+const API_BASE = cfg.API_BASE_URL || 'https://mtmovies-production.up.railway.app/api';
+
 const LoginScreen = ({ navigation, route }) => {
   const { login, register, googleLogin } = useAuth();
   const [email, setEmail] = useState("");
@@ -58,7 +61,7 @@ const LoginScreen = ({ navigation, route }) => {
     setChecking(true);
     try {
       const res = await fetch(
-        "https://mtmovies-production.up.railway.app/api/auth/check-email",
+        `${API_BASE}/auth/check-email`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -116,7 +119,6 @@ const LoginScreen = ({ navigation, route }) => {
   }, []);
 
   // Google auth request — client IDs loaded from Expo config extra (from .env)
-  const cfg = (Constants.expoConfig && Constants.expoConfig.extra) || (Constants.manifest && Constants.manifest.extra) || {};
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: cfg.EXPO_GOOGLE_CLIENT_ID || '',
     iosClientId: cfg.IOS_GOOGLE_CLIENT_ID || '',

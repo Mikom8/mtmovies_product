@@ -8,6 +8,7 @@ import MovieRow from '../components/MovieRow';
 import { useMovies } from '../context/MovieContext';
 import PageSkeleton from '../components/PageSkeleton';
 import styles from '../App.module.css';
+import { API_BASE_URL } from '../config';
 
 function parseDuration(str) {
 
@@ -34,7 +35,7 @@ export default function Browse() {
   // Refresh user profile when arriving at browse page
   useEffect(() => {
     if (token) {
-      fetch('https://mtmovies-production.up.railway.app/api/users/profile', {
+      fetch(`${API_BASE_URL}/users/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
         .then(res => {

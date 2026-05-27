@@ -11,6 +11,7 @@ import {
 import { MdReplay10, MdForward10, MdArrowBack } from 'react-icons/md';
 import { FiPlus, FiCheck } from 'react-icons/fi';
 import styles from './WatchPage.module.css';
+import { API_BASE_URL } from '../config';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function fmt(s) {
@@ -98,7 +99,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
   useEffect(() => {
     if (!isTelegram) return;
     setIsProbing(true);
-    fetch(`https://mtmovies-production.up.railway.app/api/stream/${movie.telegramChatId}/${movie.telegramMessageId}/metadata`)
+    fetch(`${API_BASE_URL}/stream/${movie.telegramChatId}/${movie.telegramMessageId}/metadata`)
       .then(r => r.json())
       .then(meta => {
         if (meta.needsTranscode && initialOffset > 0) {
@@ -120,7 +121,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
   const useHls = streamMeta?.needsTranscode || isAviMime || forceHls;
   let src = null;
   if (isTelegram && streamMeta && !useHls) {
-    src = `https://mtmovies-production.up.railway.app/api/stream/${movie.telegramChatId}/${movie.telegramMessageId}`;
+    src = `${API_BASE_URL}/stream/${movie.telegramChatId}/${movie.telegramMessageId}`;
   }
 
   useEffect(() => {
@@ -142,7 +143,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
     let hls;
     const v = videoRef.current;
     const query = hlsStartTime > 0 ? `?start=${Math.floor(hlsStartTime)}` : '';
-    const hlsSrc = `https://mtmovies-production.up.railway.app/api/stream/hls/${movie.telegramChatId}/${movie.telegramMessageId}/playlist.m3u8${query}`;
+    const hlsSrc = `${API_BASE_URL}/stream/hls/${movie.telegramChatId}/${movie.telegramMessageId}/playlist.m3u8${query}`;
 
     if (Hls.isSupported()) {
       hls = new Hls({ maxBufferLength: 60 * 5, maxMaxBufferLength: 60 * 10, autoStartLoad: true });
@@ -245,7 +246,7 @@ function CustomPlayer({ movie, showUI, onUIActivity, onToggleUI, user, token, up
       if (v && !v.paused && v.currentTime > 5) {
         try {
           const realTime = useHls ? v.currentTime + hlsStartTime : v.currentTime;
-          await fetch('https://mtmovies-production.up.railway.app/api/users/history', {
+          await fetch(`${API_BASE_URL}/users/history`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ movieId: String(movie.id), progress: realTime })
@@ -623,7 +624,7 @@ export default function WatchPage() {
   const [loadingMovie, setLoadingMovie] = useState(true);
 
   useEffect(() => {
-    fetch(`https://mtmovies-production.up.railway.app/api/movies/${id}`)
+    fetch(`${API_BASE_URL}/movies/${id}`)
       .then(r => r.json())
       .then(data => {
         if (data.movie) {

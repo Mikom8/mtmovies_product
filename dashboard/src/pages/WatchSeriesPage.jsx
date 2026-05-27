@@ -11,6 +11,7 @@ import {
 import { MdReplay10, MdForward10, MdArrowBack, MdSkipNext } from 'react-icons/md';
 import { FiPlus, FiCheck } from 'react-icons/fi';
 import styles from './WatchPage.module.css';
+import { API_BASE_URL } from '../config';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function fmt(s) {
@@ -97,7 +98,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
     setIsProbing(true);
     setForceHls(false);
     setStreamMeta(null);
-    fetch(`https://mtmovies-production.up.railway.app/api/stream/${episode.telegramChatId}/${episode.telegramMessageId}/metadata`)
+    fetch(`${API_BASE_URL}/stream/${episode.telegramChatId}/${episode.telegramMessageId}/metadata`)
       .then(r => r.json())
       .then(meta => {
         if (meta.needsTranscode && initialOffset > 0) setHlsStartTime(initialOffset);
@@ -117,7 +118,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
   const useHls = streamMeta?.needsTranscode || isAviMime || forceHls;
   let src = null;
   if (isTelegram && streamMeta && !useHls) {
-    src = `https://mtmovies-production.up.railway.app/api/stream/${episode.telegramChatId}/${episode.telegramMessageId}`;
+    src = `${API_BASE_URL}/stream/${episode.telegramChatId}/${episode.telegramMessageId}`;
   }
 
   useEffect(() => {
@@ -138,7 +139,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
     let hls;
     const v = videoRef.current;
     const query = hlsStartTime > 0 ? `?start=${Math.floor(hlsStartTime)}` : '';
-    const hlsSrc = `https://mtmovies-production.up.railway.app/api/stream/hls/${episode.telegramChatId}/${episode.telegramMessageId}/playlist.m3u8${query}`;
+    const hlsSrc = `${API_BASE_URL}/stream/hls/${episode.telegramChatId}/${episode.telegramMessageId}/playlist.m3u8${query}`;
 
     if (Hls.isSupported()) {
       hls = new Hls({ maxBufferLength: 60 * 5, maxMaxBufferLength: 60 * 10, autoStartLoad: true });
@@ -253,7 +254,7 @@ function CustomPlayer({ series, season, episode, showUI, onUIActivity, onToggleU
       if (v && !v.paused && v.currentTime > 5) {
         try {
           const realTime = useHls ? v.currentTime + hlsStartTime : v.currentTime;
-          await fetch('https://mtmovies-production.up.railway.app/api/users/history', {
+          await fetch(`${API_BASE_URL}/users/history`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ movieId: compoundId, progress: realTime })

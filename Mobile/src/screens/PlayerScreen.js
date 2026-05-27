@@ -12,7 +12,10 @@ import { VideoView, useVideoPlayer } from 'expo-video';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import Feather from '@expo/vector-icons/Feather';
 
-const API_BASE = 'https://mtmovies-production.up.railway.app/api';
+import Constants from 'expo-constants';
+
+const cfg = (Constants.expoConfig && Constants.expoConfig.extra) || (Constants.manifest && Constants.manifest.extra) || {};
+const API_BASE = cfg.API_BASE_URL || 'https://mtmovies-production.up.railway.app/api';
 
 const PlayerScreen = ({ route, navigation }) => {
   const { chatId, messageId, title } = route.params ?? {};

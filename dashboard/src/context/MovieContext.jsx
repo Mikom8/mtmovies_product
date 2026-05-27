@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
+import { API_BASE_URL } from '../config';
+
 const MovieContext = createContext();
 
 export function useMovies() {
@@ -19,13 +21,13 @@ export function MovieProvider({ children }) {
         setLoading(true);
         // Fetch movies and series concurrently
         const [moviesRes, seriesRes] = await Promise.all([
-          fetch('https://mtmovies-production.up.railway.app/api/movies?limit=500'),
-          fetch('https://mtmovies-production.up.railway.app/api/series?limit=500')
+          fetch(`${API_BASE_URL}/movies?limit=500`),
+          fetch(`${API_BASE_URL}/series?limit=500`)
         ]);
-        
+
         let moviesData = { movies: [] };
         if (moviesRes.ok) moviesData = await moviesRes.json();
-        
+
         let seriesData = { series: [] };
         if (seriesRes.ok) {
           seriesData = await seriesRes.json();
@@ -36,7 +38,7 @@ export function MovieProvider({ children }) {
             moviesData.movies = moviesData.movies.filter(m => m.type !== 'series');
           }
         }
-        
+
         const transformMovie = m => ({
           ...m,
           id: m._id,

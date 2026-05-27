@@ -5,6 +5,7 @@ import { FaStar, FaCheck } from 'react-icons/fa';
 import { useMyList } from '../hooks/useMyList';
 import { BiMoviePlay, BiFullscreen, BiExitFullscreen, BiPlay, BiPause } from 'react-icons/bi';
 import { HiVolumeUp, HiVolumeOff } from 'react-icons/hi';
+import { API_BASE_URL } from '../config';
 
 export default function VideoPlayer({ movie, onClose }) {
   const [showControls, setShowControls] = useState(true);
@@ -22,7 +23,7 @@ export default function VideoPlayer({ movie, onClose }) {
 
   // Telegram stream config
   const isTelegramStream = movie.telegramChatId && movie.telegramMessageId;
-  const streamSrc = `https://mtmovies-production.up.railway.app/api/stream/${movie.telegramChatId}/${movie.telegramMessageId}`;
+  const streamSrc = `${API_BASE_URL}/stream/${movie.telegramChatId}/${movie.telegramMessageId}`;
 
   // YouTube embed fallback
   const embedSrc = `https://www.youtube.com/embed/${movie.trailerEmbedId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1`;
