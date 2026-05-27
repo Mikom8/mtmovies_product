@@ -8,48 +8,57 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import axios from 'axios';
-import { Video, ResizeMode } from 'expo-av';
+import { VideoView, useVideoPlayer } from 'expo-video';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import Feather from '@expo/vector-icons/Feather';
+
+const API_BASE = 'https://mtmovies-production.up.railway.app/api';
 
 const PlayerScreen = ({ route, navigation }) => {
   const { chatId, messageId, title } = route.params ?? {};
   const videoRef = useRef(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [streamUrl, setStreamUrl] = useState(null);
 
+  // ── 1. Resolve stream URL ────────────────────────────────────────────────
   useEffect(() => {
-    const initPlayer = async () => {
-      if (!chatId || !messageId) {
-        setError(true);
-        setLoading(false);
-        return;
-      }
+    if (!chatId || !messageId) {
+      setError(true);
+      setLoading(false);
+      return;
+    }
 
+    let cancelled = false;
+
+    const resolveUrl = async () => {
       try {
-        setLoading(true);
-        // 1. Fetch metadata to see if we need HLS transcode or direct stream
-        const response = await axios.get(`https://mtmovies-production.up.railway.app/api/stream/${chatId}/${messageId}/metadata`);
-        const { needsTranscode } = response.data;
+        const res = await axios.get(
+          `${API_BASE}/stream/${chatId}/${messageId}/metadata`,
+          { timeout: 10000 }
+        );
+        if (cancelled) return;
 
-        if (needsTranscode) {
-          // Use HLS for incompatible formats (AVI, MKV, etc.)
-          setStreamUrl(`https://mtmovies-production.up.railway.app/api/stream/hls/${chatId}/${messageId}/playlist.m3u8`);
-        } else {
-          // Use direct byte-stream for MP4 (allows exact duration and seeking)
-          setStreamUrl(`https://mtmovies-production.up.railway.app/api/stream/${chatId}/${messageId}`);
-        }
+        const url = res.data?.needsTranscode
+          ? `${API_BASE}/stream/hls/${chatId}/${messageId}/playlist.m3u8`
+          : `${API_BASE}/stream/${chatId}/${messageId}`;
+
+        setStreamUrl(url);
+        setLoading(false); // URL resolved — dismiss spinner, native controls handle buffering
       } catch (err) {
-        console.error("Player initialization error:", err);
-        // Fallback to direct stream if metadata fails
-        setStreamUrl(`https://mtmovies-production.up.railway.app/api/stream/${chatId}/${messageId}`);
+        if (cancelled) return;
+        console.warn('Metadata fetch failed, falling back to direct stream:', err.message);
+        setStreamUrl(`${API_BASE}/stream/${chatId}/${messageId}`);
+        setLoading(false); // Fallback URL set — dismiss spinner
       }
     };
 
-    initPlayer();
+    resolveUrl();
+    return () => { cancelled = true; };
   }, [chatId, messageId]);
 
+  // ── 2. Lock orientation to landscape ─────────────────────────────────────
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
     return () => {
@@ -57,85 +66,120 @@ const PlayerScreen = ({ route, navigation }) => {
     };
   }, []);
 
-  const handleBack = useCallback(async () => {
-    try {
-      if (videoRef.current) {
-        await videoRef.current.pauseAsync();
-      }
-    } catch (_) {}
-    navigation.goBack();
-  }, [navigation]);
+  // ── 3. Create the expo-video player (no initial source) ──────────────────
+  const player = useVideoPlayer(null, (p) => {
+    p.loop = false;
+  });
 
-  const onPlaybackStatusUpdate = (status) => {
-    if (status.isLoaded) {
-      setLoading(false);
-      setError(false);
-    }
-    if (status.error) {
+  // ── 4. Load + play when URL is ready ─────────────────────────────────────
+  useEffect(() => {
+    if (!player || !streamUrl) return;
+
+    try {
+      player.replace({ uri: streamUrl });
+      player.play();
+    } catch (e) {
+      console.warn('player.replace error:', e);
       setError(true);
       setLoading(false);
     }
-  };
+  }, [streamUrl]); // intentionally omit `player` — it's a stable ref
 
+  // ── 5. Status listener — error detection only (loading is cleared above) ──
+  useEffect(() => {
+    if (!player) return;
+
+    const sub = player.addListener('statusChange', (event) => {
+      // expo-video may pass the status as a plain string or as { status }
+      const status = typeof event === 'string' ? event : event?.status;
+      if (status === 'error') {
+        setError(true);
+        setLoading(false);
+      }
+    });
+
+    return () => sub.remove();
+  }, [player]);
+
+  // ── Back button ───────────────────────────────────────────────────────────
+  const handleBack = useCallback(() => {
+    try { player?.pause(); } catch (_) {}
+    navigation.goBack();
+  }, [navigation, player]);
+
+  // ── Retry ─────────────────────────────────────────────────────────────────
+  const handleRetry = useCallback(() => {
+    setError(false);
+    setLoading(true);
+    try {
+      if (player && streamUrl) {
+        player.replace({ uri: streamUrl });
+        player.play();
+      }
+    } catch (_) {}
+  }, [player, streamUrl]);
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
+      {/* Video — always mounted once we have a URL so the player can buffer */}
       {streamUrl ? (
-        <Video
+        <VideoView
           ref={videoRef}
-          source={{ uri: streamUrl }}
           style={styles.video}
-          resizeMode={ResizeMode.CONTAIN}
-          shouldPlay
-          useNativeControls
-          onPlaybackStatusUpdate={onPlaybackStatusUpdate}
-          onLoadStart={() => { setLoading(true); setError(false); }}
-          onError={() => { setError(true); setLoading(false); }}
+          player={player}
+          allowsFullscreen
+          allowsPictureInPicture
+          contentFit="contain"
+          nativeControls
         />
       ) : (
-        <View style={styles.centered}>
-          <Feather name="alert-circle" color="#E50914" size={40} />
-          <Text style={styles.errorText}>No stream source available</Text>
-        </View>
+        /* No URL yet — just show the loading backdrop */
+        <View style={styles.backdrop} />
       )}
 
       {/* Loading overlay */}
       {loading && !error && (
         <View style={styles.overlay}>
           <ActivityIndicator size="large" color="#E50914" />
+          <Text style={styles.overlayText}>Loading…</Text>
         </View>
       )}
 
       {/* Error overlay */}
       {error && (
         <View style={styles.overlay}>
-          <Feather name="wifi-off" color="#E50914" size={36} />
-          <Text style={styles.errorText}>Could not load stream</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={() => {
-            setError(false);
-            setLoading(true);
-          }}>
+          <Feather name="wifi-off" color="#E50914" size={40} />
+          <Text style={styles.overlayText}>Could not load stream</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={handleRetry}>
             <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
         </View>
       )}
 
-      {/* Top bar with back + title */}
+      {/* Top bar */}
       <SafeAreaView style={styles.topBar} pointerEvents="box-none">
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
           <Feather name="chevron-left" color="#fff" size={28} />
         </TouchableOpacity>
-        {title ? (
+        {!!title && (
           <Text style={styles.titleText} numberOfLines={1}>
             {title}
           </Text>
-        ) : null}
+        )}
       </SafeAreaView>
     </View>
   );
 };
 
+export default PlayerScreen;
+
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  backdrop: {
     flex: 1,
     backgroundColor: '#000',
   },
@@ -145,28 +189,20 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#000',
   },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 12,
-  },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    gap: 12,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    gap: 14,
   },
-  errorText: {
-    color: '#fff',
+  overlayText: {
+    color: 'rgba(255,255,255,0.8)',
     fontSize: 14,
-    textAlign: 'center',
-    marginTop: 8,
   },
   retryBtn: {
-    marginTop: 8,
-    paddingHorizontal: 20,
+    marginTop: 4,
+    paddingHorizontal: 28,
     paddingVertical: 10,
     backgroundColor: '#E50914',
     borderRadius: 8,
@@ -174,6 +210,7 @@ const styles = StyleSheet.create({
   retryText: {
     color: '#fff',
     fontWeight: '700',
+    fontSize: 14,
   },
   topBar: {
     position: 'absolute',
@@ -201,5 +238,3 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
 });
-
-export default PlayerScreen;

@@ -21,6 +21,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import EvilIcons from '@expo/vector-icons/EvilIcons';
 import Svg, { Defs, LinearGradient as SvgGradient, Rect, Stop } from 'react-native-svg';
+import client from "../api/client";
 
 const { width } = Dimensions.get("window");
 
@@ -210,12 +211,44 @@ const HomeScreen = () => {
               </Text>
               <View style={styles.heroActions}>
                 <Pressable
-                  onPress={() =>
-                    navigation.navigate("Details", {
-                      id: heroItem._id,
-                      type: heroItem.seasons ? "series" : "movie",
-                    })
-                  }
+                  onPress={async () => {
+                    try {
+                      let currentType = heroItem.seasons ? "series" : "movie";
+                      let endpoint = currentType === "series" ? `/series/${heroItem._id}` : `/movies/${heroItem._id}`;
+                      let res;
+                      try {
+                        res = await client.get(endpoint);
+                      } catch (err) {
+                        if (err.response?.status === 404) {
+                          currentType = currentType === "series" ? "movie" : "series";
+                          endpoint = currentType === "series" ? `/series/${heroItem._id}` : `/movies/${heroItem._id}`;
+                          res = await client.get(endpoint);
+                        } else {
+                          throw err;
+                        }
+                      }
+
+                      const data = currentType === "series" ? res.data.series : res.data.movie;
+                      if (currentType === "movie" || !data.seasons) {
+                        navigation.navigate("Player", {
+                          title: data.title,
+                          chatId: data.telegram?.chatId,
+                          messageId: data.telegram?.messageId,
+                        });
+                      } else {
+                        const ep = data.seasons?.[0]?.episodes?.[0];
+                        if (ep) {
+                          navigation.navigate("Player", {
+                            title: `${data.title} · S${data.seasons[0].seasonNumber}E${ep.episodeNumber}`,
+                            chatId: ep.telegramChatId,
+                            messageId: ep.telegramMessageId,
+                          });
+                        }
+                      }
+                    } catch (e) {
+                      console.error("Error fetching watch data", e);
+                    }
+                  }}
                   style={({ pressed }) => [
                     styles.playBtn,
                     pressed && { backgroundColor: '#B20710' } // Darker red on press
@@ -225,6 +258,12 @@ const HomeScreen = () => {
                   <Text style={styles.playBtnText}>Watch Now</Text>
                 </Pressable>
                 <Pressable
+                  onPress={() =>
+                    navigation.navigate("Details", {
+                      id: heroItem._id,
+                      type: heroItem.seasons ? "series" : "movie",
+                    })
+                  }
                   style={({ pressed }) => [
                     styles.listBtn,
                     pressed && { backgroundColor: 'rgba(255,255,255,0.4)' }
@@ -292,11 +331,13 @@ const HomeScreen = () => {
             {displayGenres.map(genre => (
               <Section
                 key={genre}
-                title={`${genre} ${selectedGenre === "Series" ? "Series" : "Movies"}`}
+                title={`${genre} ${selectedGenre === "Series" ? "Series" : selectedGenre === "Free" ? "Content" : "Movies"}`}
                 data={
                   selectedGenre === "Series"
-                    ? series.filter(s => s.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
-                    : movies.filter(m => m.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
+                    ? filteredSeries.filter(s => s.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
+                    : selectedGenre === "Free"
+                    ? [...filteredMovies, ...filteredSeries].filter(item => item.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
+                    : filteredMovies.filter(m => m.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
                 }
               />
             ))}

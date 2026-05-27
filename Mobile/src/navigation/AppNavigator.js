@@ -10,6 +10,8 @@ import DetailsScreen from "../screens/DetailsScreen";
 import PlayerScreen from "../screens/PlayerScreen";
 import LoginScreen from "../screens/LoginScreen";
 import ProfileScreen from "../screens/ProfileScreen";
+import MyListScreen from "../screens/MyListScreen";
+import SearchScreen from "../screens/SearchScreen";
 import { useAuth } from "../context/AuthContext";
 import { useFonts } from "expo-font";
 import { View, ActivityIndicator, StyleSheet, Pressable, Text, Dimensions, Animated } from "react-native";
@@ -141,7 +143,7 @@ const HomeTabs = () => (
     />
     <Tab.Screen
       name="Search"
-      component={HomeScreen} // Placeholder
+      component={SearchScreen}
       options={{
         tabBarLabel: "Search",
         tabBarIcon: ({ color, size, focused }) => (focused ? <Ionicons name="search-circle-sharp" size={size + 5} color={color} /> : <Feather name="search" color={color} size={size} />),
@@ -196,6 +198,7 @@ const AppNavigator = () => {
       <Stack.Screen name="Player" component={PlayerScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="MyList" component={MyListScreen} />
     </Stack.Navigator>
   );
 };

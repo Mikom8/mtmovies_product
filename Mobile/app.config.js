@@ -17,7 +17,8 @@ module.exports = ({ config }) => {
       }
     },
     plugins: [
-      "expo-font"
+      "expo-font",
+      "expo-video"
     ],
   };
 };

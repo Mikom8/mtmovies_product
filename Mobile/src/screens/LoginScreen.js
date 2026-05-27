@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   brandText: {
-    fontSize: 20,
+    fontSize: 19,
     fontFamily: 'Broche-Cut',
   },
   brandBold: {
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Broche-Cut',
   },
   brandRegular: {
-    color: "#ff6666",
+    color: "#ff0f0fff",
   },
   headerContainer: {
     marginBottom: 30,

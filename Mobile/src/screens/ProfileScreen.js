@@ -82,12 +82,13 @@ const ProfileScreen = ({ navigation }) => {
 
   const currentPlan = planInfo[user.plan] || { label: (user.plan || 'FREE').toUpperCase() + ' PLAN', price: 'Custom' };
 
-  const SettingRow = ({ icon, lib: IconLib = Feather, title, meta, color = '#fff', fontFamily }) => (
+  const SettingRow = ({ icon, lib: IconLib = Feather, title, meta, color = '#fff', fontFamily, onPress }) => (
     <Pressable
       style={({ pressed }) => [
         styles.row,
         pressed && { backgroundColor: 'rgba(255,255,255,0.08)' }
       ]}
+      onPress={onPress}
     >
       <View style={styles.rowLeft}>
         <View style={[styles.iconBox, { backgroundColor: `${color}15` }]}>
@@ -137,7 +138,7 @@ const ProfileScreen = ({ navigation }) => {
             <SettingRow icon="user" title="Personal Info" meta="Edit profile" color="#4dabf7" fontFamily='Coolvetica' />
             <SettingRow icon="shield" title="Security" meta="Password" color="#4dabf7" fontFamily='Coolvetica' />
             <SettingRow icon="bell" title="Notifications" color="#4dabf7" fontFamily='Coolvetica' />
-            <SettingRow icon="bookmark" lib={MaterialIcons} title="My List" color="#ff00ee" fontFamily='Coolvetica' />
+            <SettingRow icon="bookmark" lib={MaterialIcons} title="My List" color="#ff00ee" fontFamily='Coolvetica' onPress={() => navigation.navigate('MyList')} />
           </View>
         </View>
 
@@ -464,8 +465,8 @@ const styles = StyleSheet.create({
   modalTitle: {
     color: '#fff',
     fontSize: 22,
-    fontWeight: '800',
     marginBottom: 12,
+    fontFamily: 'TT Medium',
   },
   modalSubtitle: {
     color: 'rgba(255,255,255,0.6)',
@@ -473,6 +474,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 24,
+    fontFamily: 'TT',
   },
   modalActionRow: {
     flexDirection: 'row',
@@ -490,7 +492,7 @@ const styles = StyleSheet.create({
   },
   modalCancelText: {
     color: '#fff',
-    fontWeight: '700',
+    fontFamily: 'TT Medium',
     fontSize: 16,
   },
   modalConfirmBtn: {
@@ -507,7 +509,7 @@ const styles = StyleSheet.create({
   },
   modalConfirmText: {
     color: '#fff',
-    fontWeight: '800',
+    fontFamily: 'TT Medium',
     fontSize: 16,
   },
   centered: {

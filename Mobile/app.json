@@ -2,11 +2,11 @@
   "expo": {
     "name": "MTMovies",
     "slug": "mtmovies-mobile",
+    "scheme": "mtmovies",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/img/transparent-google-logo-google-logo-in-black-circle-colorful-1710875294177-removebg-preview.png",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": false,
     "splash": {
       "image": "./assets/img/transparent-google-logo-google-logo-in-black-circle-colorful-1710875294177-removebg-preview.png",
       "resizeMode": "contain",

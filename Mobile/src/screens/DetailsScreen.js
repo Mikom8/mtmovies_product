@@ -17,6 +17,7 @@ import { useFonts } from "expo-font";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
 import client from "../api/client";
+import { useWatchlist } from "../context/WatchlistContext";
 
 const { width: W, height: H } = Dimensions.get("window");
 const HERO_H = H * 0.32;
@@ -104,8 +105,8 @@ const DetailsScreen = ({ route, navigation }) => {
   const [loading, setLoading] = useState(true);
   const [recommendations, setRecommendations] = useState([]);
   const [resolvedType, setResolvedType] = useState(type);
+  const { watchlist, isInWatchlist, toggleWatchlist } = useWatchlist();
   const [selectedSeason, setSelectedSeason] = useState(0);
-  const [inMyList, setInMyList] = useState(false);
   const scrollRef = useRef(null);
 
   const [fontsLoaded] = useFonts({
@@ -308,15 +309,15 @@ const DetailsScreen = ({ route, navigation }) => {
             <Pressable
               style={({ pressed }) => [
                 styles.iconBtn,
-                inMyList && styles.iconBtnActive,
+                isInWatchlist(id) && styles.iconBtnActive,
                 pressed && { opacity: 0.7 },
               ]}
-              onPress={() => setInMyList((v) => !v)}
+              onPress={() => toggleWatchlist(id, resolvedType)}
             >
               <MaterialIcons
-                name={inMyList ? "bookmark" : "bookmark-border"}
+                name={isInWatchlist(id) ? "bookmark" : "bookmark-border"}
                 size={22}
-                color={inMyList ? "#E50914" : "#fff"}
+                color={isInWatchlist(id) ? "#E50914" : "#fff"}
               />
             </Pressable>
 
