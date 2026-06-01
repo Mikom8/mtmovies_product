@@ -249,7 +249,7 @@ export default function Landing() {
           <img src="https://res.cloudinary.com/dyop5rdpn/image/upload/v1699352390/MT%20Movies/mt_movies_transparent_dark_x5j2m8.png" alt="MTMovies" />
           <span><strong>MT</strong>Movies</span>
         </div>
-        <p className={styles.footerNote}>MTMovies © 2024 — English Movies & Series in Amharic</p>
+        <p className={styles.footerNote}>MTMovies © {new Date().getFullYear()} — English Movies & Series in Amharic</p>
       </footer>
     </div>
   );
