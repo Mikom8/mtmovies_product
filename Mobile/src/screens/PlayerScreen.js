@@ -6,6 +6,7 @@ import {
   Text,
   ActivityIndicator,
   TouchableWithoutFeedback,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
@@ -14,6 +15,7 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import Feather from '@expo/vector-icons/Feather';
 import Slider from '@react-native-community/slider';
 import { useEvent } from 'expo';
+import * as NavigationBar from 'expo-navigation-bar';
 
 import Constants from 'expo-constants';
 
@@ -211,6 +213,25 @@ const PlayerScreen = ({ route, navigation }) => {
   }, [player, resetControlsTimeout]);
 
   const displayTime = isSliding ? slidingTime : polledTime;
+
+  // ── 6. Toggle System Bars (Status Bar & Nav Bar) ──────────────────────────
+  useEffect(() => {
+    if (showControls) {
+      StatusBar.setHidden(false, 'fade');
+      NavigationBar.setVisibilityAsync('visible');
+    } else {
+      StatusBar.setHidden(true, 'fade');
+      NavigationBar.setVisibilityAsync('hidden');
+    }
+  }, [showControls]);
+
+  useEffect(() => {
+    // Restore system bars when exiting the player
+    return () => {
+      StatusBar.setHidden(false, 'fade');
+      NavigationBar.setVisibilityAsync('visible');
+    };
+  }, []);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
