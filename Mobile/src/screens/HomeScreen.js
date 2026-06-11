@@ -336,8 +336,8 @@ const HomeScreen = () => {
                   selectedGenre === "Series"
                     ? filteredSeries.filter(s => s.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
                     : selectedGenre === "Free"
-                    ? [...filteredMovies, ...filteredSeries].filter(item => item.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
-                    : filteredMovies.filter(m => m.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
+                      ? [...filteredMovies, ...filteredSeries].filter(item => item.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
+                      : filteredMovies.filter(m => m.genres?.some(g => g.toLowerCase() === genre.toLowerCase()))
                 }
               />
             ))}

@@ -13,6 +13,7 @@ import { VideoView, useVideoPlayer } from 'expo-video';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import Feather from '@expo/vector-icons/Feather';
 import Slider from '@react-native-community/slider';
+import { useEvent } from 'expo';
 
 import Constants from 'expo-constants';
 
@@ -36,10 +37,9 @@ const PlayerScreen = ({ route, navigation }) => {
 
   // Custom controls state
   const [showControls, setShowControls] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
+  const [slidingTime, setSlidingTime] = useState(0);
+  const [polledTime, setPolledTime] = useState(0);
   const controlsTimeoutRef = useRef(null);
 
   // ── 1. Resolve stream URL ────────────────────────────────────────────────
@@ -89,6 +89,7 @@ const PlayerScreen = ({ route, navigation }) => {
   // ── 3. Create the expo-video player ──────────────────────────────────────
   const player = useVideoPlayer(null, (p) => {
     p.loop = false;
+    p.timeUpdateEventInterval = 1; // Emit time updates every 1 second
   });
 
   // ── 4. Load + play when URL is ready ─────────────────────────────────────
@@ -106,38 +107,26 @@ const PlayerScreen = ({ route, navigation }) => {
   }, [streamUrl]); 
 
   // ── 5. Status & Progress listeners ───────────────────────────────────────
+  const { status, error: playerError } = useEvent(player, 'statusChange', { status: player?.status });
+  const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player?.playing ?? false });
+  const { duration } = useEvent(player, 'sourceLoad', { duration: player?.duration ?? 0 });
+
   useEffect(() => {
     if (!player) return;
-
-    const statusSub = player.addListener('statusChange', (event) => {
-      const status = typeof event === 'string' ? event : event?.status;
-      if (status === 'error') {
-        setError(true);
-        setLoading(false);
+    const interval = setInterval(() => {
+      if (player.currentTime !== undefined) {
+        setPolledTime(player.currentTime);
       }
-    });
+    }, 500);
+    return () => clearInterval(interval);
+  }, [player]);
 
-    const playingSub = player.addListener('playingChange', (event) => {
-      setIsPlaying(event.isPlaying);
-    });
-
-    const timeSub = player.addListener('timeUpdate', (event) => {
-      if (!isSliding) {
-        setCurrentTime(event.currentTime);
-      }
-    });
-
-    const sourceSub = player.addListener('sourceLoad', (event) => {
-      setDuration(event.duration || 0);
-    });
-
-    return () => {
-      statusSub.remove();
-      playingSub.remove();
-      timeSub.remove();
-      sourceSub.remove();
-    };
-  }, [player, isSliding]);
+  useEffect(() => {
+    if (status === 'error') {
+      setError(true);
+      setLoading(false);
+    }
+  }, [status]);
 
   // ── Back button ───────────────────────────────────────────────────────────
   const handleBack = useCallback(() => {
@@ -203,19 +192,25 @@ const PlayerScreen = ({ route, navigation }) => {
     }
   }, [player, resetControlsTimeout]);
 
-  const handleSlidingStart = useCallback(() => {
+  const handleSlidingStart = useCallback((value) => {
     setIsSliding(true);
+    setSlidingTime(value);
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+  }, []);
+
+  const handleValueChange = useCallback((value) => {
+    setSlidingTime(value);
   }, []);
 
   const handleSlidingComplete = useCallback((value) => {
     if (player) {
       player.currentTime = value;
-      setCurrentTime(value);
     }
     setIsSliding(false);
     resetControlsTimeout();
   }, [player, resetControlsTimeout]);
+
+  const displayTime = isSliding ? slidingTime : polledTime;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -254,16 +249,17 @@ const PlayerScreen = ({ route, navigation }) => {
 
                 {/* Bottom slider and time text */}
                 <View style={styles.bottomControls}>
-                  <Text style={styles.timeText}>{formatTime(currentTime)}</Text>
+                  <Text style={styles.timeText}>{formatTime(displayTime)}</Text>
                   <Slider
                     style={styles.slider}
                     minimumValue={0}
                     maximumValue={duration > 0 ? duration : 1}
-                    value={currentTime}
+                    value={displayTime}
                     minimumTrackTintColor="#E50914"
                     maximumTrackTintColor="rgba(255,255,255,0.5)"
                     thumbTintColor="#E50914"
                     onSlidingStart={handleSlidingStart}
+                    onValueChange={handleValueChange}
                     onSlidingComplete={handleSlidingComplete}
                   />
                   <Text style={styles.timeText}>{formatTime(duration)}</Text>
