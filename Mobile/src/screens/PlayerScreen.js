@@ -4,10 +4,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
-  SafeAreaView,
   ActivityIndicator,
   TouchableWithoutFeedback,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import * as ScreenOrientation from 'expo-screen-orientation';
@@ -97,7 +97,7 @@ const PlayerScreen = ({ route, navigation }) => {
     if (!player || !streamUrl) return;
 
     try {
-      player.replace({ uri: streamUrl });
+      player.replaceAsync({ uri: streamUrl });
       player.play();
     } catch (e) {
       console.warn('player.replace error:', e);
@@ -140,7 +140,7 @@ const PlayerScreen = ({ route, navigation }) => {
     setLoading(true);
     try {
       if (player && streamUrl) {
-        player.replace({ uri: streamUrl });
+        player.replaceAsync({ uri: streamUrl });
         player.play();
       }
     } catch (_) {}
@@ -222,7 +222,7 @@ const PlayerScreen = ({ route, navigation }) => {
               ref={videoRef}
               style={styles.video}
               player={player}
-              allowsFullscreen={false}
+              fullscreenOptions={{ enable: false }}
               allowsPictureInPicture
               contentFit="contain"
               nativeControls={false}
