@@ -18,11 +18,41 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
 import client from "../api/client";
 import { useWatchlist } from "../context/WatchlistContext";
+import Svg, { G, Path, Rect, Defs, ClipPath } from 'react-native-svg';
 
 const { width: W, height: H } = Dimensions.get("window");
 const HERO_H = H * 0.32;
 
-// ── Recommendation algorithm ──────────────────────────────────────────────────
+// ── Custom Watchlist Icons ────────────────────────────────────────────────────
+const AddToListIcon = ({ size = 24, color = '#fff' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Defs>
+      <ClipPath id="clip_add">
+        <Rect width="24" height="24" fill="white" />
+      </ClipPath>
+    </Defs>
+    <G clipPath="url(#clip_add)">
+      <Path d="M14.5 11.4004H9.5C9.09 11.4004 8.75 11.0604 8.75 10.6504C8.75 10.2404 9.09 9.90039 9.5 9.90039H14.5C14.91 9.90039 15.25 10.2404 15.25 10.6504C15.25 11.0604 14.91 11.4004 14.5 11.4004Z" fill={color} />
+      <Path d="M12 13.9609C11.59 13.9609 11.25 13.6209 11.25 13.2109V8.21094C11.25 7.80094 11.59 7.46094 12 7.46094C12.41 7.46094 12.75 7.80094 12.75 8.21094V13.2109C12.75 13.6209 12.41 13.9609 12 13.9609Z" fill={color} />
+      <Path d="M19.0701 22.75C18.5601 22.75 18.0001 22.6 17.4601 22.29L12.5801 19.58C12.2901 19.42 11.7201 19.42 11.4301 19.58L6.55007 22.29C5.56007 22.84 4.55007 22.9 3.78007 22.44C3.01007 21.99 2.57007 21.08 2.57007 19.95V5.86C2.57007 3.32 4.64007 1.25 7.18007 1.25H16.8301C19.3701 1.25 21.4401 3.32 21.4401 5.86V19.95C21.4401 21.08 21.0001 21.99 20.2301 22.44C19.8801 22.65 19.4801 22.75 19.0701 22.75ZM12.0001 17.96C12.4701 17.96 12.9301 18.06 13.3001 18.27L18.1801 20.98C18.6901 21.27 19.1601 21.33 19.4601 21.15C19.7601 20.97 19.9301 20.54 19.9301 19.95V5.86C19.9301 4.15 18.5301 2.75 16.8201 2.75H7.18007C5.47007 2.75 4.07007 4.15 4.07007 5.86V19.95C4.07007 20.54 4.24007 20.98 4.54007 21.15C4.84007 21.32 5.31007 21.27 5.82007 20.98L10.7001 18.27C11.0701 18.06 11.5301 17.96 12.0001 17.96Z" fill={color} />
+    </G>
+  </Svg>
+);
+
+const AddedToListIcon = ({ size = 24, color = '#E50914' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Defs>
+      <ClipPath id="clip_added">
+        <Rect width="24" height="24" fill="white" />
+      </ClipPath>
+    </Defs>
+    <G clipPath="url(#clip_added)">
+      <Path d="M16.8201 1.91016H7.18007C5.06007 1.91016 3.32007 3.65016 3.32007 5.77016V19.8602C3.32007 21.6602 4.61007 22.4202 6.19007 21.5502L11.0701 18.8402C11.5901 18.5502 12.4301 18.5502 12.9401 18.8402L17.8201 21.5502C19.4001 22.4302 20.6901 21.6702 20.6901 19.8602V5.77016C20.6801 3.65016 18.9501 1.91016 16.8201 1.91016ZM15.6201 9.03016L11.6201 13.0302C11.4701 13.1802 11.2801 13.2502 11.0901 13.2502C10.9001 13.2502 10.7101 13.1802 10.5601 13.0302L9.06007 11.5302C8.77007 11.2402 8.77007 10.7602 9.06007 10.4702C9.35007 10.1802 9.83007 10.1802 10.1201 10.4702L11.0901 11.4402L14.5601 7.97016C14.8501 7.68016 15.3301 7.68016 15.6201 7.97016C15.9101 8.26016 15.9101 8.74016 15.6201 9.03016Z" fill={color} />
+    </G>
+  </Svg>
+);
+
+// ── Recommendation algorithm ───────────────────────────────────────────────────
 function scoreItem(target, candidate) {
   if (target._id === candidate._id) return -Infinity;
   let score = 0;
@@ -314,11 +344,10 @@ const DetailsScreen = ({ route, navigation }) => {
               ]}
               onPress={() => toggleWatchlist(id, resolvedType)}
             >
-              <MaterialIcons
-                name={isInWatchlist(id) ? "bookmark" : "bookmark-border"}
-                size={22}
-                color={isInWatchlist(id) ? "#E50914" : "#fff"}
-              />
+              {isInWatchlist(id)
+                ? <AddedToListIcon size={22} color="#E50914" />
+                : <AddToListIcon size={22} color="#fff" />
+              }
             </Pressable>
 
             <Pressable
@@ -497,7 +526,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     backgroundColor: "#ffffffff",
-    paddingVertical: 13,
+    paddingVertical: 11,
     borderRadius: 12,
   },
   watchBtnPressed: { backgroundColor: "#857b7bff" },

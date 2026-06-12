@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import Feather from '@expo/vector-icons/Feather';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Octicons from '@expo/vector-icons/Octicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -12,6 +13,7 @@ import LoginScreen from "../screens/LoginScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import MyListScreen from "../screens/MyListScreen";
 import SearchScreen from "../screens/SearchScreen";
+import DownloadsScreen from "../screens/DownloadsScreen";
 import { useAuth } from "../context/AuthContext";
 import { useFonts } from "expo-font";
 import { View, ActivityIndicator, StyleSheet, Pressable, Text, Dimensions, Animated } from "react-native";
@@ -151,10 +153,14 @@ const HomeTabs = () => (
     />
     <Tab.Screen
       name="Downloads"
-      component={HomeScreen} // Placeholder
+      component={DownloadsScreen}
       options={{
         tabBarLabel: "Downloads",
-        tabBarIcon: ({ color, size }) => <Feather name="download" color={color} size={size} />,
+        tabBarIcon: ({ color, size, focused }) => (
+          focused
+            ? <MaterialCommunityIcons name="download-circle" color={color} size={size} />
+            : <MaterialCommunityIcons name="download-circle-outline" color={color} size={size} />
+        ),
       }}
     />
     <Tab.Screen

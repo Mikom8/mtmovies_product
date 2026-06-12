@@ -15,6 +15,7 @@ import axios from 'axios';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import Feather from '@expo/vector-icons/Feather';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Slider from '@react-native-community/slider';
 import { useFonts } from "expo-font";
 import { useEvent } from 'expo';
@@ -30,7 +31,7 @@ const formatTime = (seconds) => {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
-  
+
   if (h > 0) {
     return `${h}:${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
   }
@@ -230,7 +231,7 @@ const PlayerScreen = ({ route, navigation }) => {
     const now = Date.now();
     const x = e.nativeEvent.locationX;
     const { width } = Dimensions.get('window');
-    
+
     // Check for double tap (within 300ms)
     if (now - lastTapRef.current.time < 300) {
       // Cancel single tap action
@@ -417,7 +418,7 @@ const PlayerScreen = ({ route, navigation }) => {
                   </TouchableOpacity>
 
                   <TouchableOpacity onPress={togglePlayPause} style={[styles.controlBtn, styles.playPauseBtn]}>
-                    <Feather name={isPlaying ? "pause" : "play"} size={48} color="#fff" style={{ marginLeft: isPlaying ? 0 : 4 }} />
+                    <FontAwesome6 name={isPlaying ? "pause" : "play"} size={48} color="#fff" style={{ marginLeft: isPlaying ? 0 : 3 }} />
                   </TouchableOpacity>
 
                   <TouchableOpacity onPress={skipForward} activeOpacity={0.7}>
@@ -534,8 +535,8 @@ const styles = StyleSheet.create({
   playPauseBtn: {
     backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 50,
-    width: 70,
-    height: 70,
+    width: 80,
+    height: 80,
     alignItems: 'center',
     justifyContent: 'center',
   },
