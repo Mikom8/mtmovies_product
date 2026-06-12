@@ -15,7 +15,7 @@ import MoviesPage from './pages/MoviesPage';
 import SeriesPage from './pages/SeriesPage';
 import FreePage from './pages/FreePage';
 
-// Protect the /browse route
+// Protect the /browse routee
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? children : <Navigate to="/login" replace />;
