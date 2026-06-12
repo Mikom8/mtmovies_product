@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TouchableWithoutFeedback,
   StatusBar,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
@@ -14,6 +15,7 @@ import { VideoView, useVideoPlayer } from 'expo-video';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import Feather from '@expo/vector-icons/Feather';
 import Slider from '@react-native-community/slider';
+import { useFonts } from "expo-font";
 import { useEvent } from 'expo';
 import * as NavigationBar from 'expo-navigation-bar';
 
@@ -43,6 +45,17 @@ const PlayerScreen = ({ route, navigation }) => {
   const [slidingTime, setSlidingTime] = useState(0);
   const [polledTime, setPolledTime] = useState(0);
   const controlsTimeoutRef = useRef(null);
+
+  const skipBackAnim = useRef(new Animated.Value(1)).current;
+  const skipForwardAnim = useRef(new Animated.Value(1)).current;
+
+  // fonts
+  const [fontsLoaded] = useFonts({
+    "Coolvetica": require("../../assets/fonts/Coolvetica-Rg.otf"),
+    "Code": require("../../assets/fonts/CODE-Bold.otf"),
+    "TT": require("../../assets/fonts/TT-Chocolates-Trial-Light.otf"),
+    "TT Medium": require("../../assets/fonts/TT-Chocolates-Trial-Medium.otf"),
+  });
 
   // ── 1. Resolve stream URL ────────────────────────────────────────────────
   useEffect(() => {
@@ -153,8 +166,8 @@ const PlayerScreen = ({ route, navigation }) => {
     try {
       if (player && streamUrl) {
         // Appending a timestamp forces the player to treat it as a new URL and actually reload
-        const retryUrl = streamUrl.includes('?') 
-          ? `${streamUrl}&retry=${Date.now()}` 
+        const retryUrl = streamUrl.includes('?')
+          ? `${streamUrl}&retry=${Date.now()}`
           : `${streamUrl}?retry=${Date.now()}`;
         player.replaceAsync({ uri: retryUrl });
         player.play();
@@ -198,15 +211,29 @@ const PlayerScreen = ({ route, navigation }) => {
     if (player) {
       player.seekBy(-10);
       resetControlsTimeout();
+
+      skipBackAnim.setValue(0.5);
+      Animated.spring(skipBackAnim, {
+        toValue: 1,
+        friction: 4,
+        useNativeDriver: true,
+      }).start();
     }
-  }, [player, resetControlsTimeout]);
+  }, [player, resetControlsTimeout, skipBackAnim]);
 
   const skipForward = useCallback(() => {
     if (player) {
       player.seekBy(10);
       resetControlsTimeout();
+
+      skipForwardAnim.setValue(0.5);
+      Animated.spring(skipForwardAnim, {
+        toValue: 1,
+        friction: 4,
+        useNativeDriver: true,
+      }).start();
     }
-  }, [player, resetControlsTimeout]);
+  }, [player, resetControlsTimeout, skipForwardAnim]);
 
   const handleSlidingStart = useCallback((value) => {
     setIsSliding(true);
@@ -227,6 +254,16 @@ const PlayerScreen = ({ route, navigation }) => {
   }, [player, resetControlsTimeout]);
 
   const displayTime = isSliding ? slidingTime : polledTime;
+
+  const skipBackRotate = skipBackAnim.interpolate({
+    inputRange: [0.5, 1],
+    outputRange: ['-45deg', '0deg']
+  });
+
+  const skipForwardRotate = skipForwardAnim.interpolate({
+    inputRange: [0.5, 1],
+    outputRange: ['45deg', '0deg']
+  });
 
   // ── 6. Toggle System Bars (Status Bar & Nav Bar) ──────────────────────────
   useEffect(() => {
@@ -267,18 +304,22 @@ const PlayerScreen = ({ route, navigation }) => {
               <View style={styles.controlsOverlay}>
                 {/* Center play/pause and skip buttons */}
                 <View style={styles.centerControls}>
-                  <TouchableOpacity onPress={skipBackward} style={styles.controlBtn}>
-                    <Feather name="rotate-ccw" size={32} color="#fff" />
-                    <Text style={styles.skipText}>10</Text>
+                  <TouchableOpacity onPress={skipBackward} activeOpacity={0.7}>
+                    <Animated.View style={[styles.controlBtn, { transform: [{ scale: skipBackAnim }, { rotate: skipBackRotate }] }]}>
+                      <Feather name="rotate-ccw" size={32} color="#fff" />
+                      <Text style={styles.skipText}>10</Text>
+                    </Animated.View>
                   </TouchableOpacity>
 
                   <TouchableOpacity onPress={togglePlayPause} style={[styles.controlBtn, styles.playPauseBtn]}>
                     <Feather name={isPlaying ? "pause" : "play"} size={48} color="#fff" style={{ marginLeft: isPlaying ? 0 : 4 }} />
                   </TouchableOpacity>
 
-                  <TouchableOpacity onPress={skipForward} style={styles.controlBtn}>
-                    <Feather name="rotate-cw" size={32} color="#fff" />
-                    <Text style={styles.skipText}>10</Text>
+                  <TouchableOpacity onPress={skipForward} activeOpacity={0.7}>
+                    <Animated.View style={[styles.controlBtn, { transform: [{ scale: skipForwardAnim }, { rotate: skipForwardRotate }] }]}>
+                      <Feather name="rotate-cw" size={32} color="#fff" />
+                      <Text style={styles.skipText}>10</Text>
+                    </Animated.View>
                   </TouchableOpacity>
                 </View>
 
@@ -331,7 +372,7 @@ const PlayerScreen = ({ route, navigation }) => {
 
       {/* Error overlay */}
       {error && (
-        <View style={styles.overlay} pointerEvents="none">
+        <View style={styles.overlay}>
           <Feather name="wifi-off" color="#E50914" size={40} />
           <Text style={styles.overlayText}>Could not load stream</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={handleRetry}>
@@ -464,7 +505,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: "TT Medium",
     textShadowColor: 'rgba(0,0,0,0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
