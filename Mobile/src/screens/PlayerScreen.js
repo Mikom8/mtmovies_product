@@ -219,6 +219,7 @@ const PlayerScreen = ({ route, navigation }) => {
   }, [showControls, resetControlsTimeout]);
 
   const lastTapRef = useRef({ time: 0, x: 0 });
+  const singleTapTimeoutRef = useRef(null);
 
   const handleVideoPress = useCallback((e) => {
     const now = Date.now();
@@ -227,6 +228,12 @@ const PlayerScreen = ({ route, navigation }) => {
     
     // Check for double tap (within 300ms)
     if (now - lastTapRef.current.time < 300) {
+      // Cancel single tap action
+      if (singleTapTimeoutRef.current) {
+        clearTimeout(singleTapTimeoutRef.current);
+        singleTapTimeoutRef.current = null;
+      }
+
       if (x < width / 2) {
         skipBackward();
       } else {
@@ -234,8 +241,13 @@ const PlayerScreen = ({ route, navigation }) => {
       }
       lastTapRef.current.time = 0; // reset
     } else {
-      toggleControls();
       lastTapRef.current = { time: now, x };
+      // Wait to see if it's a double tap before toggling controls
+      if (singleTapTimeoutRef.current) clearTimeout(singleTapTimeoutRef.current);
+      singleTapTimeoutRef.current = setTimeout(() => {
+        toggleControls();
+        singleTapTimeoutRef.current = null;
+      }, 250);
     }
   }, [skipBackward, skipForward, toggleControls]);
 
@@ -249,7 +261,9 @@ const PlayerScreen = ({ route, navigation }) => {
   const skipBackward = useCallback(() => {
     if (player) {
       player.seekBy(-10);
-      resetControlsTimeout();
+      if (showControls) {
+        resetControlsTimeout();
+      }
 
       skipBackAnim.setValue(0.5);
       Animated.spring(skipBackAnim, {
@@ -274,12 +288,14 @@ const PlayerScreen = ({ route, navigation }) => {
         });
       }, 1000);
     }
-  }, [player, resetControlsTimeout, skipBackAnim, backwardRippleAnim]);
+  }, [player, resetControlsTimeout, skipBackAnim, backwardRippleAnim, showControls]);
 
   const skipForward = useCallback(() => {
     if (player) {
       player.seekBy(10);
-      resetControlsTimeout();
+      if (showControls) {
+        resetControlsTimeout();
+      }
 
       skipForwardAnim.setValue(0.5);
       Animated.spring(skipForwardAnim, {
@@ -304,7 +320,7 @@ const PlayerScreen = ({ route, navigation }) => {
         });
       }, 1000);
     }
-  }, [player, resetControlsTimeout, skipForwardAnim, forwardRippleAnim]);
+  }, [player, resetControlsTimeout, skipForwardAnim, forwardRippleAnim, showControls]);
 
   const handleSlidingStart = useCallback((value) => {
     setIsSliding(true);
@@ -341,13 +357,11 @@ const PlayerScreen = ({ route, navigation }) => {
     // Enter immersive fullscreen mode
     StatusBar.setHidden(true, 'fade');
     NavigationBar.setVisibilityAsync('hidden');
-    NavigationBar.setBehaviorAsync('overlay-swipe');
 
     return () => {
       // Restore system bars when exiting the player
       StatusBar.setHidden(false, 'fade');
       NavigationBar.setVisibilityAsync('visible');
-      NavigationBar.setBehaviorAsync('inset-touch'); // Default behavior
     };
   }, []);
 
