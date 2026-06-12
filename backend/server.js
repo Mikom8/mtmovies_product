@@ -66,6 +66,17 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 MT Movies server running on port ${PORT}`);
+  
+  // ── Prevent Render Free Tier Sleep ──
+  const https = require('https');
+  const RENDER_URL = 'https://mtmovies.onrender.com';
+  setInterval(() => {
+    https.get(`${RENDER_URL}/api/health`, (res) => {
+      console.log(`[Ping] Keep-alive ping sent. Status: ${res.statusCode}`);
+    }).on('error', (err) => {
+      console.log(`[Ping] Keep-alive ping failed: ${err.message}`);
+    });
+  }, 14 * 60 * 1000); // 14 minutes
 });
 
 // ── Connect to MongoDB ──
