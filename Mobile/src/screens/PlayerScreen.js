@@ -336,22 +336,18 @@ const PlayerScreen = ({ route, navigation }) => {
     outputRange: ['45deg', '0deg']
   });
 
-  // ── 6. Toggle System Bars (Status Bar & Nav Bar) ──────────────────────────
+  // ── 6. Toggle System Bars (Status Bar & Nav Bar) for Immersive Fullscreen ─
   useEffect(() => {
-    if (showControls) {
-      StatusBar.setHidden(false, 'fade');
-      NavigationBar.setVisibilityAsync('visible');
-    } else {
-      StatusBar.setHidden(true, 'fade');
-      NavigationBar.setVisibilityAsync('hidden');
-    }
-  }, [showControls]);
+    // Enter immersive fullscreen mode
+    StatusBar.setHidden(true, 'fade');
+    NavigationBar.setVisibilityAsync('hidden');
+    NavigationBar.setBehaviorAsync('overlay-swipe');
 
-  useEffect(() => {
-    // Restore system bars when exiting the player
     return () => {
+      // Restore system bars when exiting the player
       StatusBar.setHidden(false, 'fade');
       NavigationBar.setVisibilityAsync('visible');
+      NavigationBar.setBehaviorAsync('inset-touch'); // Default behavior
     };
   }, []);
 
