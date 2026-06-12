@@ -122,15 +122,22 @@ const PlayerScreen = ({ route, navigation }) => {
   useEffect(() => {
     if (!player || !streamUrl) return;
 
+    let timeout;
     try {
-      player.replaceAsync({ uri: streamUrl });
-      player.play();
+      // Delay initialization slightly to let the Android ScreenOrientation lock 
+      // and SurfaceView layout settle, preventing the "black screen / audio only" bug.
+      timeout = setTimeout(() => {
+        player.replaceAsync({ uri: streamUrl });
+        player.play();
+      }, 500);
     } catch (e) {
       console.warn('player.replace error:', e);
       setError(true);
       setLoading(false);
     }
-  }, [streamUrl]);
+
+    return () => clearTimeout(timeout);
+  }, [streamUrl, player]);
 
   // ── 5. Status & Progress listeners ───────────────────────────────────────
   const { status, error: playerError } = useEvent(player, 'statusChange', { status: player?.status });
