@@ -26,7 +26,7 @@ module.exports = ({ config }) => {
       IOS_GOOGLE_CLIENT_ID: process.env.IOS_GOOGLE_CLIENT_ID || '',
       ANDROID_GOOGLE_CLIENT_ID: process.env.ANDROID_GOOGLE_CLIENT_ID || '',
       WEB_GOOGLE_CLIENT_ID: process.env.WEB_GOOGLE_CLIENT_ID || '',
-      API_BASE_URL: process.env.API_BASE_URL || `http://${getLocalIp()}:5000/api`,
+      API_BASE_URL: process.env.API_BASE_URL || (process.env.EAS_BUILD === 'true' ? 'https://mtmovies-production.up.railway.app/api' : `http://${getLocalIp()}:5000/api`),
       eas: {
         projectId: "fdadf6fd-60cc-49ca-9408-78d4ca38bede"
       }
