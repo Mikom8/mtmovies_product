@@ -1,4 +1,4 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5000/api'
-    : 'https://mtmovies.onrender.com/api');
+    : 'https://mtmoviesproduct-production.up.railway.app/api');

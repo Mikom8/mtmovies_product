@@ -25,7 +25,7 @@ WebBrowser.maybeCompleteAuthSession();
 const { width, height } = Dimensions.get("window");
 
 const cfg = (Constants.expoConfig && Constants.expoConfig.extra) || (Constants.manifest && Constants.manifest.extra) || {};
-const API_BASE = cfg.API_BASE_URL || 'https://mtmovies.onrender.com/api';
+const API_BASE = cfg.API_BASE_URL || 'https://mtmoviesproduct-production.up.railway.app/api';
 
 const LoginScreen = ({ navigation, route }) => {
   const { login, register, googleLogin } = useAuth();

@@ -20,7 +20,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import Constants from 'expo-constants';
 
 const cfg = (Constants.expoConfig && Constants.expoConfig.extra) || (Constants.manifest && Constants.manifest.extra) || {};
-const API_BASE = cfg.API_BASE_URL || 'https://mtmovies.onrender.com/api';
+const API_BASE = cfg.API_BASE_URL || 'https://mtmoviesproduct-production.up.railway.app/api';
 
 const formatTime = (seconds) => {
   if (isNaN(seconds) || seconds < 0) return '00:00';
@@ -106,7 +106,7 @@ const PlayerScreen = ({ route, navigation }) => {
       setError(true);
       setLoading(false);
     }
-  }, [streamUrl]); 
+  }, [streamUrl]);
 
   // ── 5. Status & Progress listeners ───────────────────────────────────────
   const { status, error: playerError } = useEvent(player, 'statusChange', { status: player?.status });
@@ -127,12 +127,22 @@ const PlayerScreen = ({ route, navigation }) => {
     if (status === 'error') {
       setError(true);
       setLoading(false);
+    } else if (status === 'readyToPlay') {
+      setError(false);
+      setLoading(false);
     }
   }, [status]);
 
+  useEffect(() => {
+    if (isPlaying) {
+      setError(false);
+      setLoading(false);
+    }
+  }, [isPlaying]);
+
   // ── Back button ───────────────────────────────────────────────────────────
   const handleBack = useCallback(() => {
-    try { player?.pause(); } catch (_) {}
+    try { player?.pause(); } catch (_) { }
     navigation.goBack();
   }, [navigation, player]);
 
@@ -142,10 +152,14 @@ const PlayerScreen = ({ route, navigation }) => {
     setLoading(true);
     try {
       if (player && streamUrl) {
-        player.replaceAsync({ uri: streamUrl });
+        // Appending a timestamp forces the player to treat it as a new URL and actually reload
+        const retryUrl = streamUrl.includes('?') 
+          ? `${streamUrl}&retry=${Date.now()}` 
+          : `${streamUrl}?retry=${Date.now()}`;
+        player.replaceAsync({ uri: retryUrl });
         player.play();
       }
-    } catch (_) {}
+    } catch (_) { }
   }, [player, streamUrl]);
 
   // ── Custom Controls Handlers ──────────────────────────────────────────────
@@ -257,9 +271,9 @@ const PlayerScreen = ({ route, navigation }) => {
                     <Feather name="rotate-ccw" size={32} color="#fff" />
                     <Text style={styles.skipText}>10</Text>
                   </TouchableOpacity>
-                  
+
                   <TouchableOpacity onPress={togglePlayPause} style={[styles.controlBtn, styles.playPauseBtn]}>
-                    <Feather name={isPlaying ? "pause" : "play"} size={48} color="#fff" style={{marginLeft: isPlaying ? 0 : 4}} />
+                    <Feather name={isPlaying ? "pause" : "play"} size={48} color="#fff" style={{ marginLeft: isPlaying ? 0 : 4 }} />
                   </TouchableOpacity>
 
                   <TouchableOpacity onPress={skipForward} style={styles.controlBtn}>
@@ -438,7 +452,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 5,
   },
   backButton: {
     backgroundColor: 'rgba(0,0,0,0.5)',

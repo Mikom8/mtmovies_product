@@ -30,7 +30,7 @@
       "IOS_GOOGLE_CLIENT_ID": "5678-your-ios-client-id.apps.googleusercontent.com",
       "ANDROID_GOOGLE_CLIENT_ID": "9012-your-android-client-id.apps.googleusercontent.com",
       "WEB_GOOGLE_CLIENT_ID": "3456-your-web-client-id.apps.googleusercontent.com",
-      "API_BASE_URL": "https://mtmovies.onrender.com/api",
+      "API_BASE_URL": "https://mtmoviesproduct-production.up.railway.app/api",
       "eas": {
         "projectId": "fdadf6fd-60cc-49ca-9408-78d4ca38bede"
       }
