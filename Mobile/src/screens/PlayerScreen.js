@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   StatusBar,
   Animated,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
@@ -210,6 +211,27 @@ const PlayerScreen = ({ route, navigation }) => {
     }
   }, [showControls, resetControlsTimeout]);
 
+  const lastTapRef = useRef({ time: 0, x: 0 });
+
+  const handleVideoPress = useCallback((e) => {
+    const now = Date.now();
+    const x = e.nativeEvent.locationX;
+    const { width } = Dimensions.get('window');
+    
+    // Check for double tap (within 300ms)
+    if (now - lastTapRef.current.time < 300) {
+      if (x < width / 2) {
+        skipBackward();
+      } else {
+        skipForward();
+      }
+      lastTapRef.current.time = 0; // reset
+    } else {
+      toggleControls();
+      lastTapRef.current = { time: now, x };
+    }
+  }, [skipBackward, skipForward, toggleControls]);
+
   const togglePlayPause = useCallback(() => {
     if (!player) return;
     if (isPlaying) player.pause();
@@ -330,7 +352,7 @@ const PlayerScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       {streamUrl ? (
-        <TouchableWithoutFeedback onPress={toggleControls}>
+        <TouchableWithoutFeedback onPress={handleVideoPress}>
           <View style={styles.videoContainer}>
             <VideoView
               ref={videoRef}
