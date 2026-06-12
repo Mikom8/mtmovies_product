@@ -45,6 +45,11 @@ app.use('/api/stream/hls', (req, res, next) => {
 }, express.static(hlsDir));
 
 
+// ── Uptime Robot & Root Check ──
+app.get('/', (req, res) => {
+  res.status(200).send('MT Movies API is awake and running!');
+});
+
 // ── Health check ──
 app.get('/api/health', (req, res) => {
   res.json({ status: 'MT Movies API is running', timestamp: new Date() });
