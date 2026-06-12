@@ -398,7 +398,7 @@ router.get('/hls/:chatId/:messageId/playlist.m3u8', async (req, res) => {
             .videoCodec('libx264').audioCodec('aac')
             .outputOptions([
               '-map', '0:v:0', '-map', '0:a:0',
-              '-preset', 'veryfast', '-crf', '23',
+              '-preset', 'ultrafast', '-crf', '28', '-threads', '2',
               '-pix_fmt', 'yuv420p',
               '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',
               '-g', '48', '-keyint_min', '48', '-sc_threshold', '0',
@@ -461,7 +461,7 @@ router.get('/hls/:chatId/:messageId/playlist.m3u8', async (req, res) => {
       .videoCodec('libx264').audioCodec('aac')
       .outputOptions([
         '-map', '0:v:0', '-map', '0:a:0',
-        '-preset', 'veryfast', '-crf', '23',
+        '-preset', 'ultrafast', '-crf', '28', '-threads', '2',
         '-pix_fmt', 'yuv420p', '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',
         '-g', '48', '-keyint_min', '48', '-sc_threshold', '0',
         '-b:a', '128k', '-ac', '2', '-ar', '44100', '-af', 'aresample=async=1000',
@@ -478,7 +478,7 @@ router.get('/hls/:chatId/:messageId/playlist.m3u8', async (req, res) => {
       .on('error', (err) => { if (!err.message.includes('SIGKILL')) console.error(`[HLS] Error: ${err.message}`); activeTranscodes.delete(transcodeId); })
       .run();
 
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 120; i++) {
       if (fs.existsSync(playlistPath)) return res.redirect(staticUrl);
       await new Promise(r => setTimeout(r, 500));
     }
@@ -532,7 +532,7 @@ router.get('/hls/:chatId/:messageId/:startSeconds/:segmentFile', async (req, res
       .videoCodec('libx264').audioCodec('aac')
       .outputOptions([
         '-map', '0:v:0', '-map', '0:a:0',
-        '-preset', 'veryfast', '-crf', '23',
+        '-preset', 'ultrafast', '-crf', '28', '-threads', '2',
         '-pix_fmt', 'yuv420p', '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',
         '-g', '48', '-keyint_min', '48', '-sc_threshold', '0',
         '-b:a', '128k', '-ac', '2', '-ar', '44100', '-af', 'aresample=async=1000',
