@@ -4,3 +4,4 @@ tmp_hls/
 telegram-session.txt
 dist/
 .DS_Store
+.vscode/
