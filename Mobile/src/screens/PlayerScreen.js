@@ -20,7 +20,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import Constants from 'expo-constants';
 
 const cfg = (Constants.expoConfig && Constants.expoConfig.extra) || (Constants.manifest && Constants.manifest.extra) || {};
-const API_BASE = cfg.API_BASE_URL || 'https://mtmovies-production.up.railway.app/api';
+const API_BASE = cfg.API_BASE_URL || 'https://mtmovies.onrender.com/api';
 
 const formatTime = (seconds) => {
   if (isNaN(seconds) || seconds < 0) return '00:00';

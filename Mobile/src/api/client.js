@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 
 const cfg = (Constants.expoConfig && Constants.expoConfig.extra) || (Constants.manifest && Constants.manifest.extra) || {};
-const API_BASE_URL = cfg.API_BASE_URL || 'https://mtmovies-production.up.railway.app/api';
+const API_BASE_URL = cfg.API_BASE_URL || 'https://mtmovies.onrender.com/api';
 
 const client = axios.create({
   baseURL: API_BASE_URL,
