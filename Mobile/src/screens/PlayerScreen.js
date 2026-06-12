@@ -49,6 +49,16 @@ const PlayerScreen = ({ route, navigation }) => {
   const skipBackAnim = useRef(new Animated.Value(1)).current;
   const skipForwardAnim = useRef(new Animated.Value(1)).current;
 
+  const [showForwardRipple, setShowForwardRipple] = useState(false);
+  const [showBackwardRipple, setShowBackwardRipple] = useState(false);
+  const forwardRippleAnim = useRef(new Animated.Value(0)).current;
+  const backwardRippleAnim = useRef(new Animated.Value(0)).current;
+
+  const forwardTimeoutRef = useRef(null);
+  const backwardTimeoutRef = useRef(null);
+  const forwardCountRef = useRef(0);
+  const backwardCountRef = useRef(0);
+
   // fonts
   const [fontsLoaded] = useFonts({
     "Coolvetica": require("../../assets/fonts/Coolvetica-Rg.otf"),
@@ -218,8 +228,24 @@ const PlayerScreen = ({ route, navigation }) => {
         friction: 4,
         useNativeDriver: true,
       }).start();
+
+      backwardCountRef.current += 10;
+      setShowBackwardRipple(true);
+      backwardRippleAnim.setValue(1);
+
+      if (backwardTimeoutRef.current) clearTimeout(backwardTimeoutRef.current);
+      backwardTimeoutRef.current = setTimeout(() => {
+        Animated.timing(backwardRippleAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setShowBackwardRipple(false);
+          backwardCountRef.current = 0;
+        });
+      }, 1000);
     }
-  }, [player, resetControlsTimeout, skipBackAnim]);
+  }, [player, resetControlsTimeout, skipBackAnim, backwardRippleAnim]);
 
   const skipForward = useCallback(() => {
     if (player) {
@@ -232,8 +258,24 @@ const PlayerScreen = ({ route, navigation }) => {
         friction: 4,
         useNativeDriver: true,
       }).start();
+
+      forwardCountRef.current += 10;
+      setShowForwardRipple(true);
+      forwardRippleAnim.setValue(1);
+
+      if (forwardTimeoutRef.current) clearTimeout(forwardTimeoutRef.current);
+      forwardTimeoutRef.current = setTimeout(() => {
+        Animated.timing(forwardRippleAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setShowForwardRipple(false);
+          forwardCountRef.current = 0;
+        });
+      }, 1000);
     }
-  }, [player, resetControlsTimeout, skipForwardAnim]);
+  }, [player, resetControlsTimeout, skipForwardAnim, forwardRippleAnim]);
 
   const handleSlidingStart = useCallback((value) => {
     setIsSliding(true);
@@ -299,6 +341,25 @@ const PlayerScreen = ({ route, navigation }) => {
               contentFit="contain"
               nativeControls={false}
             />
+
+            {/* Accumulator Ripple Overlays */}
+            {showBackwardRipple && (
+              <Animated.View style={[styles.rippleOverlay, styles.rippleLeft, { opacity: backwardRippleAnim }]} pointerEvents="none">
+                <View style={styles.rippleContent}>
+                  <Feather name="chevron-left" size={24} color="#fff" />
+                  <Text style={styles.rippleText}>- {backwardCountRef.current}</Text>
+                </View>
+              </Animated.View>
+            )}
+
+            {showForwardRipple && (
+              <Animated.View style={[styles.rippleOverlay, styles.rippleRight, { opacity: forwardRippleAnim }]} pointerEvents="none">
+                <View style={styles.rippleContent}>
+                  <Text style={styles.rippleText}>+ {forwardCountRef.current}</Text>
+                  <Feather name="chevron-right" size={24} color="#fff" />
+                </View>
+              </Animated.View>
+            )}
 
             {showControls && (
               <View style={styles.controlsOverlay}>
@@ -507,6 +568,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "TT Medium",
     textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  rippleOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.09)',
+  },
+  rippleRight: {
+    left: '70%',
+    borderTopLeftRadius: 500,
+    borderBottomLeftRadius: 500,
+  },
+  rippleLeft: {
+    right: '70%',
+    borderTopRightRadius: 500,
+    borderBottomRightRadius: 500,
+  },
+  rippleContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  rippleText: {
+    color: '#fff',
+    fontSize: 30,
+    fontFamily: "Code",
+    textShadowColor: 'rgba(0,0,0,0.5)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
