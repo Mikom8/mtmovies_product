@@ -53,6 +53,7 @@ const PlayerScreen = ({ route, navigation }) => {
   const [slidingTime, setSlidingTime] = useState(0);
   const [polledTime, setPolledTime] = useState(0);
   const [bufferedTime, setBufferedTime] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
   const controlsTimeoutRef = useRef(null);
 
   const skipBackAnim = useRef(new Animated.Value(1)).current;
@@ -327,6 +328,14 @@ const PlayerScreen = ({ route, navigation }) => {
     }
   }, [skipBackward, skipForward, toggleControls]);
 
+  const toggleMute = useCallback(() => {
+    if (!player) return;
+    const next = !isMuted;
+    player.volume = next ? 0 : 1;
+    setIsMuted(next);
+    resetControlsTimeout();
+  }, [player, isMuted, resetControlsTimeout]);
+
   const togglePlayPause = useCallback(() => {
     if (!player) return;
     if (isPlaying) player.pause();
@@ -429,6 +438,37 @@ const PlayerScreen = ({ route, navigation }) => {
   });
 
   // ── Icons ─────────────────────────────────────────────────────────────────
+  const MutedIcon = ({ size = 24 }) => (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <G clipPath="url(#clip_muted)">
+        <Path d="M7 17.7504H5C2.58 17.7504 1.25 16.4204 1.25 14.0004V10.0004C1.25 7.58036 2.58 6.25036 5 6.25036H6.43C6.66 6.25036 6.89 6.18036 7.09 6.06036L10.01 4.23036C11.47 3.32036 12.89 3.15036 14.01 3.77036C15.13 4.39036 15.74 5.68036 15.74 7.41036V8.37036C15.74 8.78036 15.4 9.12036 14.99 9.12036C14.58 9.12036 14.24 8.78036 14.24 8.37036V7.41036C14.24 6.27036 13.89 5.42036 13.28 5.09036C12.67 4.75036 11.77 4.90036 10.8 5.51036L7.88 7.33036C7.45 7.61036 6.94 7.75036 6.43 7.75036H5C3.42 7.75036 2.75 8.42036 2.75 10.0004V14.0004C2.75 15.5804 3.42 16.2504 5 16.2504H7C7.41 16.2504 7.75 16.5904 7.75 17.0004C7.75 17.4104 7.41 17.7504 7 17.7504Z" fill="white" />
+        <Path d="M12.5501 20.5902C11.7601 20.5902 10.8901 20.3102 10.0201 19.7602C9.67009 19.5402 9.56009 19.0802 9.78009 18.7302C10.0001 18.3802 10.4601 18.2702 10.8101 18.4902C11.7801 19.0902 12.6801 19.2502 13.2901 18.9102C13.9001 18.5702 14.2501 17.7202 14.2501 16.5902V12.9502C14.2501 12.5402 14.5901 12.2002 15.0001 12.2002C15.4101 12.2002 15.7501 12.5402 15.7501 12.9502V16.5902C15.7501 18.3102 15.1301 19.6102 14.0201 20.2302C13.5701 20.4702 13.0701 20.5902 12.5501 20.5902Z" fill="white" />
+        <Path d="M18 16.7503C17.84 16.7503 17.69 16.7003 17.55 16.6003C17.22 16.3503 17.15 15.8803 17.4 15.5503C18.66 13.8703 18.93 11.6403 18.12 9.71032C17.96 9.33032 18.14 8.89032 18.52 8.73032C18.9 8.57032 19.34 8.75032 19.5 9.13032C20.52 11.5503 20.17 14.3603 18.6 16.4603C18.45 16.6503 18.23 16.7503 18 16.7503Z" fill="white" />
+        <Path d="M19.8301 19.2502C19.6701 19.2502 19.5201 19.2002 19.3801 19.1002C19.0501 18.8502 18.9801 18.3802 19.2301 18.0502C21.3701 15.2002 21.8401 11.3802 20.4601 8.0902C20.3001 7.7102 20.4801 7.2702 20.8601 7.1102C21.2501 6.9502 21.6801 7.1302 21.8401 7.5102C23.4301 11.2902 22.8901 15.6702 20.4301 18.9502C20.2901 19.1502 20.0601 19.2502 19.8301 19.2502Z" fill="white" />
+        <Path d="M1.99994 22.7504C1.80994 22.7504 1.61994 22.6804 1.46994 22.5304C1.17994 22.2404 1.17994 21.7604 1.46994 21.4704L21.4699 1.47043C21.7599 1.18043 22.2399 1.18043 22.5299 1.47043C22.8199 1.76043 22.5299 2.24043 22.5299 2.53043L2.52994 22.5304C2.37994 22.6804 2.18994 22.7504 1.99994 22.7504Z" fill="white" />
+      </G>
+      <Defs>
+        <ClipPath id="clip_muted">
+          <Rect width="24" height="24" fill="white" />
+        </ClipPath>
+      </Defs>
+    </Svg>
+  );
+
+  const UnmutedIcon = ({ size = 24 }) => (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <G clipPath="url(#clip_unmuted)">
+        <Path d="M12.55 20.5896C11.76 20.5896 10.89 20.3096 10.02 19.7596L7.1 17.9296C6.9 17.8096 6.67 17.7396 6.44 17.7396H5C2.58 17.7396 1.25 16.4096 1.25 13.9896V9.98962C1.25 7.56962 2.58 6.23962 5 6.23962H6.43C6.66 6.23962 6.89 6.16962 7.09 6.04962L10.01 4.21962C11.47 3.30962 12.89 3.13962 14.01 3.75962C15.13 4.37962 15.74 5.66962 15.74 7.39962V16.5696C15.74 18.2896 15.12 19.5896 14.01 20.2096C13.57 20.4696 13.07 20.5896 12.55 20.5896ZM5 7.74962C3.42 7.74962 2.75 8.41962 2.75 9.99962V13.9996C2.75 15.5796 3.42 16.2496 5 16.2496H6.43C6.95 16.2496 7.45 16.3896 7.89 16.6696L10.81 18.4996C11.77 19.0996 12.68 19.2596 13.29 18.9196C13.9 18.5796 14.25 17.7296 14.25 16.5996V7.40962C14.25 6.26962 13.9 5.41962 13.29 5.08962C12.68 4.74962 11.77 4.89962 10.81 5.50962L7.88 7.32962C7.45 7.60962 6.94 7.74962 6.43 7.74962H5Z" fill="white" />
+        <Path d="M18 16.7503C17.84 16.7503 17.69 16.7003 17.55 16.6003C17.22 16.3503 17.15 15.8803 17.4 15.5503C18.97 13.4603 18.97 10.5403 17.4 8.45027C17.15 8.12027 17.22 7.65027 17.55 7.40027C17.88 7.15027 18.35 7.22027 18.6 7.55027C20.56 10.1703 20.56 13.8303 18.6 16.4503C18.45 16.6503 18.23 16.7503 18 16.7503Z" fill="white" />
+        <Path d="M19.8301 19.2503C19.6701 19.2503 19.5201 19.2003 19.3801 19.1003C19.0501 18.8503 18.9801 18.3803 19.2301 18.0503C21.9001 14.4903 21.9001 9.51027 19.2301 5.95027C18.9801 5.62027 19.0501 5.15027 19.3801 4.90027C19.7101 4.65027 20.1801 4.72027 20.4301 5.05027C23.5001 9.14027 23.5001 14.8603 20.4301 18.9503C20.2901 19.1503 20.0601 19.2503 19.8301 19.2503Z" fill="white" />
+      </G>
+      <Defs>
+        <ClipPath id="clip_unmuted">
+          <Rect width="24" height="24" fill="white" />
+        </ClipPath>
+      </Defs>
+    </Svg>
+  );
   const PrevIcon = ({ size = 24, color = "#000000" }) => (
     <Svg width={size} height={size} viewBox={`0 0 24 24`} fill={color}>
       <G clipPath="url(#clip0_4418_7974)">
@@ -437,7 +477,7 @@ const PlayerScreen = ({ route, navigation }) => {
       </G>
       <Defs>
         <ClipPath id="clip0_4418_7974">
-          <Rect width="24" height="24" fill="white"/>
+          <Rect width="24" height="24" fill="white" />
         </ClipPath>
       </Defs>
     </Svg>
@@ -451,7 +491,7 @@ const PlayerScreen = ({ route, navigation }) => {
       </G>
       <Defs>
         <ClipPath id="clip0_4418_7975">
-          <Rect width="24" height="24" fill="white"/>
+          <Rect width="24" height="24" fill="white" />
         </ClipPath>
       </Defs>
     </Svg>
@@ -509,13 +549,13 @@ const PlayerScreen = ({ route, navigation }) => {
               <View style={styles.controlsOverlay}>
                 {/* Center play/pause and skip buttons */}
                 <View style={styles.centerControls}>
-                  <TouchableOpacity 
-                    onPress={isSeries ? handlePrevEpisode : skipBackward} 
+                  <TouchableOpacity
+                    onPress={isSeries ? handlePrevEpisode : skipBackward}
                     activeOpacity={0.7}
                     disabled={isSeries && !prevEp}
                   >
                     <Animated.View style={[
-                      styles.controlBtn, 
+                      styles.controlBtn,
                       !isSeries && { transform: [{ scale: skipBackAnim }, { rotate: skipBackRotate }] },
                       isSeries && !prevEp && { opacity: 0.3 }
                     ]}>
@@ -534,13 +574,13 @@ const PlayerScreen = ({ route, navigation }) => {
                     <FontAwesome6 name={isPlaying ? "pause" : "play"} size={48} color="#fff" style={{ marginLeft: isPlaying ? 0 : 3 }} />
                   </TouchableOpacity>
 
-                  <TouchableOpacity 
-                    onPress={isSeries ? handleNextEpisode : skipForward} 
+                  <TouchableOpacity
+                    onPress={isSeries ? handleNextEpisode : skipForward}
                     activeOpacity={0.7}
                     disabled={isSeries && !nextEp}
                   >
                     <Animated.View style={[
-                      styles.controlBtn, 
+                      styles.controlBtn,
                       !isSeries && { transform: [{ scale: skipForwardAnim }, { rotate: skipForwardRotate }] },
                       isSeries && !nextEp && { opacity: 0.3 }
                     ]}>
@@ -564,11 +604,11 @@ const PlayerScreen = ({ route, navigation }) => {
                     {/* Custom Background Track */}
                     <View style={styles.customTrackBackground} />
                     {/* Custom Buffered Track */}
-                    <View 
+                    <View
                       style={[
-                        styles.customTrackBuffered, 
+                        styles.customTrackBuffered,
                         { width: `${(bufferedTime / (duration > 0 ? duration : 1)) * 100}%` }
-                      ]} 
+                      ]}
                     />
                     {/* Custom Foreground Track */}
                     <View
@@ -618,6 +658,9 @@ const PlayerScreen = ({ route, navigation }) => {
                     {title}
                   </Text>
                 )}
+                <TouchableOpacity style={styles.muteButton} onPress={toggleMute} activeOpacity={0.7}>
+                  {isMuted ? <MutedIcon size={24} /> : <UnmutedIcon size={24} />}
+                </TouchableOpacity>
               </SafeAreaView>
             )}
           </View>
@@ -774,6 +817,7 @@ const styles = StyleSheet.create({
   overlayText: {
     color: 'rgba(255,255,255,0.8)',
     fontSize: 14,
+    fontFamily: "TT Medium",
   },
   retryBtn: {
     marginTop: 4,
@@ -802,6 +846,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 6,
     marginRight: 10,
+  },
+  muteButton: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 6,
+    marginLeft: 10,
+    marginRight: 30,
   },
   titleText: {
     flex: 1,
