@@ -432,18 +432,42 @@ const PlayerScreen = ({ route, navigation }) => {
                 {/* Bottom slider and time text */}
                 <View style={styles.bottomControls}>
                   <Text style={styles.timeText}>{formatTime(displayTime)}</Text>
-                  <Slider
-                    style={styles.slider}
-                    minimumValue={0}
-                    maximumValue={duration > 0 ? duration : 1}
-                    value={displayTime}
-                    minimumTrackTintColor="#E50914"
-                    maximumTrackTintColor="rgba(255,255,255,0.5)"
-                    thumbTintColor="#E50914"
-                    onSlidingStart={handleSlidingStart}
-                    onValueChange={handleValueChange}
-                    onSlidingComplete={handleSlidingComplete}
-                  />
+
+                  <View style={styles.sliderContainer}>
+                    {/* Custom Background Track */}
+                    <View style={styles.customTrackBackground} />
+                    {/* Custom Foreground Track */}
+                    <View
+                      style={[
+                        styles.customTrackForeground,
+                        { width: `${(displayTime / (duration > 0 ? duration : 1)) * 100}%` }
+                      ]}
+                    />
+
+                    {/* Custom Thumb */}
+                    <View
+                      style={[
+                        styles.customThumb,
+                        { left: `${(displayTime / (duration > 0 ? duration : 1)) * 100}%` }
+                      ]}
+                      pointerEvents="none"
+                    />
+
+                    {/* Native Slider (invisible tracks, only thumb visible) */}
+                    <Slider
+                      style={styles.slider}
+                      minimumValue={0}
+                      maximumValue={duration > 0 ? duration : 1}
+                      value={displayTime}
+                      minimumTrackTintColor="transparent"
+                      maximumTrackTintColor="transparent"
+                      thumbTintColor="transparent"
+                      onSlidingStart={handleSlidingStart}
+                      onValueChange={handleValueChange}
+                      onSlidingComplete={handleSlidingComplete}
+                    />
+                  </View>
+
                   <Text style={styles.timeText}>{formatTime(duration)}</Text>
                 </View>
               </View>
@@ -543,7 +567,7 @@ const styles = StyleSheet.create({
   skipText: {
     color: '#fff',
     fontSize: 10,
-    fontWeight: 'bold',
+    fontFamily: "TT Medium",
     position: 'absolute',
     top: 11,
   },
@@ -557,15 +581,46 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     paddingBottom: 30,
   },
-  slider: {
+  sliderContainer: {
     flex: 1,
     height: 40,
     marginHorizontal: 15,
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  customTrackBackground: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 6,
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    borderRadius: 3,
+  },
+  customTrackForeground: {
+    position: 'absolute',
+    left: 0,
+    height: 6,
+    backgroundColor: '#E50914',
+    borderRadius: 3,
+  },
+  customThumb: {
+    position: 'absolute',
+    width: 18,
+    height: 18,
+    borderRadius: 10,
+    backgroundColor: '#E50914',
+    marginLeft: -10,
+  },
+  slider: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 40,
   },
   timeText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: "TT Medium",
     fontVariant: ['tabular-nums'],
   },
   overlay: {
@@ -588,7 +643,7 @@ const styles = StyleSheet.create({
   },
   retryText: {
     color: '#fff',
-    fontWeight: '700',
+    fontFamily: "TT Medium",
     fontSize: 14,
   },
   topBar: {
@@ -623,12 +678,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.09)',
   },
   rippleRight: {
-    left: '70%',
+    left: '60%',
     borderTopLeftRadius: 500,
     borderBottomLeftRadius: 500,
   },
   rippleLeft: {
-    right: '70%',
+    right: '60%',
     borderTopRightRadius: 500,
     borderBottomRightRadius: 500,
   },
