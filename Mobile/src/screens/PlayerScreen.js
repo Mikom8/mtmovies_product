@@ -9,11 +9,13 @@ import {
   StatusBar,
   Animated,
   Dimensions,
+  PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import * as Brightness from 'expo-brightness';
 import Feather from '@expo/vector-icons/Feather';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Slider from '@react-native-community/slider';
@@ -55,6 +57,80 @@ const PlayerScreen = ({ route, navigation }) => {
   const [bufferedTime, setBufferedTime] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const controlsTimeoutRef = useRef(null);
+
+  // ── Pan Gesture States ──────────────────────────────────────────────────
+  const [panAction, setPanAction] = useState(null); // 'volume' | 'brightness' | null
+  const [panValue, setPanValue] = useState(0); // 0 to 1
+  const gestureStartValueRef = useRef(0);
+  const swipeTimeoutRef = useRef(null);
+  const panActionRef = useRef(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await Brightness.requestPermissionsAsync();
+      } catch (e) { }
+    })();
+  }, []);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        // Trigger swipe if vertical movement is significant and dominant
+        return Math.abs(gestureState.dy) > 15 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+      },
+      onPanResponderGrant: async (evt, gestureState) => {
+        if (swipeTimeoutRef.current) clearTimeout(swipeTimeoutRef.current);
+        const { width } = Dimensions.get('window');
+        const isLeft = evt.nativeEvent.pageX < width / 2;
+        
+        if (isLeft) {
+          panActionRef.current = 'brightness';
+          setPanAction('brightness');
+          try {
+            const currentBrightness = await Brightness.getBrightnessAsync();
+            gestureStartValueRef.current = currentBrightness;
+            setPanValue(currentBrightness);
+          } catch (e) {
+            gestureStartValueRef.current = 0.5;
+            setPanValue(0.5);
+          }
+        } else {
+          panActionRef.current = 'volume';
+          setPanAction('volume');
+          gestureStartValueRef.current = player?.volume ?? 1;
+          setPanValue(gestureStartValueRef.current);
+        }
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        const delta = -gestureState.dy / 250; // 250px for full 0-1 range
+        let newValue = Math.max(0, Math.min(1, gestureStartValueRef.current + delta));
+        setPanValue(newValue);
+        
+        if (panActionRef.current === 'brightness') {
+          try { Brightness.setBrightnessAsync(newValue); } catch (e) {}
+        } else if (panActionRef.current === 'volume') {
+          if (player) {
+            player.volume = newValue;
+            if (newValue === 0 && !isMuted) setIsMuted(true);
+            if (newValue > 0 && isMuted) setIsMuted(false);
+          }
+        }
+      },
+      onPanResponderRelease: () => {
+        swipeTimeoutRef.current = setTimeout(() => {
+          setPanAction(null);
+          panActionRef.current = null;
+        }, 1000);
+      },
+      onPanResponderTerminate: () => {
+        swipeTimeoutRef.current = setTimeout(() => {
+          setPanAction(null);
+          panActionRef.current = null;
+        }, 1000);
+      }
+    })
+  ).current;
 
   const skipBackAnim = useRef(new Animated.Value(1)).current;
   const skipForwardAnim = useRef(new Animated.Value(1)).current;
@@ -514,10 +590,11 @@ const PlayerScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       {streamUrl ? (
-        <TouchableWithoutFeedback onPress={handleVideoPress}>
-          <View style={styles.videoContainer}>
-            <VideoView
-              ref={videoRef}
+        <View style={styles.videoContainer} {...panResponder.panHandlers}>
+          <TouchableWithoutFeedback onPress={handleVideoPress}>
+            <View style={styles.videoContainer}>
+              <VideoView
+                ref={videoRef}
               style={styles.video}
               player={player}
               fullscreenOptions={{ enable: false }}
@@ -663,8 +740,23 @@ const PlayerScreen = ({ route, navigation }) => {
                 </TouchableOpacity>
               </SafeAreaView>
             )}
+
+            {/* Pan Indicator Overlay */}
+            {panAction && (
+              <View style={styles.panIndicatorContainer}>
+                {panAction === 'brightness' ? (
+                  <Feather name="sun" size={40} color="#fff" />
+                ) : (
+                  <Feather name={panValue === 0 ? "volume-x" : "volume-2"} size={40} color="#fff" />
+                )}
+                <View style={styles.panProgressBarContainer}>
+                  <View style={[styles.panProgressBar, { width: `${panValue * 100}%` }]} />
+                </View>
+              </View>
+            )}
           </View>
         </TouchableWithoutFeedback>
+        </View>
       ) : (
         <View style={styles.backdrop} />
       )}
@@ -862,6 +954,32 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+  },
+  panIndicatorContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -75 }, { translateY: -75 }],
+    width: 150,
+    height: 150,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+    gap: 20,
+  },
+  panProgressBarContainer: {
+    width: 100,
+    height: 6,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  panProgressBar: {
+    height: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 3,
   },
   rippleOverlay: {
     ...StyleSheet.absoluteFillObject,
