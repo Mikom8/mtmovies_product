@@ -208,6 +208,9 @@ const DetailsScreen = ({ route, navigation }) => {
           title: `${data.title} · S${data.seasons[selectedSeason].seasonNumber}E${ep.episodeNumber}`,
           chatId: ep.telegramChatId,
           messageId: ep.telegramMessageId,
+          seriesData: data,
+          seasonIndex: selectedSeason,
+          episodeIndex: 0,
         });
       }
     }
@@ -215,10 +218,15 @@ const DetailsScreen = ({ route, navigation }) => {
 
   const handleEpisodePlay = useCallback(
     (ep, season) => {
+      const sIndex = data.seasons.findIndex(s => s._id === season._id);
+      const eIndex = season.episodes.findIndex(e => e._id === ep._id);
       navigation.navigate("Player", {
         title: `${data.title} · S${season.seasonNumber}E${ep.episodeNumber} – ${ep.title}`,
         chatId: ep.telegramChatId,
         messageId: ep.telegramMessageId,
+        seriesData: data,
+        seasonIndex: sIndex >= 0 ? sIndex : 0,
+        episodeIndex: eIndex >= 0 ? eIndex : 0,
       });
     },
     [data, navigation]

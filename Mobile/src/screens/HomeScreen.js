@@ -242,6 +242,9 @@ const HomeScreen = () => {
                             title: `${data.title} · S${data.seasons[0].seasonNumber}E${ep.episodeNumber}`,
                             chatId: ep.telegramChatId,
                             messageId: ep.telegramMessageId,
+                            seriesData: data,
+                            seasonIndex: 0,
+                            episodeIndex: 0,
                           });
                         }
                       }

@@ -20,6 +20,7 @@ import Slider from '@react-native-community/slider';
 import { useFonts } from "expo-font";
 import { useEvent } from 'expo';
 import * as NavigationBar from 'expo-navigation-bar';
+import Svg, { G, Path, Defs, ClipPath, Rect } from 'react-native-svg';
 
 import Constants from 'expo-constants';
 
@@ -39,7 +40,7 @@ const formatTime = (seconds) => {
 };
 
 const PlayerScreen = ({ route, navigation }) => {
-  const { chatId, messageId, title } = route.params ?? {};
+  const { chatId, messageId, title, seriesData, seasonIndex, episodeIndex } = route.params ?? {};
   const videoRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
@@ -51,6 +52,7 @@ const PlayerScreen = ({ route, navigation }) => {
   const [isSliding, setIsSliding] = useState(false);
   const [slidingTime, setSlidingTime] = useState(0);
   const [polledTime, setPolledTime] = useState(0);
+  const [bufferedTime, setBufferedTime] = useState(0);
   const controlsTimeoutRef = useRef(null);
 
   const skipBackAnim = useRef(new Animated.Value(1)).current;
@@ -82,6 +84,8 @@ const PlayerScreen = ({ route, navigation }) => {
       return;
     }
 
+    setLoading(true);
+    setError(false);
     let cancelled = false;
 
     const resolveUrl = async () => {
@@ -150,11 +154,77 @@ const PlayerScreen = ({ route, navigation }) => {
   const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player?.playing ?? false });
   const { duration } = useEvent(player, 'sourceLoad', { duration: player?.duration ?? 0 });
 
+  // ── Episode Logic ────────────────────────────────────────────────────────
+  const isSeries = !!seriesData;
+  let nextEp = null;
+  let nextSIndex = seasonIndex;
+  let nextEIndex = episodeIndex + 1;
+
+  if (isSeries) {
+    let currentSeason = seriesData.seasons[nextSIndex];
+    if (currentSeason && nextEIndex < currentSeason.episodes.length) {
+      nextEp = currentSeason.episodes[nextEIndex];
+    } else if (nextSIndex + 1 < seriesData.seasons.length) {
+      nextSIndex++;
+      nextEIndex = 0;
+      let nextSeason = seriesData.seasons[nextSIndex];
+      if (nextSeason && nextSeason.episodes.length > 0) {
+        nextEp = nextSeason.episodes[nextEIndex];
+      }
+    }
+  }
+
+  let prevEp = null;
+  let prevSIndex = seasonIndex;
+  let prevEIndex = episodeIndex - 1;
+
+  if (isSeries) {
+    if (prevEIndex >= 0) {
+      prevEp = seriesData.seasons[prevSIndex].episodes[prevEIndex];
+    } else if (prevSIndex - 1 >= 0) {
+      prevSIndex--;
+      let prevSeason = seriesData.seasons[prevSIndex];
+      if (prevSeason && prevSeason.episodes.length > 0) {
+        prevEIndex = prevSeason.episodes.length - 1;
+        prevEp = prevSeason.episodes[prevEIndex];
+      }
+    }
+  }
+
+  const handleNextEpisode = useCallback(() => {
+    if (nextEp && isSeries) {
+      try { player?.pause(); } catch (_) { }
+      navigation.setParams({
+        title: `${seriesData.title} · S${seriesData.seasons[nextSIndex].seasonNumber}E${nextEp.episodeNumber} – ${nextEp.title}`,
+        chatId: nextEp.telegramChatId,
+        messageId: nextEp.telegramMessageId,
+        seasonIndex: nextSIndex,
+        episodeIndex: nextEIndex,
+      });
+    }
+  }, [nextEp, isSeries, navigation, seriesData, nextSIndex, nextEIndex, player]);
+
+  const handlePrevEpisode = useCallback(() => {
+    if (prevEp && isSeries) {
+      try { player?.pause(); } catch (_) { }
+      navigation.setParams({
+        title: `${seriesData.title} · S${seriesData.seasons[prevSIndex].seasonNumber}E${prevEp.episodeNumber} – ${prevEp.title}`,
+        chatId: prevEp.telegramChatId,
+        messageId: prevEp.telegramMessageId,
+        seasonIndex: prevSIndex,
+        episodeIndex: prevEIndex,
+      });
+    }
+  }, [prevEp, isSeries, navigation, seriesData, prevSIndex, prevEIndex, player]);
+
   useEffect(() => {
     if (!player) return;
     const interval = setInterval(() => {
       if (player.currentTime !== undefined) {
         setPolledTime(player.currentTime);
+      }
+      if (player.bufferedPosition !== undefined && player.bufferedPosition >= 0) {
+        setBufferedTime(player.bufferedPosition);
       }
     }, 500);
     return () => clearInterval(interval);
@@ -358,6 +428,35 @@ const PlayerScreen = ({ route, navigation }) => {
     outputRange: ['45deg', '0deg']
   });
 
+  // ── Icons ─────────────────────────────────────────────────────────────────
+  const PrevIcon = ({ size = 24, color = "#000000" }) => (
+    <Svg width={size} height={size} viewBox={`0 0 24 24`} fill={color}>
+      <G clipPath="url(#clip0_4418_7974)">
+        <Path d="M20.24 7.21957V16.7896C20.24 18.7496 18.11 19.9796 16.41 18.9996L12.26 16.6096L8.10996 14.2096C6.40996 13.2296 6.40996 10.7796 8.10996 9.79957L12.26 7.39957L16.41 5.00957C18.11 4.02957 20.24 5.24957 20.24 7.21957Z" fill="white" />
+        <Path d="M3.76001 18.9303C3.35001 18.9303 3.01001 18.5903 3.01001 18.1803V5.82031C3.01001 5.41031 3.35001 5.07031 3.76001 5.07031C4.17001 5.07031 4.51001 5.41031 4.51001 5.82031V18.1803C4.51001 18.5903 4.17001 18.9303 3.76001 18.9303Z" fill="white" />
+      </G>
+      <Defs>
+        <ClipPath id="clip0_4418_7974">
+          <Rect width="24" height="24" fill="white"/>
+        </ClipPath>
+      </Defs>
+    </Svg>
+  );
+
+  const NextIcon = ({ size = 24, color = "#000000" }) => (
+    <Svg width={size} height={size} viewBox={`0 0 24 24`} fill={color}>
+      <G clipPath="url(#clip0_4418_7975)">
+        <Path d="M3.76001 7.21957V16.7896C3.76001 18.7496 5.89001 19.9796 7.59001 18.9996L11.74 16.6096L15.89 14.2096C17.59 13.2296 17.59 10.7796 15.89 9.79957L11.74 7.39957L7.59001 5.00957C5.89001 4.02957 3.76001 5.24957 3.76001 7.21957Z" fill="white" />
+        <Path d="M20.24 18.9303C19.83 18.9303 19.49 18.5903 19.49 18.1803V5.82031C19.49 5.41031 19.83 5.07031 20.24 5.07031C20.65 5.07031 20.99 5.41031 20.99 5.82031V18.1803C20.99 18.5903 20.66 18.9303 20.24 18.9303Z" fill="white" />
+      </G>
+      <Defs>
+        <ClipPath id="clip0_4418_7975">
+          <Rect width="24" height="24" fill="white"/>
+        </ClipPath>
+      </Defs>
+    </Svg>
+  );
+
   // ── 6. Toggle System Bars (Status Bar & Nav Bar) for Immersive Fullscreen ─
   useEffect(() => {
     // Enter immersive fullscreen mode
@@ -410,10 +509,24 @@ const PlayerScreen = ({ route, navigation }) => {
               <View style={styles.controlsOverlay}>
                 {/* Center play/pause and skip buttons */}
                 <View style={styles.centerControls}>
-                  <TouchableOpacity onPress={skipBackward} activeOpacity={0.7}>
-                    <Animated.View style={[styles.controlBtn, { transform: [{ scale: skipBackAnim }, { rotate: skipBackRotate }] }]}>
-                      <Feather name="rotate-ccw" size={32} color="#fff" />
-                      <Text style={styles.skipText}>10</Text>
+                  <TouchableOpacity 
+                    onPress={isSeries ? handlePrevEpisode : skipBackward} 
+                    activeOpacity={0.7}
+                    disabled={isSeries && !prevEp}
+                  >
+                    <Animated.View style={[
+                      styles.controlBtn, 
+                      !isSeries && { transform: [{ scale: skipBackAnim }, { rotate: skipBackRotate }] },
+                      isSeries && !prevEp && { opacity: 0.3 }
+                    ]}>
+                      {isSeries ? (
+                        <PrevIcon size={32} color="#fff" />
+                      ) : (
+                        <>
+                          <Feather name="rotate-ccw" size={32} color="#fff" />
+                          <Text style={styles.skipText}>10</Text>
+                        </>
+                      )}
                     </Animated.View>
                   </TouchableOpacity>
 
@@ -421,10 +534,24 @@ const PlayerScreen = ({ route, navigation }) => {
                     <FontAwesome6 name={isPlaying ? "pause" : "play"} size={48} color="#fff" style={{ marginLeft: isPlaying ? 0 : 3 }} />
                   </TouchableOpacity>
 
-                  <TouchableOpacity onPress={skipForward} activeOpacity={0.7}>
-                    <Animated.View style={[styles.controlBtn, { transform: [{ scale: skipForwardAnim }, { rotate: skipForwardRotate }] }]}>
-                      <Feather name="rotate-cw" size={32} color="#fff" />
-                      <Text style={styles.skipText}>10</Text>
+                  <TouchableOpacity 
+                    onPress={isSeries ? handleNextEpisode : skipForward} 
+                    activeOpacity={0.7}
+                    disabled={isSeries && !nextEp}
+                  >
+                    <Animated.View style={[
+                      styles.controlBtn, 
+                      !isSeries && { transform: [{ scale: skipForwardAnim }, { rotate: skipForwardRotate }] },
+                      isSeries && !nextEp && { opacity: 0.3 }
+                    ]}>
+                      {isSeries ? (
+                        <NextIcon size={32} color="#fff" />
+                      ) : (
+                        <>
+                          <Feather name="rotate-cw" size={32} color="#fff" />
+                          <Text style={styles.skipText}>10</Text>
+                        </>
+                      )}
                     </Animated.View>
                   </TouchableOpacity>
                 </View>
@@ -436,6 +563,13 @@ const PlayerScreen = ({ route, navigation }) => {
                   <View style={styles.sliderContainer}>
                     {/* Custom Background Track */}
                     <View style={styles.customTrackBackground} />
+                    {/* Custom Buffered Track */}
+                    <View 
+                      style={[
+                        styles.customTrackBuffered, 
+                        { width: `${(bufferedTime / (duration > 0 ? duration : 1)) * 100}%` }
+                      ]} 
+                    />
                     {/* Custom Foreground Track */}
                     <View
                       style={[
@@ -593,7 +727,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 6,
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 3,
+  },
+  customTrackBuffered: {
+    position: 'absolute',
+    left: 0,
+    height: 6,
+    backgroundColor: 'rgba(255,255,255,0.6)',
     borderRadius: 3,
   },
   customTrackForeground: {
