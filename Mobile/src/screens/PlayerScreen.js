@@ -23,6 +23,7 @@ import { useFonts } from "expo-font";
 import { useEvent } from 'expo';
 import * as NavigationBar from 'expo-navigation-bar';
 import Svg, { G, Path, Defs, ClipPath, Rect } from 'react-native-svg';
+import { VolumeManager } from 'react-native-volume-manager';
 
 import Constants from 'expo-constants';
 
@@ -75,7 +76,7 @@ const PlayerScreen = ({ route, navigation }) => {
 
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
+      onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
         // Trigger swipe if vertical movement is significant and dominant
         return Math.abs(gestureState.dy) > 15 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
       },
@@ -98,8 +99,14 @@ const PlayerScreen = ({ route, navigation }) => {
         } else {
           panActionRef.current = 'volume';
           setPanAction('volume');
-          gestureStartValueRef.current = player?.volume ?? 1;
-          setPanValue(gestureStartValueRef.current);
+          try {
+            const { volume } = await VolumeManager.getVolume();
+            gestureStartValueRef.current = volume;
+            setPanValue(volume);
+          } catch (e) {
+            gestureStartValueRef.current = 0.5;
+            setPanValue(0.5);
+          }
         }
       },
       onPanResponderMove: (evt, gestureState) => {
@@ -110,11 +117,9 @@ const PlayerScreen = ({ route, navigation }) => {
         if (panActionRef.current === 'brightness') {
           try { Brightness.setBrightnessAsync(newValue); } catch (e) {}
         } else if (panActionRef.current === 'volume') {
-          if (player) {
-            player.volume = newValue;
-            if (newValue === 0 && !isMuted) setIsMuted(true);
-            if (newValue > 0 && isMuted) setIsMuted(false);
-          }
+          try { VolumeManager.setVolume(newValue); } catch (e) {}
+          if (newValue === 0 && !isMuted) setIsMuted(true);
+          if (newValue > 0 && isMuted) setIsMuted(false);
         }
       },
       onPanResponderRelease: () => {
@@ -404,10 +409,16 @@ const PlayerScreen = ({ route, navigation }) => {
     }
   }, [skipBackward, skipForward, toggleControls]);
 
-  const toggleMute = useCallback(() => {
+  const toggleMute = useCallback(async () => {
     if (!player) return;
     const next = !isMuted;
-    player.volume = next ? 0 : 1;
+    try {
+      if (next) {
+        await VolumeManager.setVolume(0);
+      } else {
+        await VolumeManager.setVolume(0.5);
+      }
+    } catch (e) {}
     setIsMuted(next);
     resetControlsTimeout();
   }, [player, isMuted, resetControlsTimeout]);
@@ -590,10 +601,9 @@ const PlayerScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       {streamUrl ? (
-        <View style={styles.videoContainer} {...panResponder.panHandlers}>
-          <TouchableWithoutFeedback onPress={handleVideoPress}>
-            <View style={styles.videoContainer}>
-              <VideoView
+        <TouchableWithoutFeedback onPress={handleVideoPress}>
+          <View style={styles.videoContainer} {...panResponder.panHandlers}>
+            <VideoView
                 ref={videoRef}
               style={styles.video}
               player={player}
@@ -756,7 +766,6 @@ const PlayerScreen = ({ route, navigation }) => {
             )}
           </View>
         </TouchableWithoutFeedback>
-        </View>
       ) : (
         <View style={styles.backdrop} />
       )}
@@ -966,8 +975,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 100,
+    zIndex: 9999,
+    elevation: 10,
     gap: 20,
+    pointerEvents: 'none',
   },
   panProgressBarContainer: {
     width: 100,
