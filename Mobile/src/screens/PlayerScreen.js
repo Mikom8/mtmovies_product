@@ -76,62 +76,77 @@ const PlayerScreen = ({ route, navigation }) => {
   const panTapLastTimeRef = useRef(0);
   const panTapSingleTimeoutRef = useRef(null);
   const isActualSwipeRef = useRef(false);
+
   // Stable ref so PanResponder (created once) always calls the latest functions
   const panHandlersRef = useRef({});
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
-        const isVertical = Math.abs(gestureState.dy) > 12 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx) * 1.5;
-        if (isVertical && !isActualSwipeRef.current) {
-          // Initialize swipe action on the first detected vertical movement
-          isActualSwipeRef.current = true;
-          if (swipeTimeoutRef.current) clearTimeout(swipeTimeoutRef.current);
-          const { width } = Dimensions.get('window');
-          const isLeft = evt.nativeEvent.pageX < width / 2;
-          if (isLeft) {
-            panActionRef.current = 'brightness';
-            setPanAction('brightness');
-            Brightness.getBrightnessAsync()
-              .then(b => { gestureStartValueRef.current = b; setPanValue(b); })
-              .catch(() => { gestureStartValueRef.current = 0.5; setPanValue(0.5); });
-          } else {
-            panActionRef.current = 'volume';
-            setPanAction('volume');
-            const vol = panHandlersRef.current.player?.volume ?? 1;
-            gestureStartValueRef.current = vol;
-            setPanValue(vol);
-          }
-        }
-        return isVertical;
-      },
       onPanResponderGrant: () => {
         isActualSwipeRef.current = false;
+        panActionRef.current = null;
       },
       onPanResponderMove: (evt, gestureState) => {
-        if (!panActionRef.current) return;
-        const delta = -gestureState.dy / 220;
-        let newValue = Math.max(0, Math.min(1, gestureStartValueRef.current + delta));
-        setPanValue(newValue);
-        if (panActionRef.current === 'brightness') {
-          try { Brightness.setBrightnessAsync(newValue); } catch (e) { }
-        } else if (panActionRef.current === 'volume') {
-          const p = panHandlersRef.current.player;
-          if (p) {
-            p.volume = newValue;
-            if (newValue === 0 && !panHandlersRef.current.isMuted) panHandlersRef.current.setIsMuted(true);
-            if (newValue > 0 && panHandlersRef.current.isMuted) panHandlersRef.current.setIsMuted(false);
+        const isVertical = Math.abs(gestureState.dy) > 12 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx) * 1.5;
+
+        if (!isActualSwipeRef.current) {
+          if (isVertical) {
+            isActualSwipeRef.current = true;
+            if (swipeTimeoutRef.current) clearTimeout(swipeTimeoutRef.current);
+            const { width } = Dimensions.get('window');
+            // Safely use initial touch coordinate x0 to determine side
+            const isLeft = gestureState.x0 < width / 2;
+
+            if (isLeft) {
+              panActionRef.current = 'brightness';
+              setPanAction('brightness');
+              Brightness.getBrightnessAsync()
+                .then(b => {
+                  // Adjust for the movement that already happened
+                  gestureStartValueRef.current = b + (gestureState.dy / 220);
+                  setPanValue(b);
+                })
+                .catch(() => {
+                  gestureStartValueRef.current = 0.5 + (gestureState.dy / 220);
+                  setPanValue(0.5);
+                });
+            } else {
+              panActionRef.current = 'volume';
+              setPanAction('volume');
+              const vol = panHandlersRef.current.player?.volume ?? 1;
+              gestureStartValueRef.current = vol + (gestureState.dy / 220);
+              setPanValue(vol);
+            }
+          }
+        } else {
+          // We are currently swiping! update values
+          if (!panActionRef.current) return;
+          const delta = -gestureState.dy / 220;
+          let newValue = Math.max(0, Math.min(1, gestureStartValueRef.current + delta));
+          setPanValue(newValue);
+
+          if (panActionRef.current === 'brightness') {
+            try { Brightness.setBrightnessAsync(newValue); } catch (e) { }
+          } else if (panActionRef.current === 'volume') {
+            const p = panHandlersRef.current.player;
+            if (p) {
+              p.volume = newValue;
+              if (newValue === 0 && !panHandlersRef.current.isMuted) panHandlersRef.current.setIsMuted(true);
+              if (newValue > 0 && panHandlersRef.current.isMuted) panHandlersRef.current.setIsMuted(false);
+            }
           }
         }
       },
-      onPanResponderRelease: (evt) => {
+      onPanResponderRelease: (evt, gestureState) => {
         if (!isActualSwipeRef.current) {
-          // It was a tap — handle single/double tap
+          // It was a tap! (Never became a swipe)
           const now = Date.now();
-          const x = evt.nativeEvent.locationX;
+          const x = gestureState.x0; // Safe tap location
           const { width } = Dimensions.get('window');
+
           if (now - panTapLastTimeRef.current < 300) {
+            // Double tap
             if (panTapSingleTimeoutRef.current) {
               clearTimeout(panTapSingleTimeoutRef.current);
               panTapSingleTimeoutRef.current = null;
@@ -140,28 +155,31 @@ const PlayerScreen = ({ route, navigation }) => {
             else panHandlersRef.current.skipForward?.();
             panTapLastTimeRef.current = 0;
           } else {
+            // Single tap
             panTapLastTimeRef.current = now;
             if (panTapSingleTimeoutRef.current) clearTimeout(panTapSingleTimeoutRef.current);
             panTapSingleTimeoutRef.current = setTimeout(() => {
               panHandlersRef.current.toggleControls?.();
               panTapSingleTimeoutRef.current = null;
-            }, 260);
+            }, 250);
           }
         }
+
+        // Hide overlay after interaction
         if (panActionRef.current) {
           swipeTimeoutRef.current = setTimeout(() => {
             setPanAction(null);
             panActionRef.current = null;
           }, 1000);
         }
-        isActualSwipeRef.current = false;
       },
       onPanResponderTerminate: () => {
-        swipeTimeoutRef.current = setTimeout(() => {
-          setPanAction(null);
-          panActionRef.current = null;
-        }, 500);
-        isActualSwipeRef.current = false;
+        if (panActionRef.current) {
+          swipeTimeoutRef.current = setTimeout(() => {
+            setPanAction(null);
+            panActionRef.current = null;
+          }, 500);
+        }
       },
     })
   ).current;
@@ -405,39 +423,6 @@ const PlayerScreen = ({ route, navigation }) => {
     }
   }, [showControls, resetControlsTimeout]);
 
-  const lastTapRef = useRef({ time: 0, x: 0 });
-  const singleTapTimeoutRef = useRef(null);
-
-  const handleVideoPress = useCallback((e) => {
-    const now = Date.now();
-    const x = e.nativeEvent.locationX;
-    const { width } = Dimensions.get('window');
-
-    // Check for double tap (within 300ms)
-    if (now - lastTapRef.current.time < 300) {
-      // Cancel single tap action
-      if (singleTapTimeoutRef.current) {
-        clearTimeout(singleTapTimeoutRef.current);
-        singleTapTimeoutRef.current = null;
-      }
-
-      if (x < width / 2) {
-        skipBackward();
-      } else {
-        skipForward();
-      }
-      lastTapRef.current.time = 0; // reset
-    } else {
-      lastTapRef.current = { time: now, x };
-      // Wait to see if it's a double tap before toggling controls
-      if (singleTapTimeoutRef.current) clearTimeout(singleTapTimeoutRef.current);
-      singleTapTimeoutRef.current = setTimeout(() => {
-        toggleControls();
-        singleTapTimeoutRef.current = null;
-      }, 250);
-    }
-  }, [skipBackward, skipForward, toggleControls]);
-
   const toggleMute = useCallback(() => {
     if (!player) return;
     const next = !isMuted;
@@ -632,8 +617,7 @@ const PlayerScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       {streamUrl ? (
-        // Single view with panHandlers — tap & swipe both handled inside PanResponder
-        <View style={styles.videoContainer} {...panResponder.panHandlers}>
+        <View style={styles.videoContainer}>
           <VideoView
             ref={videoRef}
             style={styles.video}
@@ -643,6 +627,9 @@ const PlayerScreen = ({ route, navigation }) => {
             contentFit="contain"
             nativeControls={false}
           />
+
+          {/* Explicit Gesture Catching Layer (between Video and Controls) */}
+          <View style={StyleSheet.absoluteFill} {...panResponder.panHandlers} />
 
           {/* Accumulator Ripple Overlays */}
           {showBackwardRipple && (
@@ -664,9 +651,9 @@ const PlayerScreen = ({ route, navigation }) => {
           )}
 
           {showControls && (
-            <View style={styles.controlsOverlay}>
+            <View style={styles.controlsOverlay} pointerEvents="box-none">
               {/* Center play/pause and skip buttons */}
-              <View style={styles.centerControls}>
+              <View style={styles.centerControls} pointerEvents="box-none">
                 <TouchableOpacity
                   onPress={isSeries ? handlePrevEpisode : skipBackward}
                   activeOpacity={0.7}
