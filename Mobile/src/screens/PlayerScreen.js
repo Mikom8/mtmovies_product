@@ -22,6 +22,8 @@ import { useFonts } from "expo-font";
 import { useEvent } from 'expo';
 import * as NavigationBar from 'expo-navigation-bar';
 import Svg, { G, Path, Defs, ClipPath, Rect } from 'react-native-svg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 import Constants from 'expo-constants';
 
@@ -64,18 +66,51 @@ const PlayerScreen = ({ route, navigation }) => {
   const swipeTimeoutRef = useRef(null);
   const panActionRef = useRef(null);
 
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      let originalBrightness = null;
+
+      (async () => {
+        try {
+          await Brightness.requestPermissionsAsync();
+          originalBrightness = await Brightness.getBrightnessAsync();
+          
+          const savedB = await AsyncStorage.getItem('user_brightness');
+          if (savedB !== null && isMounted) {
+            Brightness.setBrightnessAsync(parseFloat(savedB));
+          }
+        } catch (e) { }
+      })();
+
+      return () => {
+        isMounted = false;
+        if (originalBrightness !== null) {
+          Brightness.setBrightnessAsync(originalBrightness).catch(() => {});
+        }
+      };
+    }, [])
+  );
+
   useEffect(() => {
+    if (!player) return;
     (async () => {
       try {
-        await Brightness.requestPermissionsAsync();
+        const savedV = await AsyncStorage.getItem('user_volume');
+        if (savedV !== null) {
+          const v = parseFloat(savedV);
+          player.volume = v;
+          setIsMuted(v === 0);
+        }
       } catch (e) { }
     })();
-  }, []);
+  }, [player]);
 
   // Refs for tap detection inside PanResponder
   const panTapLastTimeRef = useRef(0);
   const panTapSingleTimeoutRef = useRef(null);
   const isActualSwipeRef = useRef(false);
+  const lastGestureValueRef = useRef(null);
 
   // Stable ref so PanResponder (created once) always calls the latest functions
   const panHandlersRef = useRef({});
@@ -125,6 +160,7 @@ const PlayerScreen = ({ route, navigation }) => {
           const delta = -gestureState.dy / 220;
           let newValue = Math.max(0, Math.min(1, gestureStartValueRef.current + delta));
           setPanValue(newValue);
+          lastGestureValueRef.current = newValue;
 
           if (panActionRef.current === 'brightness') {
             try { Brightness.setBrightnessAsync(newValue); } catch (e) { }
@@ -167,6 +203,15 @@ const PlayerScreen = ({ route, navigation }) => {
 
         // Hide overlay after interaction
         if (panActionRef.current) {
+          if (lastGestureValueRef.current !== null) {
+            const finalVal = lastGestureValueRef.current;
+            if (panActionRef.current === 'brightness') {
+              AsyncStorage.setItem('user_brightness', finalVal.toString()).catch(() => {});
+            } else if (panActionRef.current === 'volume') {
+              AsyncStorage.setItem('user_volume', finalVal.toString()).catch(() => {});
+            }
+            lastGestureValueRef.current = null;
+          }
           swipeTimeoutRef.current = setTimeout(() => {
             setPanAction(null);
             panActionRef.current = null;
@@ -428,6 +473,7 @@ const PlayerScreen = ({ route, navigation }) => {
     const next = !isMuted;
     player.volume = next ? 0 : 1;
     setIsMuted(next);
+    AsyncStorage.setItem('user_volume', player.volume.toString()).catch(() => {});
     resetControlsTimeout();
   }, [player, isMuted, resetControlsTimeout]);
 
