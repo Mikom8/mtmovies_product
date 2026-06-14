@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   Text,
   ActivityIndicator,
-  TouchableWithoutFeedback,
   StatusBar,
   Animated,
   Dimensions,
@@ -23,7 +22,6 @@ import { useFonts } from "expo-font";
 import { useEvent } from 'expo';
 import * as NavigationBar from 'expo-navigation-bar';
 import Svg, { G, Path, Defs, ClipPath, Rect } from 'react-native-svg';
-import { VolumeManager } from 'react-native-volume-manager';
 
 import Constants from 'expo-constants';
 
@@ -74,66 +72,97 @@ const PlayerScreen = ({ route, navigation }) => {
     })();
   }, []);
 
+  // Refs for tap detection inside PanResponder
+  const panTapLastTimeRef = useRef(0);
+  const panTapSingleTimeoutRef = useRef(null);
+  const isActualSwipeRef = useRef(false);
+  // Stable ref so PanResponder (created once) always calls the latest functions
+  const panHandlersRef = useRef({});
+
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
-        // Trigger swipe if vertical movement is significant and dominant
-        return Math.abs(gestureState.dy) > 15 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
-      },
-      onPanResponderGrant: async (evt, gestureState) => {
-        if (swipeTimeoutRef.current) clearTimeout(swipeTimeoutRef.current);
-        const { width } = Dimensions.get('window');
-        const isLeft = evt.nativeEvent.pageX < width / 2;
-        
-        if (isLeft) {
-          panActionRef.current = 'brightness';
-          setPanAction('brightness');
-          try {
-            const currentBrightness = await Brightness.getBrightnessAsync();
-            gestureStartValueRef.current = currentBrightness;
-            setPanValue(currentBrightness);
-          } catch (e) {
-            gestureStartValueRef.current = 0.5;
-            setPanValue(0.5);
-          }
-        } else {
-          panActionRef.current = 'volume';
-          setPanAction('volume');
-          try {
-            const { volume } = await VolumeManager.getVolume();
-            gestureStartValueRef.current = volume;
-            setPanValue(volume);
-          } catch (e) {
-            gestureStartValueRef.current = 0.5;
-            setPanValue(0.5);
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        const isVertical = Math.abs(gestureState.dy) > 12 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx) * 1.5;
+        if (isVertical && !isActualSwipeRef.current) {
+          // Initialize swipe action on the first detected vertical movement
+          isActualSwipeRef.current = true;
+          if (swipeTimeoutRef.current) clearTimeout(swipeTimeoutRef.current);
+          const { width } = Dimensions.get('window');
+          const isLeft = evt.nativeEvent.pageX < width / 2;
+          if (isLeft) {
+            panActionRef.current = 'brightness';
+            setPanAction('brightness');
+            Brightness.getBrightnessAsync()
+              .then(b => { gestureStartValueRef.current = b; setPanValue(b); })
+              .catch(() => { gestureStartValueRef.current = 0.5; setPanValue(0.5); });
+          } else {
+            panActionRef.current = 'volume';
+            setPanAction('volume');
+            const vol = panHandlersRef.current.player?.volume ?? 1;
+            gestureStartValueRef.current = vol;
+            setPanValue(vol);
           }
         }
+        return isVertical;
+      },
+      onPanResponderGrant: () => {
+        isActualSwipeRef.current = false;
       },
       onPanResponderMove: (evt, gestureState) => {
-        const delta = -gestureState.dy / 250; // 250px for full 0-1 range
+        if (!panActionRef.current) return;
+        const delta = -gestureState.dy / 220;
         let newValue = Math.max(0, Math.min(1, gestureStartValueRef.current + delta));
         setPanValue(newValue);
-        
         if (panActionRef.current === 'brightness') {
-          try { Brightness.setBrightnessAsync(newValue); } catch (e) {}
+          try { Brightness.setBrightnessAsync(newValue); } catch (e) { }
         } else if (panActionRef.current === 'volume') {
-          try { VolumeManager.setVolume(newValue); } catch (e) {}
-          if (newValue === 0 && !isMuted) setIsMuted(true);
-          if (newValue > 0 && isMuted) setIsMuted(false);
+          const p = panHandlersRef.current.player;
+          if (p) {
+            p.volume = newValue;
+            if (newValue === 0 && !panHandlersRef.current.isMuted) panHandlersRef.current.setIsMuted(true);
+            if (newValue > 0 && panHandlersRef.current.isMuted) panHandlersRef.current.setIsMuted(false);
+          }
         }
       },
-      onPanResponderRelease: () => {
-        swipeTimeoutRef.current = setTimeout(() => {
-          setPanAction(null);
-          panActionRef.current = null;
-        }, 1000);
+      onPanResponderRelease: (evt) => {
+        if (!isActualSwipeRef.current) {
+          // It was a tap — handle single/double tap
+          const now = Date.now();
+          const x = evt.nativeEvent.locationX;
+          const { width } = Dimensions.get('window');
+          if (now - panTapLastTimeRef.current < 300) {
+            if (panTapSingleTimeoutRef.current) {
+              clearTimeout(panTapSingleTimeoutRef.current);
+              panTapSingleTimeoutRef.current = null;
+            }
+            if (x < width / 2) panHandlersRef.current.skipBackward?.();
+            else panHandlersRef.current.skipForward?.();
+            panTapLastTimeRef.current = 0;
+          } else {
+            panTapLastTimeRef.current = now;
+            if (panTapSingleTimeoutRef.current) clearTimeout(panTapSingleTimeoutRef.current);
+            panTapSingleTimeoutRef.current = setTimeout(() => {
+              panHandlersRef.current.toggleControls?.();
+              panTapSingleTimeoutRef.current = null;
+            }, 260);
+          }
+        }
+        if (panActionRef.current) {
+          swipeTimeoutRef.current = setTimeout(() => {
+            setPanAction(null);
+            panActionRef.current = null;
+          }, 1000);
+        }
+        isActualSwipeRef.current = false;
       },
       onPanResponderTerminate: () => {
         swipeTimeoutRef.current = setTimeout(() => {
           setPanAction(null);
           panActionRef.current = null;
-        }, 1000);
-      }
+        }, 500);
+        isActualSwipeRef.current = false;
+      },
     })
   ).current;
 
@@ -409,16 +438,10 @@ const PlayerScreen = ({ route, navigation }) => {
     }
   }, [skipBackward, skipForward, toggleControls]);
 
-  const toggleMute = useCallback(async () => {
+  const toggleMute = useCallback(() => {
     if (!player) return;
     const next = !isMuted;
-    try {
-      if (next) {
-        await VolumeManager.setVolume(0);
-      } else {
-        await VolumeManager.setVolume(0.5);
-      }
-    } catch (e) {}
+    player.volume = next ? 0 : 1;
     setIsMuted(next);
     resetControlsTimeout();
   }, [player, isMuted, resetControlsTimeout]);
@@ -597,175 +620,182 @@ const PlayerScreen = ({ route, navigation }) => {
     };
   }, []);
 
+  // ── Keep panHandlersRef current on every render ───────────────────────────
+  panHandlersRef.current.toggleControls = toggleControls;
+  panHandlersRef.current.skipBackward = skipBackward;
+  panHandlersRef.current.skipForward = skipForward;
+  panHandlersRef.current.player = player;
+  panHandlersRef.current.isMuted = isMuted;
+  panHandlersRef.current.setIsMuted = setIsMuted;
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
       {streamUrl ? (
-        <TouchableWithoutFeedback onPress={handleVideoPress}>
-          <View style={styles.videoContainer} {...panResponder.panHandlers}>
-            <VideoView
-                ref={videoRef}
-              style={styles.video}
-              player={player}
-              fullscreenOptions={{ enable: false }}
-              allowsPictureInPicture
-              contentFit="contain"
-              nativeControls={false}
-            />
+        // Single view with panHandlers — tap & swipe both handled inside PanResponder
+        <View style={styles.videoContainer} {...panResponder.panHandlers}>
+          <VideoView
+            ref={videoRef}
+            style={styles.video}
+            player={player}
+            fullscreenOptions={{ enable: false }}
+            allowsPictureInPicture
+            contentFit="contain"
+            nativeControls={false}
+          />
 
-            {/* Accumulator Ripple Overlays */}
-            {showBackwardRipple && (
-              <Animated.View style={[styles.rippleOverlay, styles.rippleLeft, { opacity: backwardRippleAnim }]} pointerEvents="none">
-                <View style={styles.rippleContent}>
-                  <Feather name="chevron-left" size={24} color="#fff" />
-                  <Text style={styles.rippleText}>- {backwardCountRef.current}</Text>
-                </View>
-              </Animated.View>
-            )}
-
-            {showForwardRipple && (
-              <Animated.View style={[styles.rippleOverlay, styles.rippleRight, { opacity: forwardRippleAnim }]} pointerEvents="none">
-                <View style={styles.rippleContent}>
-                  <Text style={styles.rippleText}>+ {forwardCountRef.current}</Text>
-                  <Feather name="chevron-right" size={24} color="#fff" />
-                </View>
-              </Animated.View>
-            )}
-
-            {showControls && (
-              <View style={styles.controlsOverlay}>
-                {/* Center play/pause and skip buttons */}
-                <View style={styles.centerControls}>
-                  <TouchableOpacity
-                    onPress={isSeries ? handlePrevEpisode : skipBackward}
-                    activeOpacity={0.7}
-                    disabled={isSeries && !prevEp}
-                  >
-                    <Animated.View style={[
-                      styles.controlBtn,
-                      !isSeries && { transform: [{ scale: skipBackAnim }, { rotate: skipBackRotate }] },
-                      isSeries && !prevEp && { opacity: 0.3 }
-                    ]}>
-                      {isSeries ? (
-                        <PrevIcon size={32} color="#fff" />
-                      ) : (
-                        <>
-                          <Feather name="rotate-ccw" size={32} color="#fff" />
-                          <Text style={styles.skipText}>10</Text>
-                        </>
-                      )}
-                    </Animated.View>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity onPress={togglePlayPause} style={[styles.controlBtn, styles.playPauseBtn]}>
-                    <FontAwesome6 name={isPlaying ? "pause" : "play"} size={48} color="#fff" style={{ marginLeft: isPlaying ? 0 : 3 }} />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={isSeries ? handleNextEpisode : skipForward}
-                    activeOpacity={0.7}
-                    disabled={isSeries && !nextEp}
-                  >
-                    <Animated.View style={[
-                      styles.controlBtn,
-                      !isSeries && { transform: [{ scale: skipForwardAnim }, { rotate: skipForwardRotate }] },
-                      isSeries && !nextEp && { opacity: 0.3 }
-                    ]}>
-                      {isSeries ? (
-                        <NextIcon size={32} color="#fff" />
-                      ) : (
-                        <>
-                          <Feather name="rotate-cw" size={32} color="#fff" />
-                          <Text style={styles.skipText}>10</Text>
-                        </>
-                      )}
-                    </Animated.View>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Bottom slider and time text */}
-                <View style={styles.bottomControls}>
-                  <Text style={styles.timeText}>{formatTime(displayTime)}</Text>
-
-                  <View style={styles.sliderContainer}>
-                    {/* Custom Background Track */}
-                    <View style={styles.customTrackBackground} />
-                    {/* Custom Buffered Track */}
-                    <View
-                      style={[
-                        styles.customTrackBuffered,
-                        { width: `${(bufferedTime / (duration > 0 ? duration : 1)) * 100}%` }
-                      ]}
-                    />
-                    {/* Custom Foreground Track */}
-                    <View
-                      style={[
-                        styles.customTrackForeground,
-                        { width: `${(displayTime / (duration > 0 ? duration : 1)) * 100}%` }
-                      ]}
-                    />
-
-                    {/* Custom Thumb */}
-                    <View
-                      style={[
-                        styles.customThumb,
-                        { left: `${(displayTime / (duration > 0 ? duration : 1)) * 100}%` }
-                      ]}
-                      pointerEvents="none"
-                    />
-
-                    {/* Native Slider (invisible tracks, only thumb visible) */}
-                    <Slider
-                      style={styles.slider}
-                      minimumValue={0}
-                      maximumValue={duration > 0 ? duration : 1}
-                      value={displayTime}
-                      minimumTrackTintColor="transparent"
-                      maximumTrackTintColor="transparent"
-                      thumbTintColor="transparent"
-                      onSlidingStart={handleSlidingStart}
-                      onValueChange={handleValueChange}
-                      onSlidingComplete={handleSlidingComplete}
-                    />
-                  </View>
-
-                  <Text style={styles.timeText}>{formatTime(duration)}</Text>
-                </View>
+          {/* Accumulator Ripple Overlays */}
+          {showBackwardRipple && (
+            <Animated.View style={[styles.rippleOverlay, styles.rippleLeft, { opacity: backwardRippleAnim }]} pointerEvents="none">
+              <View style={styles.rippleContent}>
+                <Feather name="chevron-left" size={24} color="#fff" />
+                <Text style={styles.rippleText}>- {backwardCountRef.current}</Text>
               </View>
-            )}
+            </Animated.View>
+          )}
 
-            {/* Top bar */}
-            {showControls && (
-              <SafeAreaView style={styles.topBar} pointerEvents="box-none">
-                <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                  <Feather name="chevron-left" color="#fff" size={28} />
-                </TouchableOpacity>
-                {!!title && (
-                  <Text style={styles.titleText} numberOfLines={1}>
-                    {title}
-                  </Text>
-                )}
-                <TouchableOpacity style={styles.muteButton} onPress={toggleMute} activeOpacity={0.7}>
-                  {isMuted ? <MutedIcon size={24} /> : <UnmutedIcon size={24} />}
-                </TouchableOpacity>
-              </SafeAreaView>
-            )}
-
-            {/* Pan Indicator Overlay */}
-            {panAction && (
-              <View style={styles.panIndicatorContainer}>
-                {panAction === 'brightness' ? (
-                  <Feather name="sun" size={40} color="#fff" />
-                ) : (
-                  <Feather name={panValue === 0 ? "volume-x" : "volume-2"} size={40} color="#fff" />
-                )}
-                <View style={styles.panProgressBarContainer}>
-                  <View style={[styles.panProgressBar, { width: `${panValue * 100}%` }]} />
-                </View>
+          {showForwardRipple && (
+            <Animated.View style={[styles.rippleOverlay, styles.rippleRight, { opacity: forwardRippleAnim }]} pointerEvents="none">
+              <View style={styles.rippleContent}>
+                <Text style={styles.rippleText}>+ {forwardCountRef.current}</Text>
+                <Feather name="chevron-right" size={24} color="#fff" />
               </View>
-            )}
-          </View>
-        </TouchableWithoutFeedback>
+            </Animated.View>
+          )}
+
+          {showControls && (
+            <View style={styles.controlsOverlay}>
+              {/* Center play/pause and skip buttons */}
+              <View style={styles.centerControls}>
+                <TouchableOpacity
+                  onPress={isSeries ? handlePrevEpisode : skipBackward}
+                  activeOpacity={0.7}
+                  disabled={isSeries && !prevEp}
+                >
+                  <Animated.View style={[
+                    styles.controlBtn,
+                    !isSeries && { transform: [{ scale: skipBackAnim }, { rotate: skipBackRotate }] },
+                    isSeries && !prevEp && { opacity: 0.3 }
+                  ]}>
+                    {isSeries ? (
+                      <PrevIcon size={32} color="#fff" />
+                    ) : (
+                      <>
+                        <Feather name="rotate-ccw" size={32} color="#fff" />
+                        <Text style={styles.skipText}>10</Text>
+                      </>
+                    )}
+                  </Animated.View>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={togglePlayPause} style={[styles.controlBtn, styles.playPauseBtn]}>
+                  <FontAwesome6 name={isPlaying ? "pause" : "play"} size={48} color="#fff" style={{ marginLeft: isPlaying ? 0 : 3 }} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={isSeries ? handleNextEpisode : skipForward}
+                  activeOpacity={0.7}
+                  disabled={isSeries && !nextEp}
+                >
+                  <Animated.View style={[
+                    styles.controlBtn,
+                    !isSeries && { transform: [{ scale: skipForwardAnim }, { rotate: skipForwardRotate }] },
+                    isSeries && !nextEp && { opacity: 0.3 }
+                  ]}>
+                    {isSeries ? (
+                      <NextIcon size={32} color="#fff" />
+                    ) : (
+                      <>
+                        <Feather name="rotate-cw" size={32} color="#fff" />
+                        <Text style={styles.skipText}>10</Text>
+                      </>
+                    )}
+                  </Animated.View>
+                </TouchableOpacity>
+              </View>
+
+              {/* Bottom slider and time text */}
+              <View style={styles.bottomControls}>
+                <Text style={styles.timeText}>{formatTime(displayTime)}</Text>
+
+                <View style={styles.sliderContainer}>
+                  {/* Custom Background Track */}
+                  <View style={styles.customTrackBackground} />
+                  {/* Custom Buffered Track */}
+                  <View
+                    style={[
+                      styles.customTrackBuffered,
+                      { width: `${(bufferedTime / (duration > 0 ? duration : 1)) * 100}%` }
+                    ]}
+                  />
+                  {/* Custom Foreground Track */}
+                  <View
+                    style={[
+                      styles.customTrackForeground,
+                      { width: `${(displayTime / (duration > 0 ? duration : 1)) * 100}%` }
+                    ]}
+                  />
+
+                  {/* Custom Thumb */}
+                  <View
+                    style={[
+                      styles.customThumb,
+                      { left: `${(displayTime / (duration > 0 ? duration : 1)) * 100}%` }
+                    ]}
+                    pointerEvents="none"
+                  />
+
+                  {/* Native Slider (invisible tracks, only thumb visible) */}
+                  <Slider
+                    style={styles.slider}
+                    minimumValue={0}
+                    maximumValue={duration > 0 ? duration : 1}
+                    value={displayTime}
+                    minimumTrackTintColor="transparent"
+                    maximumTrackTintColor="transparent"
+                    thumbTintColor="transparent"
+                    onSlidingStart={handleSlidingStart}
+                    onValueChange={handleValueChange}
+                    onSlidingComplete={handleSlidingComplete}
+                  />
+                </View>
+
+                <Text style={styles.timeText}>{formatTime(duration)}</Text>
+              </View>
+            </View>
+          )}
+
+          {/* Top bar */}
+          {showControls && (
+            <SafeAreaView style={styles.topBar} pointerEvents="box-none">
+              <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                <Feather name="chevron-left" color="#fff" size={28} />
+              </TouchableOpacity>
+              {!!title && (
+                <Text style={styles.titleText} numberOfLines={1}>
+                  {title}
+                </Text>
+              )}
+              <TouchableOpacity style={styles.muteButton} onPress={toggleMute} activeOpacity={0.7}>
+                {isMuted ? <MutedIcon size={24} /> : <UnmutedIcon size={24} />}
+              </TouchableOpacity>
+            </SafeAreaView>
+          )}
+
+          {/* Pan Indicator Overlay */}
+          {panAction && (
+            <View style={styles.panIndicatorContainer}>
+              {panAction === 'brightness' ? (
+                <Feather name="sun" size={40} color="#fff" />
+              ) : (
+                <Feather name={panValue === 0 ? "volume-x" : "volume-2"} size={40} color="#fff" />
+              )}
+              <View style={styles.panProgressBarContainer}>
+                <View style={[styles.panProgressBar, { width: `${panValue * 100}%` }]} />
+              </View>
+            </View>
+          )}
+        </View>
       ) : (
         <View style={styles.backdrop} />
       )}
