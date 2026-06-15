@@ -200,6 +200,7 @@ const DetailsScreen = ({ route, navigation }) => {
         title: data.title,
         chatId: data.telegram?.chatId,
         messageId: data.telegram?.messageId,
+        movieId: String(data._id),
       });
     } else {
       const ep = data.seasons?.[selectedSeason]?.episodes?.[0];
@@ -211,6 +212,7 @@ const DetailsScreen = ({ route, navigation }) => {
           seriesData: data,
           seasonIndex: selectedSeason,
           episodeIndex: 0,
+          movieId: `${data._id}_S${data.seasons[selectedSeason].seasonNumber}_E${ep.episodeNumber}`,
         });
       }
     }
@@ -227,6 +229,7 @@ const DetailsScreen = ({ route, navigation }) => {
         seriesData: data,
         seasonIndex: sIndex >= 0 ? sIndex : 0,
         episodeIndex: eIndex >= 0 ? eIndex : 0,
+        movieId: `${data._id}_S${season.seasonNumber}_E${ep.episodeNumber}`,
       });
     },
     [data, navigation]

@@ -56,7 +56,9 @@ router.post('/google', async (req, res) => {
         name: user.name,
         email: user.email,
         plan: user.plan,
-        avatar: user.avatar
+        avatar: user.avatar,
+        watchHistory: user.watchHistory,
+        watchlist: user.watchlist
       }
     });
   } catch (err) {
@@ -103,7 +105,9 @@ router.post('/register', async (req, res) => {
         name: user.name,
         email: user.email,
         plan: user.plan,
-        avatar: user.avatar
+        avatar: user.avatar,
+        watchHistory: user.watchHistory,
+        watchlist: user.watchlist
       }
     });
   } catch (err) {
@@ -138,7 +142,9 @@ router.post('/login', async (req, res) => {
         name: user.name,
         email: user.email,
         plan: user.plan,
-        avatar: user.avatar
+        avatar: user.avatar,
+        watchHistory: user.watchHistory,
+        watchlist: user.watchlist
       }
     });
   } catch (err) {
@@ -149,14 +155,16 @@ router.post('/login', async (req, res) => {
 // ── GET /api/auth/me — get current logged-in user ──
 router.get('/me', protect, async (req, res) => {
   res.json({
-    user: {
-      id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      plan: req.user.plan,
-      planExpiresAt: req.user.planExpiresAt,
-      avatar: req.user.avatar
-    }
+      user: {
+        id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        plan: req.user.plan,
+        planExpiresAt: req.user.planExpiresAt,
+        avatar: req.user.avatar,
+        watchHistory: req.user.watchHistory,
+        watchlist: req.user.watchlist
+      }
   });
 });
 

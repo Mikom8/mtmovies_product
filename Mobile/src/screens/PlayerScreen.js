@@ -24,6 +24,8 @@ import * as NavigationBar from 'expo-navigation-bar';
 import Svg, { G, Path, Defs, ClipPath, Rect } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../context/AuthContext';
+import client from '../api/client';
 
 import Constants from 'expo-constants';
 
@@ -43,7 +45,9 @@ const formatTime = (seconds) => {
 };
 
 const PlayerScreen = ({ route, navigation }) => {
-  const { chatId, messageId, title, seriesData, seasonIndex, episodeIndex } = route.params ?? {};
+  const { chatId, messageId, title, seriesData, seasonIndex, episodeIndex, movieId } = route.params ?? {};
+  const { user, updateUser } = useAuth();
+  const hasResumedRef = useRef(false);
   const videoRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
@@ -374,6 +378,7 @@ const PlayerScreen = ({ route, navigation }) => {
         messageId: nextEp.telegramMessageId,
         seasonIndex: nextSIndex,
         episodeIndex: nextEIndex,
+        movieId: `${seriesData._id}_S${seriesData.seasons[nextSIndex].seasonNumber}_E${nextEp.episodeNumber}`,
       });
     }
   }, [nextEp, isSeries, navigation, seriesData, nextSIndex, nextEIndex, player]);
@@ -387,6 +392,7 @@ const PlayerScreen = ({ route, navigation }) => {
         messageId: prevEp.telegramMessageId,
         seasonIndex: prevSIndex,
         episodeIndex: prevEIndex,
+        movieId: `${seriesData._id}_S${seriesData.seasons[prevSIndex].seasonNumber}_E${prevEp.episodeNumber}`,
       });
     }
   }, [prevEp, isSeries, navigation, seriesData, prevSIndex, prevEIndex, player]);
@@ -394,15 +400,43 @@ const PlayerScreen = ({ route, navigation }) => {
   useEffect(() => {
     if (!player) return;
     const interval = setInterval(() => {
-      if (player.currentTime !== undefined) {
-        setPolledTime(player.currentTime);
-      }
-      if (player.bufferedPosition !== undefined && player.bufferedPosition >= 0) {
-        setBufferedTime(player.bufferedPosition);
+      try {
+        if (player.currentTime !== undefined) {
+          setPolledTime(player.currentTime);
+        }
+        if (player.bufferedPosition !== undefined && player.bufferedPosition >= 0) {
+          setBufferedTime(player.bufferedPosition);
+        }
+      } catch (e) {
+        // player might be released
       }
     }, 500);
     return () => clearInterval(interval);
   }, [player]);
+
+  useEffect(() => {
+    hasResumedRef.current = false;
+  }, [movieId]);
+
+  useEffect(() => {
+    if (!movieId || !player) return;
+    const saveProgressInterval = setInterval(async () => {
+      try {
+        const isPlaying = player.playing;
+        const currentProgress = player.currentTime;
+        
+        if (isPlaying && currentProgress > 5) {
+          await client.post('/users/history', {
+            movieId: String(movieId),
+            progress: currentProgress
+          });
+        }
+      } catch (e) {
+        // ignore released object error or network error
+      }
+    }, 2000);
+    return () => clearInterval(saveProgressInterval);
+  }, [movieId, player]);
 
   useEffect(() => {
     if (status === 'error') {
@@ -411,8 +445,16 @@ const PlayerScreen = ({ route, navigation }) => {
     } else if (status === 'readyToPlay') {
       setError(false);
       setLoading(false);
+      
+      if (user && user.watchHistory && !hasResumedRef.current && movieId && player) {
+        hasResumedRef.current = true;
+        const historyItem = user.watchHistory.find(h => h.movieId === String(movieId));
+        if (historyItem && historyItem.progress > 0 && historyItem.progress < player.duration - 15) {
+          player.currentTime = historyItem.progress;
+        }
+      }
     }
-  }, [status]);
+  }, [status, user, movieId, player]);
 
   useEffect(() => {
     if (isPlaying) {

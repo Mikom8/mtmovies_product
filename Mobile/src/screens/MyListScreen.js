@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -14,6 +15,7 @@ import {
 import { useFonts } from 'expo-font';
 import { useWatchlist } from '../context/WatchlistContext';
 import { useMovies } from '../context/MovieContext';
+import { useAuth } from '../context/AuthContext';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,6 +25,16 @@ const COLUMN_COUNT = 3;
 const SPACING = 12;
 const CARD_W = (width - (SPACING * (COLUMN_COUNT + 1))) / COLUMN_COUNT;
 const CARD_H = CARD_W * 1.5;
+
+function parseDuration(str) {
+  if (!str) return 0;
+  let h = 0, m = 0;
+  const hMatch = str.match(/(\d+)h/);
+  const mMatch = str.match(/(\d+)m/);
+  if (hMatch) h = parseInt(hMatch[1], 10);
+  if (mMatch) m = parseInt(mMatch[1], 10);
+  return h * 3600 + m * 60;
+}
 
 const MyListScreen = ({ navigation }) => {
   const [fontsLoaded] = useFonts({
@@ -35,6 +47,17 @@ const MyListScreen = ({ navigation }) => {
 
   const { watchlist, loading } = useWatchlist();
   const { movies, series } = useMovies();
+  const { user, refreshUser } = useAuth();
+  const [activeTab, setActiveTab] = useState('watchlist'); // 'watchlist' | 'history'
+
+  useFocusEffect(
+    useCallback(() => {
+      if (refreshUser) {
+        refreshUser();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+  );
 
   if (!fontsLoaded) return null;
 
@@ -57,9 +80,52 @@ const MyListScreen = ({ navigation }) => {
     }))
     .filter(item => item.details !== undefined && item.details !== null);
 
+  const resolvedHistory = (user?.watchHistory || [])
+    .map(h => {
+      const isSeries = h.movieId.includes('_');
+      const baseId = isSeries ? h.movieId.split('_')[0] : h.movieId;
+      let details;
+      if (isSeries) {
+        details = series.find(s => String(s._id) === String(baseId));
+      } else {
+        details = movies.find(m => String(m._id) === String(baseId));
+      }
+      return {
+        ...h,
+        details,
+        itemType: isSeries ? 'series' : 'movie',
+        itemId: baseId
+      };
+    })
+    .filter(item => item.details !== undefined && item.details !== null)
+    .sort((a, b) => new Date(b.watchedAt) - new Date(a.watchedAt));
+
   const renderItem = ({ item }) => {
     const detail = item.details;
     const isSeries = item.itemType === 'series' || !!detail.seasons;
+
+    let progressPct = null;
+    let title = detail.title;
+
+    if (activeTab === 'history') {
+      if (isSeries && item.movieId.includes('_')) {
+        const parts = item.movieId.split('_');
+        if (parts.length >= 3) {
+          const sNum = parts[1].replace('S', '');
+          const eNum = parts[2].replace('E', '');
+          const season = detail.seasons?.find(s => String(s.seasonNumber) === sNum);
+          const ep = season?.episodes?.find(e => String(e.episodeNumber) === eNum);
+          if (ep) {
+            title = `${detail.title} S${sNum}E${eNum}`;
+            const durSec = parseDuration(ep.duration);
+            if (durSec > 0) progressPct = Math.min(100, Math.max(0, (item.progress / durSec) * 100));
+          }
+        }
+      } else {
+        const durSec = parseDuration(detail.duration);
+        if (durSec > 0) progressPct = Math.min(100, Math.max(0, (item.progress / durSec) * 100));
+      }
+    }
 
     return (
       <Pressable
@@ -78,34 +144,44 @@ const MyListScreen = ({ navigation }) => {
             style={styles.poster}
             resizeMode="cover"
           />
+          {activeTab === 'history' && progressPct !== null && (
+            <View style={styles.progressContainer}>
+              <View style={[styles.progressBar, { width: `${progressPct}%` }]} />
+            </View>
+          )}
         </View>
-        <Text style={styles.itemTitle} numberOfLines={1}>
-          {detail.title}
+        <Text style={styles.itemTitle} numberOfLines={2}>
+          {title}
         </Text>
       </Pressable>
     );
   };
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <View style={styles.emptyIconCircle}>
-        <Feather name="bookmark" size={40} color="#E50914" />
+  const renderEmptyState = () => {
+    const isHistory = activeTab === 'history';
+    return (
+      <View style={styles.emptyContainer}>
+        <View style={styles.emptyIconCircle}>
+          <Feather name={isHistory ? "clock" : "bookmark"} size={40} color="#E50914" />
+        </View>
+        <Text style={styles.emptyTitle}>{isHistory ? "No watch history" : "Your list is empty"}</Text>
+        <Text style={styles.emptySubtitle}>
+          {isHistory
+            ? "Your recently watched movies and TV shows will appear here."
+            : "Tap the bookmark icon on any movie or TV show to save it here for later."}
+        </Text>
+        <Pressable
+          style={({ pressed }) => [
+            styles.browseBtn,
+            pressed && { backgroundColor: '#B20710' }
+          ]}
+          onPress={() => navigation.navigate('Main', { screen: 'HomeTab' })}
+        >
+          <Text style={styles.browseText}>Browse Home</Text>
+        </Pressable>
       </View>
-      <Text style={styles.emptyTitle}>Your list is empty</Text>
-      <Text style={styles.emptySubtitle}>
-        Tap the bookmark icon on any movie or TV show to save it here for later.
-      </Text>
-      <Pressable
-        style={({ pressed }) => [
-          styles.browseBtn,
-          pressed && { backgroundColor: '#B20710' }
-        ]}
-        onPress={() => navigation.navigate('Main', { screen: 'HomeTab' })}
-      >
-        <Text style={styles.browseText}>Browse Home</Text>
-      </Pressable>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -123,27 +199,37 @@ const MyListScreen = ({ navigation }) => {
           <Feather name="chevron-left" size={26} color="#fff" />
         </Pressable>
         <View style={styles.titleWrapper}>
-          <Text style={styles.headerTitle}>My List</Text>
-          {!loading && resolvedWatchlist.length > 0 && (
-            <Text style={styles.countText}>
-              {resolvedWatchlist.length} {resolvedWatchlist.length === 1 ? 'item' : 'items'}
-            </Text>
-          )}
+          <Text style={styles.headerTitle}>My Activity</Text>
         </View>
         <View style={{ width: 40 }} />
+      </View>
+
+      <View style={styles.tabsContainer}>
+        <Pressable
+          style={[styles.tabBtn, activeTab === 'watchlist' && styles.tabBtnActive]}
+          onPress={() => setActiveTab('watchlist')}
+        >
+          <Text style={[styles.tabText, activeTab === 'watchlist' && styles.tabTextActive]}>My List</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.tabBtn, activeTab === 'history' && styles.tabBtnActive]}
+          onPress={() => setActiveTab('history')}
+        >
+          <Text style={[styles.tabText, activeTab === 'history' && styles.tabTextActive]}>Watch History</Text>
+        </Pressable>
       </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#E50914" />
         </View>
-      ) : resolvedWatchlist.length === 0 ? (
+      ) : (activeTab === 'watchlist' ? resolvedWatchlist : resolvedHistory).length === 0 ? (
         renderEmptyState()
       ) : (
         <FlatList
-          data={resolvedWatchlist}
+          data={activeTab === 'watchlist' ? resolvedWatchlist : resolvedHistory}
           renderItem={renderItem}
-          keyExtractor={(item) => item.itemId}
+          keyExtractor={(item) => activeTab === 'watchlist' ? item.itemId : item.movieId}
           numColumns={COLUMN_COUNT}
           contentContainerStyle={styles.listContainer}
           columnWrapperStyle={styles.columnWrapper}
@@ -197,6 +283,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  tabsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+    gap: 12,
+  },
+  tabBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  tabBtnActive: {
+    backgroundColor: 'rgba(229,9,20,0.15)',
+    borderColor: '#E50914',
+  },
+  tabText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontFamily: 'TT Medium',
+    fontSize: 14,
+  },
+  tabTextActive: {
+    color: '#E50914',
+  },
   listContainer: {
     padding: SPACING,
     paddingBottom: 40,
@@ -222,6 +335,18 @@ const styles = StyleSheet.create({
   poster: {
     width: '100%',
     height: '100%',
+  },
+  progressContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#E50914',
   },
   qualityBadge: {
     position: 'absolute',

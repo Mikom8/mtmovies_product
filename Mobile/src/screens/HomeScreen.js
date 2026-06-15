@@ -234,6 +234,7 @@ const HomeScreen = () => {
                           title: data.title,
                           chatId: data.telegram?.chatId,
                           messageId: data.telegram?.messageId,
+                          movieId: String(data._id),
                         });
                       } else {
                         const ep = data.seasons?.[0]?.episodes?.[0];
@@ -245,6 +246,7 @@ const HomeScreen = () => {
                             seriesData: data,
                             seasonIndex: 0,
                             episodeIndex: 0,
+                            movieId: `${data._id}_S${data.seasons[0].seasonNumber}_E${ep.episodeNumber}`,
                           });
                         }
                       }
