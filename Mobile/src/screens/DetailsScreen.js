@@ -351,13 +351,34 @@ const DetailsScreen = ({ route, navigation }) => {
 
           {/* Action Buttons */}
           <View style={styles.actionRow}>
-            <Pressable
-              style={({ pressed }) => [styles.watchBtn, pressed && styles.watchBtnPressed]}
-              onPress={handleWatch}
-            >
-              <MaterialIcons name="play-arrow" size={22} color="#000000ff" />
-              <Text style={styles.watchBtnText}>Watch Now</Text>
-            </Pressable>
+            {(() => {
+              let movieProgressPct = null;
+              const isActuallySeries = resolvedType === "series" || (data.seasons && data.seasons.length > 0);
+              if (!isActuallySeries && user?.watchHistory) {
+                const historyItem = user.watchHistory.find(h => h.movieId === String(data._id));
+                if (historyItem && data.duration) {
+                  const durSec = parseDuration(data.duration);
+                  if (durSec > 0) movieProgressPct = Math.min(100, Math.max(0, (historyItem.progress / durSec) * 100));
+                }
+              }
+
+              return (
+                <Pressable
+                  style={({ pressed }) => [styles.watchBtn, pressed && styles.watchBtnPressed, { overflow: 'hidden' }]}
+                  onPress={handleWatch}
+                >
+                  <MaterialIcons name="play-arrow" size={22} color="#000000ff" />
+                  <Text style={styles.watchBtnText}>
+                    {movieProgressPct !== null && movieProgressPct > 0 ? "Resume" : "Watch Now"}
+                  </Text>
+                  {movieProgressPct !== null && movieProgressPct > 0 && (
+                    <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, backgroundColor: 'rgba(0,0,0,0.1)' }}>
+                      <View style={{ height: '100%', width: `${movieProgressPct}%`, backgroundColor: '#E50914' }} />
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })()}
 
             <Pressable
               style={({ pressed }) => [

@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import client from '../api/client';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -49,6 +50,53 @@ const MyListScreen = ({ navigation }) => {
   const { movies, series } = useMovies();
   const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState('watchlist'); // 'watchlist' | 'history'
+  const [playingId, setPlayingId] = useState(null);
+
+  const playFromHistory = useCallback(async (item) => {
+    setPlayingId(item.movieId);
+    try {
+      const seriesMatch = item.movieId.match(/^(.+)_S(\d+)_E(\d+)$/);
+
+      if (seriesMatch) {
+        const [, seriesId, sNum, eNum] = seriesMatch;
+        const { data } = await client.get(`/series/${seriesId}`);
+        const detail = data.series;
+        if (!detail) return;
+
+        const sIndex = detail.seasons?.findIndex(s => String(s.seasonNumber) === sNum) ?? -1;
+        const season = detail.seasons?.[sIndex >= 0 ? sIndex : 0];
+        const eIndex = season?.episodes?.findIndex(e => String(e.episodeNumber) === eNum) ?? -1;
+        const ep = season?.episodes?.[eIndex >= 0 ? eIndex : 0];
+
+        if (!ep?.telegramChatId || !ep?.telegramMessageId) return;
+
+        navigation.navigate('Player', {
+          title: `${detail.title} · S${sNum}E${eNum}${ep.title ? ` – ${ep.title}` : ''}`,
+          chatId: ep.telegramChatId,
+          messageId: ep.telegramMessageId,
+          seriesData: detail,
+          seasonIndex: sIndex >= 0 ? sIndex : 0,
+          episodeIndex: eIndex >= 0 ? eIndex : 0,
+          movieId: item.movieId,
+        });
+      } else {
+        const { data } = await client.get(`/movies/${item.movieId}`);
+        const detail = data.movie;
+        if (!detail?.telegram?.chatId || !detail?.telegram?.messageId) return;
+
+        navigation.navigate('Player', {
+          title: detail.title,
+          chatId: detail.telegram.chatId,
+          messageId: detail.telegram.messageId,
+          movieId: item.movieId,
+        });
+      }
+    } catch (e) {
+      console.error('Error playing from history', e);
+    } finally {
+      setPlayingId(null);
+    }
+  }, [navigation]);
 
   useFocusEffect(
     useCallback(() => {
@@ -135,36 +183,7 @@ const MyListScreen = ({ navigation }) => {
         ]}
         onPress={() => {
           if (activeTab === 'history') {
-            if (isSeries && item.movieId.includes('_')) {
-              const parts = item.movieId.split('_');
-              if (parts.length >= 3) {
-                const sNum = parts[1].replace('S', '');
-                const eNum = parts[2].replace('E', '');
-                const sIndex = detail.seasons?.findIndex(s => String(s.seasonNumber) === sNum);
-                const season = detail.seasons?.[sIndex >= 0 ? sIndex : 0];
-                const eIndex = season?.episodes?.findIndex(e => String(e.episodeNumber) === eNum);
-                const ep = season?.episodes?.[eIndex >= 0 ? eIndex : 0];
-
-                if (ep) {
-                  navigation.navigate('Player', {
-                    title: `${detail.title} · S${sNum}E${eNum} – ${ep.title}`,
-                    chatId: ep.telegramChatId,
-                    messageId: ep.telegramMessageId,
-                    seriesData: detail,
-                    seasonIndex: sIndex >= 0 ? sIndex : 0,
-                    episodeIndex: eIndex >= 0 ? eIndex : 0,
-                    movieId: item.movieId,
-                  });
-                }
-              }
-            } else {
-              navigation.navigate('Player', {
-                title: detail.title,
-                chatId: detail.telegram?.chatId,
-                messageId: detail.telegram?.messageId,
-                movieId: item.movieId,
-              });
-            }
+            playFromHistory(item);
           } else {
             navigation.navigate('Details', {
               id: item.itemId,
@@ -172,6 +191,7 @@ const MyListScreen = ({ navigation }) => {
             });
           }
         }}
+        disabled={activeTab === 'history' && playingId === item.movieId}
       >
         <View style={styles.imageContainer}>
           <Image
@@ -182,6 +202,11 @@ const MyListScreen = ({ navigation }) => {
           {activeTab === 'history' && progressPct !== null && (
             <View style={styles.progressContainer}>
               <View style={[styles.progressBar, { width: `${progressPct}%` }]} />
+            </View>
+          )}
+          {activeTab === 'history' && playingId === item.movieId && (
+            <View style={styles.playingOverlay}>
+              <ActivityIndicator size="small" color="#E50914" />
             </View>
           )}
         </View>
@@ -382,6 +407,12 @@ const styles = StyleSheet.create({
   progressBar: {
     height: '100%',
     backgroundColor: '#E50914',
+  },
+  playingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   qualityBadge: {
     position: 'absolute',
