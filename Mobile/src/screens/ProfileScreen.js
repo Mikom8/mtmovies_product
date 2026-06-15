@@ -138,7 +138,7 @@ const ProfileScreen = ({ navigation }) => {
             <SettingRow icon="user" title="Personal Info" meta="Edit profile" color="#4dabf7" fontFamily='Coolvetica' />
             <SettingRow icon="shield" title="Security" meta="Password" color="#4dabf7" fontFamily='Coolvetica' />
             <SettingRow icon="bell" title="Notifications" color="#4dabf7" fontFamily='Coolvetica' />
-            <SettingRow icon="bookmark" lib={MaterialIcons} title="My List" color="#ff00ee" fontFamily='Coolvetica' onPress={() => navigation.navigate('MyList')} />
+            <SettingRow icon="bookmark" lib={MaterialIcons} title="My Activity" color="#ff00ee" fontFamily='Coolvetica' onPress={() => navigation.navigate('MyList')} />
           </View>
         </View>
 

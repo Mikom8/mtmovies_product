@@ -133,10 +133,45 @@ const MyListScreen = ({ navigation }) => {
           styles.card,
           pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
         ]}
-        onPress={() => navigation.navigate('Details', {
-          id: item.itemId,
-          type: isSeries ? 'series' : 'movie'
-        })}
+        onPress={() => {
+          if (activeTab === 'history') {
+            if (isSeries && item.movieId.includes('_')) {
+              const parts = item.movieId.split('_');
+              if (parts.length >= 3) {
+                const sNum = parts[1].replace('S', '');
+                const eNum = parts[2].replace('E', '');
+                const sIndex = detail.seasons?.findIndex(s => String(s.seasonNumber) === sNum);
+                const season = detail.seasons?.[sIndex >= 0 ? sIndex : 0];
+                const eIndex = season?.episodes?.findIndex(e => String(e.episodeNumber) === eNum);
+                const ep = season?.episodes?.[eIndex >= 0 ? eIndex : 0];
+
+                if (ep) {
+                  navigation.navigate('Player', {
+                    title: `${detail.title} · S${sNum}E${eNum} – ${ep.title}`,
+                    chatId: ep.telegramChatId,
+                    messageId: ep.telegramMessageId,
+                    seriesData: detail,
+                    seasonIndex: sIndex >= 0 ? sIndex : 0,
+                    episodeIndex: eIndex >= 0 ? eIndex : 0,
+                    movieId: item.movieId,
+                  });
+                }
+              }
+            } else {
+              navigation.navigate('Player', {
+                title: detail.title,
+                chatId: detail.telegram?.chatId,
+                messageId: detail.telegram?.messageId,
+                movieId: item.movieId,
+              });
+            }
+          } else {
+            navigation.navigate('Details', {
+              id: item.itemId,
+              type: isSeries ? 'series' : 'movie'
+            });
+          }
+        }}
       >
         <View style={styles.imageContainer}>
           <Image

@@ -18,6 +18,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
 import client from "../api/client";
 import { useWatchlist } from "../context/WatchlistContext";
+import { useAuth } from "../context/AuthContext";
 import Svg, { G, Path, Rect, Defs, ClipPath } from 'react-native-svg';
 
 const { width: W, height: H } = Dimensions.get("window");
@@ -128,14 +129,25 @@ const RecommendCard = ({ item, type, onPress }) => (
   </TouchableOpacity>
 );
 
+function parseDuration(str) {
+  if (!str) return 0;
+  let h = 0, m = 0;
+  const hMatch = str.match(/(\d+)h/);
+  const mMatch = str.match(/(\d+)m/);
+  if (hMatch) h = parseInt(hMatch[1], 10);
+  if (mMatch) m = parseInt(mMatch[1], 10);
+  return h * 3600 + m * 60;
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
 const DetailsScreen = ({ route, navigation }) => {
   const { id, type } = route.params;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { watchlist, isInWatchlist, toggleWatchlist } = useWatchlist();
+  const { user } = useAuth();
   const [recommendations, setRecommendations] = useState([]);
   const [resolvedType, setResolvedType] = useState(type);
-  const { watchlist, isInWatchlist, toggleWatchlist } = useWatchlist();
   const [selectedSeason, setSelectedSeason] = useState(0);
   const scrollRef = useRef(null);
 
@@ -406,31 +418,46 @@ const DetailsScreen = ({ route, navigation }) => {
               )}
 
               {/* Episode List */}
-              {currentSeason?.episodes?.map((ep, i) => (
-                <Pressable
-                  key={ep.episodeNumber}
-                  style={({ pressed }) => [
-                    styles.episodeRow,
-                    pressed && { backgroundColor: "rgba(255,255,255,0.06)" },
-                  ]}
-                  onPress={() => handleEpisodePlay(ep, currentSeason)}
-                >
-                  <View style={styles.epNumCircle}>
-                    <Text style={styles.epNum}>{ep.episodeNumber}</Text>
-                  </View>
-                  <View style={styles.epInfo}>
-                    <Text style={styles.epTitle} numberOfLines={1}>
-                      {ep.title || `Episode ${ep.episodeNumber}`}
-                    </Text>
-                    {ep.duration && (
-                      <Text style={styles.epDuration}>{ep.duration}</Text>
-                    )}
-                  </View>
-                  <View style={styles.epPlayBtn}>
-                    <MaterialIcons name="play-arrow" size={20} color="#fff" />
-                  </View>
-                </Pressable>
-              ))}
+              {currentSeason?.episodes?.map((ep, i) => {
+                const epMovieId = `${data._id}_S${currentSeason.seasonNumber}_E${ep.episodeNumber}`;
+                const historyItem = user?.watchHistory?.find(h => h.movieId === epMovieId);
+                let progressPct = null;
+                if (historyItem && ep.duration) {
+                  const durSec = parseDuration(ep.duration);
+                  if (durSec > 0) progressPct = Math.min(100, Math.max(0, (historyItem.progress / durSec) * 100));
+                }
+
+                return (
+                  <Pressable
+                    key={ep.episodeNumber}
+                    style={({ pressed }) => [
+                      styles.episodeRow,
+                      pressed && { backgroundColor: "rgba(255,255,255,0.06)" },
+                    ]}
+                    onPress={() => handleEpisodePlay(ep, currentSeason)}
+                  >
+                    <View style={styles.epNumCircle}>
+                      <Text style={styles.epNum}>{ep.episodeNumber}</Text>
+                    </View>
+                    <View style={styles.epInfo}>
+                      <Text style={styles.epTitle} numberOfLines={1}>
+                        {ep.title || `Episode ${ep.episodeNumber}`}
+                      </Text>
+                      {ep.duration && (
+                        <Text style={styles.epDuration}>{ep.duration}</Text>
+                      )}
+                      {progressPct !== null && progressPct > 0 && (
+                        <View style={{ height: 3, backgroundColor: 'rgba(255,255,255,0.2)', marginTop: 6, borderRadius: 2, overflow: 'hidden' }}>
+                          <View style={{ height: '100%', width: `${progressPct}%`, backgroundColor: '#E50914' }} />
+                        </View>
+                      )}
+                    </View>
+                    <View style={styles.epPlayBtn}>
+                      <MaterialIcons name="play-arrow" size={20} color="#fff" />
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
           )}
 
