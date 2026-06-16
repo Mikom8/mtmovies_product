@@ -70,6 +70,31 @@ const PlayerScreen = ({ route, navigation }) => {
   const swipeTimeoutRef = useRef(null);
   const panActionRef = useRef(null);
 
+  const saveWatchProgress = useCallback(async (progress, syncLocal = false) => {
+    if (!movieId || progress <= 5) return;
+    try {
+      await client.post('/users/history', {
+        movieId: String(movieId),
+        progress,
+      });
+      if (syncLocal && user) {
+        const movieIdStr = String(movieId);
+        const existing = user.watchHistory?.find((h) => h.movieId === movieIdStr);
+        const entry = {
+          movieId: movieIdStr,
+          progress,
+          watchedAt: new Date().toISOString(),
+        };
+        const watchHistory = existing
+          ? user.watchHistory.map((h) => (h.movieId === movieIdStr ? { ...h, ...entry } : h))
+          : [...(user.watchHistory || []), entry];
+        updateUser({ ...user, watchHistory });
+      }
+    } catch (e) {
+      // ignore network or released player errors
+    }
+  }, [movieId, user, updateUser]);
+
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
@@ -426,17 +451,14 @@ const PlayerScreen = ({ route, navigation }) => {
         const currentProgress = player.currentTime;
         
         if (isPlaying && currentProgress > 5) {
-          await client.post('/users/history', {
-            movieId: String(movieId),
-            progress: currentProgress
-          });
+          await saveWatchProgress(currentProgress);
         }
       } catch (e) {
         // ignore released object error or network error
       }
     }, 2000);
     return () => clearInterval(saveProgressInterval);
-  }, [movieId, player]);
+  }, [movieId, player, saveWatchProgress]);
 
   useEffect(() => {
     if (status === 'error') {
@@ -464,10 +486,15 @@ const PlayerScreen = ({ route, navigation }) => {
   }, [isPlaying]);
 
   // ── Back button ───────────────────────────────────────────────────────────
-  const handleBack = useCallback(() => {
-    try { player?.pause(); } catch (_) { }
+  const handleBack = useCallback(async () => {
+    try {
+      if (player) {
+        player.pause();
+        await saveWatchProgress(player.currentTime, true);
+      }
+    } catch (_) { }
     navigation.goBack();
-  }, [navigation, player]);
+  }, [navigation, player, saveWatchProgress]);
 
   // ── Retry ─────────────────────────────────────────────────────────────────
   const handleRetry = useCallback(() => {

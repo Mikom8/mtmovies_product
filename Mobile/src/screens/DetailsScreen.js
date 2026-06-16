@@ -16,9 +16,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useFonts } from "expo-font";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
+import { useFocusEffect } from "@react-navigation/native";
 import client from "../api/client";
 import { useWatchlist } from "../context/WatchlistContext";
 import { useAuth } from "../context/AuthContext";
+import Toast from "../components/Toast";
 import Svg, { G, Path, Rect, Defs, ClipPath } from 'react-native-svg';
 
 const { width: W, height: H } = Dimensions.get("window");
@@ -139,17 +141,73 @@ function parseDuration(str) {
   return h * 3600 + m * 60;
 }
 
+function getProgressPct(progress, durationStr) {
+  const durSec = parseDuration(durationStr);
+  if (!durSec || !progress) return null;
+  return Math.min(100, Math.max(0, (progress / durSec) * 100));
+}
+
+function getSeriesContinueInfo(data, watchHistory) {
+  if (!data?.seasons?.length || !watchHistory?.length) return null;
+
+  const prefix = String(data._id);
+  const latest = watchHistory
+    .filter((h) => h.movieId.startsWith(`${prefix}_S`))
+    .sort((a, b) => new Date(b.watchedAt || 0) - new Date(a.watchedAt || 0))[0];
+
+  if (!latest) return null;
+
+  const match = latest.movieId.match(/^(.+)_S(\d+)_E(\d+)$/);
+  if (!match) return null;
+
+  const [, , sNum, eNum] = match;
+  const season = data.seasons.find((s) => String(s.seasonNumber) === sNum);
+  const ep = season?.episodes?.find((e) => String(e.episodeNumber) === eNum);
+  const progressPct = ep ? getProgressPct(latest.progress, ep.duration) : null;
+
+  return { historyItem: latest, progressPct, sNum, eNum, season, ep };
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
 const DetailsScreen = ({ route, navigation }) => {
   const { id, type } = route.params;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { watchlist, isInWatchlist, toggleWatchlist } = useWatchlist();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [recommendations, setRecommendations] = useState([]);
   const [resolvedType, setResolvedType] = useState(type);
   const [selectedSeason, setSelectedSeason] = useState(0);
   const scrollRef = useRef(null);
+  const [toast, setToast] = useState({ visible: false, message: '', variant: 'added' });
+
+  const hideToast = useCallback(() => {
+    setToast((prev) => ({ ...prev, visible: false }));
+  }, []);
+
+  const handleWatchlistToggle = useCallback(async () => {
+    const result = await toggleWatchlist(id, resolvedType);
+    if (result?.success) {
+      const added = result.action === 'added';
+      setToast({
+        visible: true,
+        message: added ? 'Added to My List' : 'Removed from My List',
+        variant: added ? 'added' : 'removed',
+      });
+    } else if (result?.error === 'Not logged in') {
+      setToast({
+        visible: true,
+        message: 'Sign in to save titles to your list',
+        variant: 'info',
+      });
+    }
+  }, [toggleWatchlist, id, resolvedType]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshUser();
+    }, [refreshUser])
+  );
 
   const [fontsLoaded] = useFonts({
     "Coolvetica": require("../../assets/fonts/Coolvetica-Rg.otf"),
@@ -207,28 +265,52 @@ const DetailsScreen = ({ route, navigation }) => {
 
 
   const handleWatch = useCallback(() => {
-    if (resolvedType === "movie" || !data.seasons) {
+    const isSeriesContent = resolvedType === "series" || (data.seasons && data.seasons.length > 0);
+
+    if (!isSeriesContent || !data.seasons) {
       navigation.navigate("Player", {
         title: data.title,
         chatId: data.telegram?.chatId,
         messageId: data.telegram?.messageId,
         movieId: String(data._id),
       });
-    } else {
-      const ep = data.seasons?.[selectedSeason]?.episodes?.[0];
-      if (ep) {
-        navigation.navigate("Player", {
-          title: `${data.title} · S${data.seasons[selectedSeason].seasonNumber}E${ep.episodeNumber}`,
-          chatId: ep.telegramChatId,
-          messageId: ep.telegramMessageId,
-          seriesData: data,
-          seasonIndex: selectedSeason,
-          episodeIndex: 0,
-          movieId: `${data._id}_S${data.seasons[selectedSeason].seasonNumber}_E${ep.episodeNumber}`,
-        });
-      }
+      return;
     }
-  }, [data, resolvedType, selectedSeason, navigation]);
+
+    const continueInfo = getSeriesContinueInfo(data, user?.watchHistory);
+    if (
+      continueInfo?.ep &&
+      continueInfo?.season &&
+      continueInfo.progressPct > 0 &&
+      continueInfo.progressPct < 95
+    ) {
+      const sIndex = data.seasons.findIndex((s) => s._id === continueInfo.season._id);
+      const eIndex = continueInfo.season.episodes.findIndex((e) => e._id === continueInfo.ep._id);
+      navigation.navigate("Player", {
+        title: `${data.title} · S${continueInfo.sNum}E${continueInfo.eNum} – ${continueInfo.ep.title || ""}`,
+        chatId: continueInfo.ep.telegramChatId,
+        messageId: continueInfo.ep.telegramMessageId,
+        seriesData: data,
+        seasonIndex: sIndex >= 0 ? sIndex : 0,
+        episodeIndex: eIndex >= 0 ? eIndex : 0,
+        movieId: continueInfo.historyItem.movieId,
+      });
+      return;
+    }
+
+    const ep = data.seasons?.[selectedSeason]?.episodes?.[0];
+    if (ep) {
+      navigation.navigate("Player", {
+        title: `${data.title} · S${data.seasons[selectedSeason].seasonNumber}E${ep.episodeNumber}`,
+        chatId: ep.telegramChatId,
+        messageId: ep.telegramMessageId,
+        seriesData: data,
+        seasonIndex: selectedSeason,
+        episodeIndex: 0,
+        movieId: `${data._id}_S${data.seasons[selectedSeason].seasonNumber}_E${ep.episodeNumber}`,
+      });
+    }
+  }, [data, resolvedType, selectedSeason, navigation, user?.watchHistory]);
 
   const handleEpisodePlay = useCallback(
     (ep, season) => {
@@ -352,13 +434,21 @@ const DetailsScreen = ({ route, navigation }) => {
           {/* Action Buttons */}
           <View style={styles.actionRow}>
             {(() => {
-              let movieProgressPct = null;
-              const isActuallySeries = resolvedType === "series" || (data.seasons && data.seasons.length > 0);
-              if (!isActuallySeries && user?.watchHistory) {
-                const historyItem = user.watchHistory.find(h => h.movieId === String(data._id));
-                if (historyItem && data.duration) {
-                  const durSec = parseDuration(data.duration);
-                  if (durSec > 0) movieProgressPct = Math.min(100, Math.max(0, (historyItem.progress / durSec) * 100));
+              const isSeriesContent = resolvedType === "series" || (data.seasons && data.seasons.length > 0);
+              let watchProgressPct = null;
+              let watchLabel = "Watch Now";
+
+              if (!isSeriesContent && user?.watchHistory) {
+                const historyItem = user.watchHistory.find((h) => h.movieId === String(data._id));
+                if (historyItem) {
+                  watchProgressPct = getProgressPct(historyItem.progress, data.duration);
+                  if (watchProgressPct > 0) watchLabel = "Resume";
+                }
+              } else if (isSeriesContent && user?.watchHistory) {
+                const continueInfo = getSeriesContinueInfo(data, user.watchHistory);
+                if (continueInfo?.progressPct > 0) {
+                  watchProgressPct = continueInfo.progressPct;
+                  watchLabel = "Resume";
                 }
               }
 
@@ -368,12 +458,10 @@ const DetailsScreen = ({ route, navigation }) => {
                   onPress={handleWatch}
                 >
                   <MaterialIcons name="play-arrow" size={22} color="#000000ff" />
-                  <Text style={styles.watchBtnText}>
-                    {movieProgressPct !== null && movieProgressPct > 0 ? "Resume" : "Watch Now"}
-                  </Text>
-                  {movieProgressPct !== null && movieProgressPct > 0 && (
+                  <Text style={styles.watchBtnText}>{watchLabel}</Text>
+                  {watchProgressPct !== null && watchProgressPct > 0 && (
                     <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, backgroundColor: 'rgba(0,0,0,0.1)' }}>
-                      <View style={{ height: '100%', width: `${movieProgressPct}%`, backgroundColor: '#E50914' }} />
+                      <View style={{ height: '100%', width: `${watchProgressPct}%`, backgroundColor: '#E50914' }} />
                     </View>
                   )}
                 </Pressable>
@@ -386,7 +474,7 @@ const DetailsScreen = ({ route, navigation }) => {
                 isInWatchlist(id) && styles.iconBtnActive,
                 pressed && { opacity: 0.7 },
               ]}
-              onPress={() => toggleWatchlist(id, resolvedType)}
+              onPress={handleWatchlistToggle}
             >
               {isInWatchlist(id)
                 ? <AddedToListIcon size={22} color="#E50914" />
@@ -405,7 +493,7 @@ const DetailsScreen = ({ route, navigation }) => {
           <Text style={styles.description}>{data.description}</Text>
 
           {/* ── Series: Season Tabs + Episodes ── */}
-          {type === "series" && data.seasons?.length > 0 && (
+          {isActuallySeries && data.seasons?.length > 0 && (
             <View style={styles.seasonsSection}>
               <Text style={styles.sectionHeader}>Episodes</Text>
 
@@ -439,14 +527,10 @@ const DetailsScreen = ({ route, navigation }) => {
               )}
 
               {/* Episode List */}
-              {currentSeason?.episodes?.map((ep, i) => {
+              {currentSeason?.episodes?.map((ep) => {
                 const epMovieId = `${data._id}_S${currentSeason.seasonNumber}_E${ep.episodeNumber}`;
-                const historyItem = user?.watchHistory?.find(h => h.movieId === epMovieId);
-                let progressPct = null;
-                if (historyItem && ep.duration) {
-                  const durSec = parseDuration(ep.duration);
-                  if (durSec > 0) progressPct = Math.min(100, Math.max(0, (historyItem.progress / durSec) * 100));
-                }
+                const historyItem = user?.watchHistory?.find((h) => h.movieId === epMovieId);
+                const progressPct = historyItem ? getProgressPct(historyItem.progress, ep.duration) : null;
 
                 return (
                   <Pressable
@@ -503,6 +587,13 @@ const DetailsScreen = ({ route, navigation }) => {
           )}
         </View>
       </ScrollView>
+
+      <Toast
+        message={toast.message}
+        visible={toast.visible}
+        variant={toast.variant}
+        onHide={hideToast}
+      />
     </View>
   );
 };

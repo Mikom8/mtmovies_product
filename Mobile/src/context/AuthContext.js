@@ -70,8 +70,19 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const refreshUser = async () => {
+    try {
+      const token = await SecureStore.getItemAsync('token');
+      if (!token) return;
+      const response = await client.get('/auth/me');
+      setUser(response.data.user);
+    } catch (error) {
+      console.error('Failed to refresh user', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, googleLogin, updateUser: setUser, refreshUser: checkLoginStatus }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, googleLogin, updateUser: setUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
