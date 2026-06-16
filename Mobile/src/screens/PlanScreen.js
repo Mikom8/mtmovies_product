@@ -60,6 +60,7 @@ const PlanScreen = ({ navigation }) => {
   const [transactionId, setTransactionId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [inputError, setInputError] = useState(false);
 
   const handleSelectPlan = (plan) => {
     setSelectedPlan(plan);
@@ -71,7 +72,12 @@ const PlanScreen = ({ navigation }) => {
   };
 
   const handleSubmitTransaction = async () => {
-    if (!transactionId.trim()) return;
+    if (!transactionId.trim()) {
+      setInputError(true);
+      setError('Transaction ID is required');
+      return;
+    }
+    setInputError(false);
     setError('');
     setLoading(true);
     
@@ -87,9 +93,9 @@ const PlanScreen = ({ navigation }) => {
       }
       
       Alert.alert(
-        "Success!",
-        "Your payment has been verified and your plan is now active.",
-        [{ text: "OK", onPress: () => navigation.navigate("Main") }]
+        "Success",
+        "Your payment has been verified successfully!",
+        [{ text: "Browse", onPress: () => navigation.navigate("Main") }]
       );
     } catch (err) {
       setError(err.response?.data?.error || 'Verification failed. Please try again.');
@@ -214,11 +220,17 @@ const PlanScreen = ({ navigation }) => {
               <View style={styles.paymentCard}>
                 <Text style={styles.label}>Transaction ID</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, inputError && styles.inputError]}
                   placeholder="e.g. 7A1B2C3D4E"
                   placeholderTextColor="rgba(255,255,255,0.4)"
                   value={transactionId}
-                  onChangeText={setTransactionId}
+                  onChangeText={(val) => {
+                    setTransactionId(val);
+                    if (inputError && val.trim().length > 0) {
+                      setInputError(false);
+                      setError('');
+                    }
+                  }}
                   autoCapitalize="characters"
                   editable={!loading}
                 />
@@ -284,7 +296,7 @@ const styles = StyleSheet.create({
   title: {
     color: '#fff',
     fontSize: 28,
-    fontFamily: 'TT Medium',
+    fontFamily: 'Coolvetica',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -493,6 +505,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 8,
+  },
+  inputError: {
+    borderColor: '#ff4444',
   },
   errorText: {
     color: '#ff4444',

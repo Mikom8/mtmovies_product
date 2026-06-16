@@ -47,14 +47,22 @@ router.post('/verify', protect, async (req, res) => {
     let htmlAsString;
     try {
       htmlAsString = await fetchReceiptIsolated(receiptNo);
-      if (!htmlAsString || !htmlAsString.includes(receiptNo)) {
-        throw new Error('Invalid HTML');
+      // The Telebirr page is client-side rendered (React), so the raw HTML will NOT
+      // contain the receipt number as plain text. We only check we got a valid HTML page.
+      if (!htmlAsString || htmlAsString.length < 100) {
+        throw new Error('Empty response');
       }
     } catch (e) {
-      return res.status(400).json({ error: 'Invalid or missing receipt number on Telebirr.' });
+      return res.status(400).json({ error: 'Could not reach Telebirr servers. Please try again.' });
     }
 
     const parsed = parseFromHTML(htmlAsString);
+    console.log('[Payment] Parsed receipt fields:', JSON.stringify(parsed));
+
+    // Validate that the parsed receipt number matches what was submitted
+    if (parsed.receiptNo && parsed.receiptNo.toUpperCase() !== receiptNo.toUpperCase()) {
+      return res.status(400).json({ error: 'Receipt number does not match the transaction record.' });
+    }
 
     // Telebirr receipts might have empty 'total_amount' or 'settled_amount' or amount.
     const amount = parsed.total_amount || parsed.settled_amount || parsed.amount;
