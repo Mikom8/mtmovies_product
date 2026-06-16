@@ -466,11 +466,7 @@ const DetailsScreen = ({ route, navigation }) => {
                   style={({ pressed }) => [styles.watchBtn, pressed && styles.watchBtnPressed, { overflow: 'hidden' }]}
                   onPress={handleWatch}
                 >
-                  {!data.isFree && (!user || user.plan === 'free') ? (
-                    <Feather name="lock" size={18} color="#000" />
-                  ) : (
-                    <MaterialIcons name="play-arrow" size={22} color="#000000ff" />
-                  )}
+                  <MaterialIcons name="play-arrow" size={20} color="#000" />
                   <Text style={styles.watchBtnText}>
                     {!data.isFree && (!user || user.plan === 'free') ? "Upgrade to Watch" : watchLabel}
                   </Text>

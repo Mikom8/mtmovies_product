@@ -34,7 +34,7 @@ const PLANS = [
     ]
   },
   {
-    name: 'Popular', price: 250, featured: true, features: [
+    name: 'Popular', price: 2, featured: true, features: [
       { text: 'Full HD (1080p)', ok: true },
       { text: '2 screens at once', ok: true },
       { text: 'Amharic subtitles', ok: true },
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 50,
+    paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 15,
   },
@@ -388,9 +388,9 @@ const styles = StyleSheet.create({
     fontFamily: 'TT Medium',
   },
   selectBtnTextFeatured: {
-    color: '#000',
+    color: '#fff',
     fontFamily: 'TT Medium',
-  },
+  },  
   paymentCard: {
     width: '100%',
     backgroundColor: 'rgba(255,255,255,0.05)',

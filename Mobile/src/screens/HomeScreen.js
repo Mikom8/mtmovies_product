@@ -264,11 +264,7 @@ const HomeScreen = () => {
                     pressed && { backgroundColor: '#B20710' } // Darker red on press
                   ]}
                 >
-                  {!heroItem.isFree && (!user || user.plan === 'free') ? (
-                    <Feather name="lock" size={18} color="#000" />
-                  ) : (
-                    <MaterialIcons name="play-arrow" size={20} color="#fff" />
-                  )}
+                  <MaterialIcons name="play-arrow" size={20} color="#fff" />
                   <Text style={styles.playBtnText}>
                     {!heroItem.isFree && (!user || user.plan === 'free') ? "Upgrade to Watch" : "Watch Now"}
                   </Text>
