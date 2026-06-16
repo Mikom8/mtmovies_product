@@ -78,7 +78,79 @@ export default function ChoosePlan() {
       const token = localStorage.getItem('mt_token');
       const receiptNo = transactionId.trim().toUpperCase();
 
-      const res = await fetch(`${API_BASE_URL}/payments/verify`, {
+      // Fetch receipt HTML from client side (bypasses server network issues)
+      setError('Fetching receipt from Telebirr...');
+      
+      const receiptUrl = `https://transactioninfo.ethiotelecom.et/receipt/${encodeURIComponent(receiptNo)}`;
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(receiptUrl)}`;
+      
+      let htmlContent;
+      try {
+        const receiptRes = await fetch(proxyUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'text/html',
+          }
+        });
+        
+        if (!receiptRes.ok) {
+          throw new Error('Could not fetch receipt from Telebirr');
+        }
+        
+        htmlContent = await receiptRes.text();
+      } catch (fetchErr) {
+        throw new Error('Unable to fetch receipt. Please check your transaction ID and try again.');
+      }
+
+      // Parse the HTML to extract receipt data
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlContent, 'text/html');
+      
+      // Extract data from the HTML (based on the structure you showed)
+      const extractText = (selector) => {
+        const elem = doc.querySelector(selector);
+        return elem ? elem.textContent.trim() : '';
+      };
+      
+      // Find payer name
+      const payerNameText = htmlContent.match(/የከፋይ ስም\/Payer Name[\s\S]*?<td[^>]*>\s*([^<]+)/i);
+      const payerName = payerNameText ? payerNameText[1].trim() : 'Unknown';
+      
+      // Find receiver name
+      const receiverNameText = htmlContent.match(/የገንዘብ ተቀባይ ስም\/Credited Party name[\s\S]*?<td[^>]*>\s*([^<]+)/i);
+      const receiverName = receiverNameText ? receiverNameText[1].replace(/<\/?label>/gi, '').trim() : '';
+      
+      // Find receiver phone
+      const receiverPhoneText = htmlContent.match(/የገንዘብ ተቀባይ ቴሌብር ቁ\.\/Credited party account no[\s\S]*?<td[^>]*>\s*([\d*]+)/i);
+      const receiverPhone = receiverPhoneText ? receiverPhoneText[1].trim() : '';
+      
+      // Find status
+      const statusText = htmlContent.match(/የክፍያው ሁኔታ\/transaction status[\s\S]*?<td[^>]*>\s*([^<]+)/i);
+      const status = statusText ? statusText[1].trim() : '';
+      
+      // Find settled amount
+      const settledAmountText = htmlContent.match(/የተከፈለው መጠን\/Settled Amount[\s\S]*?<td[^>]*>\s*(\d+(?:\.\d+)?)\s*Birr/i);
+      const settledAmount = settledAmountText ? parseFloat(settledAmountText[1]) : 0;
+      
+      const receiptData = {
+        payerName,
+        receiverName,
+        receiverPhone,
+        status,
+        settledAmount,
+        amount: settledAmount
+      };
+      
+      console.log('Parsed receipt data:', receiptData);
+      
+      if (!settledAmount) {
+        throw new Error('Could not parse receipt amount. Please try again or contact support.');
+      }
+      
+      setError('Verifying payment...');
+
+      // Send parsed data to server for validation
+      const res = await fetch(`${API_BASE_URL}/payments/verify-client`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,6 +158,7 @@ export default function ChoosePlan() {
         },
         body: JSON.stringify({
           receiptNo,
+          receiptData,
           expectedAmount: selectedPlan.price,
           planName: selectedPlan.name,
         })

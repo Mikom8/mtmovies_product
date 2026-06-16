@@ -306,4 +306,90 @@ router.post('/verify', protect, async (req, res) => {
   }
 });
 
+router.post('/verify-client', protect, async (req, res) => {
+  try {
+    const { receiptNo, receiptData, expectedAmount, planName } = req.body;
+
+    if (!receiptNo || !receiptData || expectedAmount == null || !planName) {
+      return res.status(400).json({ error: 'Missing receipt details.' });
+    }
+
+    const normalizedReceiptNo = String(receiptNo).trim().toUpperCase();
+    if (!/^[A-Z0-9]{6,20}$/.test(normalizedReceiptNo)) {
+      return res.status(400).json({ error: 'Invalid transaction ID format.' });
+    }
+
+    const existingTx = await Transaction.findOne({ receiptNo: normalizedReceiptNo });
+    if (existingTx) {
+      return res.status(400).json({ error: 'This transaction ID has already been used.' });
+    }
+
+    // Validate receipt data from client
+    const receipt = {
+      receiptNo: normalizedReceiptNo,
+      amount: parseFloat(receiptData.settledAmount) || parseFloat(receiptData.amount),
+      payerName: receiptData.payerName || 'Unknown',
+      receiverName: String(receiptData.receiverName || '').toUpperCase(),
+      receiverPhone: String(receiptData.receiverPhone || ''),
+      status: String(receiptData.status || '').toLowerCase(),
+    };
+
+    console.log('[Payment] Client-provided receipt:', JSON.stringify(receipt));
+
+    if (receipt.receiptNo !== normalizedReceiptNo) {
+      return res.status(400).json({ error: 'Receipt number does not match the transaction record.' });
+    }
+
+    if (receipt.status && receipt.status !== 'completed') {
+      return res.status(400).json({ error: 'This transaction is not completed yet.' });
+    }
+
+    const isReceiverCorrect =
+      receipt.receiverName.includes('BIKILA') ||
+      receipt.receiverName.includes('MELESE') ||
+      receipt.receiverPhone.includes('919516418') ||
+      receipt.receiverPhone.includes('6418');
+
+    if (!isReceiverCorrect) {
+      return res.status(400).json({
+        error: 'Transaction was not sent to the correct MT Movies account (BIKILA MELESE / 0919516418).',
+      });
+    }
+
+    if (!receipt.amount) {
+      return res.status(400).json({ error: 'Could not read transaction amount from receipt.' });
+    }
+
+    const expected = parseFloat(expectedAmount);
+    if (receipt.amount < expected) {
+      return res.status(400).json({
+        error: `Insufficient amount. Expected ETB ${expected}, but receipt shows ETB ${receipt.amount}.`,
+      });
+    }
+
+    const tx = new Transaction({
+      receiptNo: normalizedReceiptNo,
+      amount: receipt.amount,
+      payerName: receipt.payerName,
+      usedBy: req.user._id,
+      status: 'completed',
+    });
+    await tx.save();
+
+    req.user.plan = planName.toLowerCase();
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 30);
+    req.user.planExpiresAt = expires;
+    await req.user.save();
+
+    const safeUser = { ...req.user._doc };
+    delete safeUser.password;
+
+    res.json({ message: 'Payment verified successfully!', user: safeUser });
+  } catch (err) {
+    console.error('Payment Verification Error:', err);
+    res.status(500).json({ error: 'Verification failed. Please try again or contact support.' });
+  }
+});
+
 module.exports = router;
