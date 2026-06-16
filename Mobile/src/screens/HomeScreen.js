@@ -213,6 +213,11 @@ const HomeScreen = () => {
                 <Pressable
                   onPress={async () => {
                     try {
+                      if (!heroItem.isFree && (!user || user.plan === 'free')) {
+                        navigation.navigate("Plan");
+                        return;
+                      }
+
                       let currentType = heroItem.seasons ? "series" : "movie";
                       let endpoint = currentType === "series" ? `/series/${heroItem._id}` : `/movies/${heroItem._id}`;
                       let res;
@@ -259,8 +264,14 @@ const HomeScreen = () => {
                     pressed && { backgroundColor: '#B20710' } // Darker red on press
                   ]}
                 >
-                  <MaterialIcons name="play-arrow" size={20} color="#fff" />
-                  <Text style={styles.playBtnText}>Watch Now</Text>
+                  {!heroItem.isFree && (!user || user.plan === 'free') ? (
+                    <Feather name="lock" size={18} color="#000" />
+                  ) : (
+                    <MaterialIcons name="play-arrow" size={20} color="#fff" />
+                  )}
+                  <Text style={styles.playBtnText}>
+                    {!heroItem.isFree && (!user || user.plan === 'free') ? "Upgrade to Watch" : "Watch Now"}
+                  </Text>
                 </Pressable>
                 <Pressable
                   onPress={() =>

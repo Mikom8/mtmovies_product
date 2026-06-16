@@ -263,8 +263,16 @@ const DetailsScreen = ({ route, navigation }) => {
     }
   };
 
+  const checkAccess = useCallback(() => {
+    if (!data.isFree && (!user || user.plan === 'free')) {
+      navigation.navigate("Plan");
+      return false;
+    }
+    return true;
+  }, [data, user, navigation]);
 
   const handleWatch = useCallback(() => {
+    if (!checkAccess()) return;
     const isSeriesContent = resolvedType === "series" || (data.seasons && data.seasons.length > 0);
 
     if (!isSeriesContent || !data.seasons) {
@@ -310,10 +318,11 @@ const DetailsScreen = ({ route, navigation }) => {
         movieId: `${data._id}_S${data.seasons[selectedSeason].seasonNumber}_E${ep.episodeNumber}`,
       });
     }
-  }, [data, resolvedType, selectedSeason, navigation, user?.watchHistory]);
+  }, [data, resolvedType, selectedSeason, navigation, user?.watchHistory, checkAccess]);
 
   const handleEpisodePlay = useCallback(
     (ep, season) => {
+      if (!checkAccess()) return;
       const sIndex = data.seasons.findIndex(s => s._id === season._id);
       const eIndex = season.episodes.findIndex(e => e._id === ep._id);
       navigation.navigate("Player", {
@@ -457,8 +466,14 @@ const DetailsScreen = ({ route, navigation }) => {
                   style={({ pressed }) => [styles.watchBtn, pressed && styles.watchBtnPressed, { overflow: 'hidden' }]}
                   onPress={handleWatch}
                 >
-                  <MaterialIcons name="play-arrow" size={22} color="#000000ff" />
-                  <Text style={styles.watchBtnText}>{watchLabel}</Text>
+                  {!data.isFree && (!user || user.plan === 'free') ? (
+                    <Feather name="lock" size={18} color="#000" />
+                  ) : (
+                    <MaterialIcons name="play-arrow" size={22} color="#000000ff" />
+                  )}
+                  <Text style={styles.watchBtnText}>
+                    {!data.isFree && (!user || user.plan === 'free') ? "Upgrade to Watch" : watchLabel}
+                  </Text>
                   {watchProgressPct !== null && watchProgressPct > 0 && (
                     <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, backgroundColor: 'rgba(0,0,0,0.1)' }}>
                       <View style={{ height: '100%', width: `${watchProgressPct}%`, backgroundColor: '#E50914' }} />
@@ -558,7 +573,11 @@ const DetailsScreen = ({ route, navigation }) => {
                       )}
                     </View>
                     <View style={styles.epPlayBtn}>
-                      <MaterialIcons name="play-arrow" size={20} color="#fff" />
+                      {!data.isFree && (!user || user.plan === 'free') ? (
+                        <Feather name="lock" size={18} color="rgba(255,255,255,0.5)" />
+                      ) : (
+                        <MaterialIcons name="play-arrow" size={20} color="#fff" />
+                      )}
                     </View>
                   </Pressable>
                 );

@@ -150,6 +150,7 @@ const ProfileScreen = ({ navigation }) => {
               title="Plan Details"
               meta={`${user.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) : 'Free'} Plan`}
               color="#62980c" fontFamily='Coolvetica'
+              onPress={() => navigation.navigate('Plan')}
             />
             <SettingRow icon="receipt-long" lib={MaterialIcons} title="Billing History" meta={currentPlan.price} color="#62980c" fontFamily='Coolvetica' />
           </View>

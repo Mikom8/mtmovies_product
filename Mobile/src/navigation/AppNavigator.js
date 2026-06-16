@@ -14,6 +14,7 @@ import ProfileScreen from "../screens/ProfileScreen";
 import MyListScreen from "../screens/MyListScreen";
 import SearchScreen from "../screens/SearchScreen";
 import DownloadsScreen from "../screens/DownloadsScreen";
+import PlanScreen from "../screens/PlanScreen";
 import { useAuth } from "../context/AuthContext";
 import { useFonts } from "expo-font";
 import { View, ActivityIndicator, StyleSheet, Pressable, Text, Dimensions, Animated } from "react-native";
@@ -213,6 +214,7 @@ const AppNavigator = () => {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="MyList" component={MyListScreen} />
+      <Stack.Screen name="Plan" component={PlanScreen} />
     </Stack.Navigator>
   );
 };
