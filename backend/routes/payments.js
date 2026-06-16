@@ -58,14 +58,16 @@ router.post('/verify', protect, async (req, res) => {
       return res.status(400).json({ error: 'This transaction ID has already been used.' });
     }
 
-    // 2. Get receipt HTML — prefer what the mobile client fetched (Ethiopian IP, no geo-block)
-    //    Fall back to server-side fetch if not provided.
+    // 2. Get receipt HTML — prefer what the mobile/browser client fetched (Ethiopian IP)
     let htmlAsString;
 
+    // Debug — always log what came in
+    console.log('[Payment] clientHtml received:', clientHtml ? `${clientHtml.length} chars` : 'null/undefined');
+
     if (clientHtml && clientHtml.length > 100) {
-      // Mobile app already fetched it from an Ethiopian IP — use it directly
+      // Client already fetched it from an Ethiopian IP — use it directly
       htmlAsString = clientHtml;
-      console.log('[Payment] Using client-provided receipt HTML, length:', clientHtml.length);
+      console.log('[Payment] Using client-provided receipt HTML');
     } else {
       // Try server-side fetch as fallback
       try {
