@@ -76,6 +76,24 @@ export default function ChoosePlan() {
     
     try {
       const token = localStorage.getItem('mt_token');
+      const receiptNo = transactionId.trim().toUpperCase();
+
+      // Step 1: Fetch the receipt HTML from the browser (Ethiopian IP — can reach Telebirr)
+      let receiptHtml = null;
+      try {
+        const telebirrRes = await fetch(
+          `https://transactioninfo.ethiotelecom.et/receipt/${receiptNo}`,
+          { method: 'GET' }
+        );
+        if (telebirrRes.ok) {
+          receiptHtml = await telebirrRes.text();
+        }
+      } catch (fetchErr) {
+        console.warn('[ChoosePlan] Could not pre-fetch receipt:', fetchErr.message);
+        // Continue — backend will handle gracefully
+      }
+
+      // Step 2: Send receipt ID + HTML to backend for secure validation
       const res = await fetch(`${API_BASE_URL}/payments/verify`, {
         method: 'POST',
         headers: {
@@ -83,9 +101,10 @@ export default function ChoosePlan() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          receiptNo: transactionId.trim().toUpperCase(),
+          receiptNo,
           expectedAmount: selectedPlan.price,
-          planName: selectedPlan.name
+          planName: selectedPlan.name,
+          receiptHtml,   // Browser-fetched HTML bypasses Railway geo-block
         })
       });
 
