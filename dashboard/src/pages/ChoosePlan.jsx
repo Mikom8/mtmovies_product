@@ -50,8 +50,6 @@ export default function ChoosePlan() {
   const [step, setStep] = useState(1); // 1: Choose Plan, 2: Payment Instructions, 3: Verify Transaction
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [transactionId, setTransactionId] = useState('');
-  const [receiptHtml, setReceiptHtml] = useState('');
-  const [showHtmlPaste, setShowHtmlPaste] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -79,27 +77,6 @@ export default function ChoosePlan() {
     try {
       const token = localStorage.getItem('mt_token');
       const receiptNo = transactionId.trim().toUpperCase();
-      let htmlToSend = receiptHtml.trim() || null;
-
-      // Try loading receipt through our API (avoids Telebirr CORS in the browser)
-      if (!htmlToSend) {
-        try {
-          const previewRes = await fetch(`${API_BASE_URL}/payments/receipt/${receiptNo}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (previewRes.ok) {
-            const previewData = await previewRes.json();
-            if (previewData.html?.length > 100) {
-              htmlToSend = previewData.html;
-            }
-          } else if (previewRes.status === 502) {
-            setShowHtmlPaste(true);
-          }
-        } catch (previewErr) {
-          console.warn('[ChoosePlan] Receipt preview fetch failed:', previewErr.message);
-          setShowHtmlPaste(true);
-        }
-      }
 
       const res = await fetch(`${API_BASE_URL}/payments/verify`, {
         method: 'POST',
@@ -111,16 +88,12 @@ export default function ChoosePlan() {
           receiptNo,
           expectedAmount: selectedPlan.price,
           planName: selectedPlan.name,
-          receiptHtml: htmlToSend,
         })
       });
 
       const data = await res.json();
-      
+
       if (!res.ok) {
-        if (data.code === 'RECEIPT_FETCH_FAILED') {
-          setShowHtmlPaste(true);
-        }
         throw new Error(data.error || 'Verification failed');
       }
 
@@ -237,32 +210,6 @@ export default function ChoosePlan() {
                     required
                     className={styles.input}
                   />
-                  {transactionId.trim() && (
-                    <a
-                      className={styles.receiptLink}
-                      href={`https://transactioninfo.ethiotelecom.et/receipt/${transactionId.trim().toUpperCase()}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Open receipt in new tab
-                    </a>
-                  )}
-                  {(showHtmlPaste || receiptHtml) && (
-                    <div className={styles.pasteGroup}>
-                      <label htmlFor="receiptHtml">Receipt HTML (if auto-verify fails)</label>
-                      <textarea
-                        id="receiptHtml"
-                        value={receiptHtml}
-                        onChange={(e) => setReceiptHtml(e.target.value)}
-                        placeholder="Open the receipt link above, press Ctrl+U (view source), copy everything, and paste here."
-                        className={styles.textarea}
-                        rows={5}
-                      />
-                      <p className={styles.pasteHint}>
-                        Telebirr blocks direct browser access from this site. If verification fails, paste the full page source from your receipt.
-                      </p>
-                    </div>
-                  )}
                   {error && <div className={styles.errorText}>{error}</div>}
                 </div>
                 

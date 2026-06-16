@@ -289,48 +289,6 @@
   border-color: #00b7ff;
 }
 
-.receiptLink {
-  display: inline-block;
-  margin-top: 10px;
-  color: #00b7ff;
-  font-size: 0.85rem;
-  text-decoration: none;
-}
-
-.receiptLink:hover {
-  text-decoration: underline;
-}
-
-.pasteGroup {
-  margin-top: 1.25rem;
-}
-
-.textarea {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.2);
-  color: #fff;
-  font-size: 0.8rem;
-  outline: none;
-  resize: vertical;
-  min-height: 100px;
-  box-sizing: border-box;
-  font-family: monospace;
-}
-
-.textarea:focus {
-  border-color: #00b7ff;
-}
-
-.pasteHint {
-  margin-top: 8px;
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.55);
-  line-height: 1.4;
-}
-
 .errorText {
   color: #ff6b6b;
   margin-top: 10px;
