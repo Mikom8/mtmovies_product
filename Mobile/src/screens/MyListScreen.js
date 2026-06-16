@@ -227,7 +227,7 @@ const MyListScreen = ({ navigation }) => {
         <Text style={styles.emptyTitle}>{isHistory ? "No watch history" : "Your list is empty"}</Text>
         <Text style={styles.emptySubtitle}>
           {isHistory
-            ? "Your recently watched movies and TV shows will appear here."
+            ? "Your recently watched Movies and TV shows will appear here."
             : "Tap the bookmark icon on any movie or TV show to save it here for later."}
         </Text>
         <Pressable
