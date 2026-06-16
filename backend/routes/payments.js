@@ -16,7 +16,7 @@ const fetchReceiptOnce = (receiptNo) =>
       path: `/receipt/${encodeURIComponent(receiptNo)}`,
       method: 'GET',
       rejectUnauthorized: false,
-      timeout: 20000,
+      timeout: 30000, // Increased to 30 seconds
       headers: {
         'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -38,7 +38,7 @@ const fetchReceiptOnce = (receiptNo) =>
               path: `${nextUrl.pathname}${nextUrl.search}`,
               method: 'GET',
               rejectUnauthorized: false,
-              timeout: 20000,
+              timeout: 30000, // Increased to 30 seconds
               headers: options.headers,
             },
             (redirectRes) => {
@@ -61,12 +61,14 @@ const fetchReceiptOnce = (receiptNo) =>
           );
           redirectReq.on('timeout', () => {
             redirectReq.destroy();
-            reject(new Error('Request timed out'));
+            reject(new Error('Redirect request timed out after 30 seconds'));
           });
-          redirectReq.on('error', reject);
+          redirectReq.on('error', (err) => {
+            reject(new Error(`Redirect request failed: ${err.message}`));
+          });
           redirectReq.end();
         } catch (e) {
-          reject(e);
+          reject(new Error(`Redirect processing failed: ${e.message}`));
         }
         return;
       }
@@ -90,21 +92,27 @@ const fetchReceiptOnce = (receiptNo) =>
 
     req.on('timeout', () => {
       req.destroy();
-      reject(new Error('Request timed out'));
+      reject(new Error('Initial request timed out after 30 seconds. Telebirr server may be slow or down.'));
     });
-    req.on('error', reject);
+    req.on('error', (err) => {
+      reject(new Error(`Network error: ${err.message}`));
+    });
     req.end();
   });
 
-async function fetchReceiptIsolated(receiptNo, attempts = 3) {
+async function fetchReceiptIsolated(receiptNo, attempts = 4) {
   let lastError;
   for (let i = 0; i < attempts; i += 1) {
     try {
+      console.log(`[Payment] Attempt ${i + 1}/${attempts} to fetch receipt ${receiptNo}`);
       return await fetchReceiptOnce(receiptNo);
     } catch (e) {
+      console.error(`[Payment] Attempt ${i + 1} failed:`, e.message);
       lastError = e;
       if (i < attempts - 1) {
-        await new Promise((r) => setTimeout(r, 800 * (i + 1)));
+        const delay = 1000 * (i + 1); // 1s, 2s, 3s delays
+        console.log(`[Payment] Waiting ${delay}ms before retry...`);
+        await new Promise((r) => setTimeout(r, delay));
       }
     }
   }
@@ -203,10 +211,27 @@ router.post('/verify', protect, async (req, res) => {
     try {
       htmlAsString = await fetchReceiptIsolated(normalizedReceiptNo);
     } catch (e) {
-      console.error('[Payment] Telebirr fetch failed:', e.message);
+      console.error('[Payment] Telebirr fetch failed after all retries:', e.message);
+      
+      // Provide more specific error messages
+      let errorMessage = RECEIPT_FETCH_ERROR;
+      let errorCode = 'RECEIPT_FETCH_FAILED';
+      
+      if (e.message.includes('timed out')) {
+        errorMessage = 'Telebirr server is responding slowly. Please wait a moment and try again.';
+        errorCode = 'TIMEOUT';
+      } else if (e.message.includes('Network error')) {
+        errorMessage = 'Network connection issue. Please check your internet and try again.';
+        errorCode = 'NETWORK_ERROR';
+      } else if (e.message.includes('HTTP')) {
+        errorMessage = 'Telebirr server error. Please try again in a few minutes.';
+        errorCode = 'SERVER_ERROR';
+      }
+      
       return res.status(400).json({
-        error: RECEIPT_FETCH_ERROR,
-        code: 'RECEIPT_FETCH_FAILED',
+        error: errorMessage,
+        code: errorCode,
+        details: e.message
       });
     }
 
