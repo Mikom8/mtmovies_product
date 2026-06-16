@@ -46,7 +46,7 @@ const fetchReceiptIsolated = (receiptNo) => {
 
 router.post('/verify', protect, async (req, res) => {
   try {
-    const { receiptNo, expectedAmount, planName } = req.body;
+    const { receiptNo, expectedAmount, planName, receiptHtml: clientHtml } = req.body;
 
     if (!receiptNo || !expectedAmount || !planName) {
       return res.status(400).json({ error: 'Missing receipt details.' });
@@ -58,18 +58,25 @@ router.post('/verify', protect, async (req, res) => {
       return res.status(400).json({ error: 'This transaction ID has already been used.' });
     }
 
-    // 2. Fetch receipt from Telebirr
+    // 2. Get receipt HTML — prefer what the mobile client fetched (Ethiopian IP, no geo-block)
+    //    Fall back to server-side fetch if not provided.
     let htmlAsString;
-    try {
-      htmlAsString = await fetchReceiptIsolated(receiptNo);
-      // The Telebirr page is client-side rendered (React), so the raw HTML will NOT
-      // contain the receipt number as plain text. We only check we got a valid HTML page.
-      if (!htmlAsString || htmlAsString.length < 100) {
-        throw new Error('Empty response from Telebirr');
+
+    if (clientHtml && clientHtml.length > 100) {
+      // Mobile app already fetched it from an Ethiopian IP — use it directly
+      htmlAsString = clientHtml;
+      console.log('[Payment] Using client-provided receipt HTML, length:', clientHtml.length);
+    } else {
+      // Try server-side fetch as fallback
+      try {
+        htmlAsString = await fetchReceiptIsolated(receiptNo);
+        if (!htmlAsString || htmlAsString.length < 100) {
+          throw new Error('Empty response from Telebirr');
+        }
+      } catch (e) {
+        console.error('[Payment] Telebirr server-side fetch failed:', e.message, e.code);
+        return res.status(400).json({ error: `Could not reach Telebirr to verify your receipt. Please check your internet connection and try again.` });
       }
-    } catch (e) {
-      console.error('[Payment] Telebirr fetch failed:', e.message, e.code);
-      return res.status(400).json({ error: `Could not reach Telebirr servers (${e.code || e.message}). Please try again.` });
     }
 
     const parsed = parseFromHTML(htmlAsString);

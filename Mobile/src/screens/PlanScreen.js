@@ -82,10 +82,35 @@ const PlanScreen = ({ navigation }) => {
     setLoading(true);
     
     try {
+      // Step 1: Fetch the receipt HTML directly from the device (Ethiopian IP can reach Telebirr)
+      const receiptNo = transactionId.trim().toUpperCase();
+      let receiptHtml = null;
+
+      try {
+        const telebirrRes = await fetch(
+          `https://transactioninfo.ethiotelecom.et/receipt/${receiptNo}`,
+          {
+            method: 'GET',
+            headers: {
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              'User-Agent': 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36',
+            },
+          }
+        );
+        if (telebirrRes.ok) {
+          receiptHtml = await telebirrRes.text();
+        }
+      } catch (fetchErr) {
+        console.warn('[PlanScreen] Could not pre-fetch receipt:', fetchErr.message);
+        // Continue anyway — backend will try too or fall back
+      }
+
+      // Step 2: Send receipt ID + HTML (if we got it) to backend for secure validation
       const res = await client.post('/payments/verify', {
-        receiptNo: transactionId.trim().toUpperCase(),
+        receiptNo,
         expectedAmount: selectedPlan.price,
-        planName: selectedPlan.name
+        planName: selectedPlan.name,
+        receiptHtml, // may be null if fetch failed — backend handles both cases
       });
       
       if (updateUser && res.data.user) {
