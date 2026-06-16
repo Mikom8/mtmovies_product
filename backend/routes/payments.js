@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const https = require('https');
+const http = require('http');
 const { protect } = require('../middleware/auth');
 const Transaction = require('../models/Transaction');
 const User = require('../models/User');
@@ -14,8 +15,13 @@ const fetchReceiptIsolated = (receiptNo) => {
       port: 443,
       path: `/receipt/${receiptNo}`,
       method: 'GET',
-      // ONLY disable TLS for this specific request, protecting the rest of the server
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
+      timeout: 15000, // 15 second timeout
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+      }
     };
 
     const req = https.request(options, (res) => {
@@ -24,7 +30,16 @@ const fetchReceiptIsolated = (receiptNo) => {
       res.on('end', () => resolve(data));
     });
 
-    req.on('error', (e) => reject(e));
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('Request timed out after 15s'));
+    });
+
+    req.on('error', (e) => {
+      console.error('[Telebirr] HTTPS fetch error:', e.message, e.code);
+      reject(e);
+    });
+
     req.end();
   });
 };
@@ -50,10 +65,11 @@ router.post('/verify', protect, async (req, res) => {
       // The Telebirr page is client-side rendered (React), so the raw HTML will NOT
       // contain the receipt number as plain text. We only check we got a valid HTML page.
       if (!htmlAsString || htmlAsString.length < 100) {
-        throw new Error('Empty response');
+        throw new Error('Empty response from Telebirr');
       }
     } catch (e) {
-      return res.status(400).json({ error: 'Could not reach Telebirr servers. Please try again.' });
+      console.error('[Payment] Telebirr fetch failed:', e.message, e.code);
+      return res.status(400).json({ error: `Could not reach Telebirr servers (${e.code || e.message}). Please try again.` });
     }
 
     const parsed = parseFromHTML(htmlAsString);
