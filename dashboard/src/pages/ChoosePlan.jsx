@@ -25,7 +25,7 @@ const PLANS = [
     ]
   },
   {
-    name: 'Popular', price: 2, featured: true, features: [
+    name: 'Popular', price: 250, featured: true, features: [
       { text: 'Full HD (1080p)', ok: true },
       { text: '2 screens at once', ok: true },
       { text: 'Amharic subtitles', ok: true },
@@ -50,6 +50,8 @@ export default function ChoosePlan() {
   const [step, setStep] = useState(1); // 1: Choose Plan, 2: Payment Instructions, 3: Verify Transaction
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [transactionId, setTransactionId] = useState('');
+  const [receiptHtml, setReceiptHtml] = useState('');
+  const [showHtmlPaste, setShowHtmlPaste] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -77,23 +79,28 @@ export default function ChoosePlan() {
     try {
       const token = localStorage.getItem('mt_token');
       const receiptNo = transactionId.trim().toUpperCase();
+      let htmlToSend = receiptHtml.trim() || null;
 
-      // Step 1: Fetch the receipt HTML from the browser (Ethiopian IP — can reach Telebirr)
-      let receiptHtml = null;
-      try {
-        const telebirrRes = await fetch(
-          `https://transactioninfo.ethiotelecom.et/receipt/${receiptNo}`,
-          { method: 'GET' }
-        );
-        if (telebirrRes.ok) {
-          receiptHtml = await telebirrRes.text();
+      // Try loading receipt through our API (avoids Telebirr CORS in the browser)
+      if (!htmlToSend) {
+        try {
+          const previewRes = await fetch(`${API_BASE_URL}/payments/receipt/${receiptNo}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (previewRes.ok) {
+            const previewData = await previewRes.json();
+            if (previewData.html?.length > 100) {
+              htmlToSend = previewData.html;
+            }
+          } else if (previewRes.status === 502) {
+            setShowHtmlPaste(true);
+          }
+        } catch (previewErr) {
+          console.warn('[ChoosePlan] Receipt preview fetch failed:', previewErr.message);
+          setShowHtmlPaste(true);
         }
-      } catch (fetchErr) {
-        console.warn('[ChoosePlan] Could not pre-fetch receipt:', fetchErr.message);
-        // Continue — backend will handle gracefully
       }
 
-      // Step 2: Send receipt ID + HTML to backend for secure validation
       const res = await fetch(`${API_BASE_URL}/payments/verify`, {
         method: 'POST',
         headers: {
@@ -104,13 +111,16 @@ export default function ChoosePlan() {
           receiptNo,
           expectedAmount: selectedPlan.price,
           planName: selectedPlan.name,
-          receiptHtml,   // Browser-fetched HTML bypasses Railway geo-block
+          receiptHtml: htmlToSend,
         })
       });
 
       const data = await res.json();
       
       if (!res.ok) {
+        if (data.code === 'RECEIPT_FETCH_FAILED') {
+          setShowHtmlPaste(true);
+        }
         throw new Error(data.error || 'Verification failed');
       }
 
@@ -223,11 +233,37 @@ export default function ChoosePlan() {
                     id="txId"
                     value={transactionId}
                     onChange={(e) => setTransactionId(e.target.value)}
-                    placeholder="e.g. 7A1B2C3D4E"
+                    placeholder="e.g. DFG60WWREQ"
                     required
                     className={styles.input}
                   />
-                  {error && <div style={{ color: '#ff4444', marginTop: '10px', fontSize: '0.9rem', textAlign: 'left' }}>{error}</div>}
+                  {transactionId.trim() && (
+                    <a
+                      className={styles.receiptLink}
+                      href={`https://transactioninfo.ethiotelecom.et/receipt/${transactionId.trim().toUpperCase()}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Open receipt in new tab
+                    </a>
+                  )}
+                  {(showHtmlPaste || receiptHtml) && (
+                    <div className={styles.pasteGroup}>
+                      <label htmlFor="receiptHtml">Receipt HTML (if auto-verify fails)</label>
+                      <textarea
+                        id="receiptHtml"
+                        value={receiptHtml}
+                        onChange={(e) => setReceiptHtml(e.target.value)}
+                        placeholder="Open the receipt link above, press Ctrl+U (view source), copy everything, and paste here."
+                        className={styles.textarea}
+                        rows={5}
+                      />
+                      <p className={styles.pasteHint}>
+                        Telebirr blocks direct browser access from this site. If verification fails, paste the full page source from your receipt.
+                      </p>
+                    </div>
+                  )}
+                  {error && <div className={styles.errorText}>{error}</div>}
                 </div>
                 
                 <button type="submit" className={styles.paidBtn} disabled={loading}>

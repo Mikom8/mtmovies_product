@@ -34,7 +34,7 @@ const PLANS = [
     ]
   },
   {
-    name: 'Popular', price: 2, featured: true, features: [
+    name: 'Popular', price: 250, featured: true, features: [
       { text: 'Full HD (1080p)', ok: true },
       { text: '2 screens at once', ok: true },
       { text: 'Amharic subtitles', ok: true },
