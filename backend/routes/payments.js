@@ -306,6 +306,39 @@ router.post('/verify', protect, async (req, res) => {
   }
 });
 
+// Proxy endpoint to fetch receipt HTML (bypasses CORS for client)
+router.get('/fetch-receipt/:receiptNo', protect, async (req, res) => {
+  try {
+    const { receiptNo } = req.params;
+    const normalizedReceiptNo = String(receiptNo).trim().toUpperCase();
+    
+    if (!/^[A-Z0-9]{6,20}$/.test(normalizedReceiptNo)) {
+      return res.status(400).json({ error: 'Invalid transaction ID format.' });
+    }
+
+    console.log(`[Payment] Proxy fetching receipt for: ${normalizedReceiptNo}`);
+    
+    let htmlAsString;
+    try {
+      htmlAsString = await fetchReceiptIsolated(normalizedReceiptNo);
+    } catch (e) {
+      console.error('[Payment] Proxy fetch failed:', e.message);
+      return res.status(400).json({
+        error: 'Could not fetch receipt from Telebirr. The server may be down.',
+        code: 'FETCH_FAILED',
+        details: e.message
+      });
+    }
+
+    // Return the HTML to the client
+    res.set('Content-Type', 'text/html');
+    res.send(htmlAsString);
+  } catch (err) {
+    console.error('Proxy Fetch Error:', err);
+    res.status(500).json({ error: 'Failed to fetch receipt.' });
+  }
+});
+
 router.post('/verify-client', protect, async (req, res) => {
   try {
     const { receiptNo, receiptData, expectedAmount, planName } = req.body;

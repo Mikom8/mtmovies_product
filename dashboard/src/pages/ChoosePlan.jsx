@@ -78,35 +78,33 @@ export default function ChoosePlan() {
       const token = localStorage.getItem('mt_token');
       const receiptNo = transactionId.trim().toUpperCase();
 
-      // Fetch receipt HTML from client side (bypasses server network issues)
+      // Fetch receipt HTML via backend proxy
       setError('Fetching receipt from Telebirr...');
-      
-      const receiptUrl = `https://transactioninfo.ethiotelecom.et/receipt/${encodeURIComponent(receiptNo)}`;
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(receiptUrl)}`;
       
       let htmlContent;
       try {
-        const receiptRes = await fetch(proxyUrl, {
+        const receiptRes = await fetch(`${API_BASE_URL}/payments/fetch-receipt/${receiptNo}`, {
           method: 'GET',
           headers: {
-            'Accept': 'text/html',
+            'Authorization': `Bearer ${token}`
           }
         });
         
         if (!receiptRes.ok) {
-          throw new Error('Could not fetch receipt from Telebirr');
+          const errData = await receiptRes.json();
+          throw new Error(errData.error || 'Could not fetch receipt from Telebirr');
         }
         
         htmlContent = await receiptRes.text();
       } catch (fetchErr) {
-        throw new Error('Unable to fetch receipt. Please check your transaction ID and try again.');
+        throw new Error(fetchErr.message || 'Unable to fetch receipt. Please check your transaction ID and try again.');
       }
 
       // Parse the HTML to extract receipt data
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlContent, 'text/html');
       
-      // Extract data from the HTML (based on the structure you showed)
+      // Extract data from the HTML
       const extractText = (selector) => {
         const elem = doc.querySelector(selector);
         return elem ? elem.textContent.trim() : '';
