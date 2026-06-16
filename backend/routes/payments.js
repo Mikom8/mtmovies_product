@@ -16,13 +16,16 @@ const fetchReceiptOnce = (receiptNo) =>
       path: `/receipt/${encodeURIComponent(receiptNo)}`,
       method: 'GET',
       rejectUnauthorized: false,
-      timeout: 30000, // Increased to 30 seconds
+      timeout: 45000, // Increased to 45 seconds for very slow responses
       headers: {
         'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
-        Connection: 'close',
+        'Accept-Encoding': 'gzip, deflate, br',
+        Connection: 'keep-alive',
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
       },
     };
 
@@ -38,7 +41,7 @@ const fetchReceiptOnce = (receiptNo) =>
               path: `${nextUrl.pathname}${nextUrl.search}`,
               method: 'GET',
               rejectUnauthorized: false,
-              timeout: 30000, // Increased to 30 seconds
+              timeout: 45000,
               headers: options.headers,
             },
             (redirectRes) => {
@@ -61,7 +64,7 @@ const fetchReceiptOnce = (receiptNo) =>
           );
           redirectReq.on('timeout', () => {
             redirectReq.destroy();
-            reject(new Error('Redirect request timed out after 30 seconds'));
+            reject(new Error('Redirect request timed out after 45 seconds'));
           });
           redirectReq.on('error', (err) => {
             reject(new Error(`Redirect request failed: ${err.message}`));
@@ -92,7 +95,7 @@ const fetchReceiptOnce = (receiptNo) =>
 
     req.on('timeout', () => {
       req.destroy();
-      reject(new Error('Initial request timed out after 30 seconds. Telebirr server may be slow or down.'));
+      reject(new Error('Initial request timed out after 45 seconds. Telebirr server may be slow or down.'));
     });
     req.on('error', (err) => {
       reject(new Error(`Network error: ${err.message}`));
@@ -213,25 +216,32 @@ router.post('/verify', protect, async (req, res) => {
     } catch (e) {
       console.error('[Payment] Telebirr fetch failed after all retries:', e.message);
       
+      // Create a pending transaction for manual review
+      const pendingTx = new Transaction({
+        receiptNo: normalizedReceiptNo,
+        amount: parseFloat(expectedAmount),
+        payerName: 'Pending Verification',
+        usedBy: req.user._id,
+        status: 'pending',
+        planRequested: planName,
+      });
+      await pendingTx.save();
+      
       // Provide more specific error messages
-      let errorMessage = RECEIPT_FETCH_ERROR;
-      let errorCode = 'RECEIPT_FETCH_FAILED';
+      let errorMessage = 'Telebirr server is not responding. Your payment has been recorded for manual verification. Our team will verify and activate your plan within 24 hours.';
+      let errorCode = 'TELEBIRR_DOWN_PENDING';
       
       if (e.message.includes('timed out')) {
-        errorMessage = 'Telebirr server is responding slowly. Please wait a moment and try again.';
-        errorCode = 'TIMEOUT';
-      } else if (e.message.includes('Network error')) {
-        errorMessage = 'Network connection issue. Please check your internet and try again.';
-        errorCode = 'NETWORK_ERROR';
-      } else if (e.message.includes('HTTP')) {
-        errorMessage = 'Telebirr server error. Please try again in a few minutes.';
-        errorCode = 'SERVER_ERROR';
+        errorMessage = 'Telebirr server is responding slowly. Your payment request has been saved for manual verification. We will activate your plan within 24 hours.';
+        errorCode = 'TIMEOUT_PENDING';
       }
       
-      return res.status(400).json({
+      return res.status(202).json({
         error: errorMessage,
         code: errorCode,
-        details: e.message
+        receiptNo: normalizedReceiptNo,
+        status: 'pending',
+        details: 'Please contact support with your transaction ID if not activated within 24 hours.'
       });
     }
 
@@ -276,6 +286,7 @@ router.post('/verify', protect, async (req, res) => {
       amount: receipt.amount,
       payerName: receipt.payerName,
       usedBy: req.user._id,
+      status: 'completed',
     });
     await tx.save();
 

@@ -18,6 +18,14 @@ const transactionSchema = new mongoose.Schema({
   payerName: {
     type: String
   },
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'rejected'],
+    default: 'completed'
+  },
+  planRequested: {
+    type: String
+  },
   usedAt: {
     type: Date,
     default: Date.now
