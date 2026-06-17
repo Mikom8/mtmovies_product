@@ -52,8 +52,6 @@ export default function ChoosePlan() {
   const [transactionId, setTransactionId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [pasteMode, setPasteMode] = useState(false);
-  const [pastedHTML, setPastedHTML] = useState('');
 
   const handleLogout = () => {
     logout();
@@ -228,66 +226,6 @@ export default function ChoosePlan() {
     }
   };
 
-  const handleSubmitPastedHTML = async (e) => {
-    e.preventDefault();
-    if (!pastedHTML.trim()) return setError('Paste the receipt HTML first');
-
-    setError('');
-    setLoading(true);
-
-    try {
-      const token = localStorage.getItem('mt_token');
-      const receiptNo = transactionId.trim().toUpperCase();
-
-      // parse from pasted HTML using same regexes
-      const html = pastedHTML;
-      const payerNameText = html.match(/የከፋይ ስም\/Payer Name[\s\S]*?<td[^>]*>\s*([^<]+)/i);
-      const payerName = payerNameText ? payerNameText[1].trim() : 'Unknown';
-
-      const receiverNameText = html.match(/የገንዘብ ተቀባይ ስም\/Credited Party name[\s\S]*?<td[^>]*>\s*([^<]+)/i);
-      const receiverName = receiverNameText ? receiverNameText[1].replace(/<\/?label>/gi, '').trim() : '';
-
-      const receiverPhoneText = html.match(/የገንዘብ ተቀባይ ቴሌብር ቁ\.\/Credited party account no[\s\S]*?<td[^>]*>\s*([\d*]+)/i);
-      const receiverPhone = receiverPhoneText ? receiverPhoneText[1].trim() : '';
-
-      const statusText = html.match(/የክፍያው ሁኔታ\/transaction status[\s\S]*?<td[^>]*>\s*([^<]+)/i);
-      const status = statusText ? statusText[1].trim() : '';
-
-      const settledAmountText = html.match(/የተከፈለው መጠን\/Settled Amount[\s\S]*?<td[^>]*>\s*(\d+(?:\.\d+)?)\s*Birr/i);
-      const settledAmount = settledAmountText ? parseFloat(settledAmountText[1]) : 0;
-
-      const receiptData = { payerName, receiverName, receiverPhone, status, settledAmount, amount: settledAmount };
-
-      setError('Verifying payment...');
-
-      const res = await fetch(`${API_BASE_URL}/payments/verify-client`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ receiptNo, receiptData, expectedAmount: selectedPlan.price, planName: selectedPlan.name })
-      });
-
-      const data = await res.json();
-      if (res.status === 202 || data?.status === 'pending' || /PENDING|TIMEOUT/.test(data?.code)) {
-        setError(data.error || 'Your payment is pending manual verification.');
-        setLoading(false);
-        navigate('/browse');
-        return;
-      }
-
-      if (!res.ok) throw new Error(data.error || 'Verification failed');
-
-      if (updateUser && data.user) updateUser(data.user);
-      navigate('/browse');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className={styles.page}>
       <Navbar user={user} onLogout={handleLogout} hideLinks />
@@ -376,60 +314,25 @@ export default function ChoosePlan() {
             </div>
 
             <div className={styles.paymentCard}>
-              <div style={{ marginBottom: 12 }}>
-                <button className={styles.planBtn} onClick={() => setPasteMode(!pasteMode)}>
-                  {pasteMode ? 'Use Transaction ID' : 'Paste receipt HTML'}
+              <form onSubmit={handleSubmitTransaction}>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="txId">Transaction ID</label>
+                  <input
+                    type="text"
+                    id="txId"
+                    value={transactionId}
+                    onChange={(e) => setTransactionId(e.target.value)}
+                    placeholder="e.g. DFG60WWREQ"
+                    required
+                    className={styles.input}
+                  />
+                  {error && <div className={styles.errorText}>{error}</div>}
+                </div>
+                
+                <button type="submit" className={styles.paidBtn} disabled={loading}>
+                  {loading ? 'Verifying...' : 'Verify Transaction'}
                 </button>
-              </div>
-
-              {pasteMode ? (
-                <form onSubmit={handleSubmitPastedHTML}>
-                  <div className={styles.inputGroup}>
-                    <label htmlFor="pastedHtml">Paste receipt HTML</label>
-                    <textarea
-                      id="pastedHtml"
-                      value={pastedHTML}
-                      onChange={(e) => setPastedHTML(e.target.value)}
-                      placeholder="Paste the full HTML source of the Telebirr receipt page here"
-                      required
-                      className={styles.textarea}
-                      rows={10}
-                    />
-                    {error && <div className={styles.errorText}>{error}</div>}
-                  </div>
-
-                  <button type="submit" className={styles.paidBtn} disabled={loading}>
-                    {loading ? 'Verifying...' : 'Submit Pasted Receipt'}
-                  </button>
-                </form>
-              ) : (
-                <form onSubmit={handleSubmitTransaction}>
-                  <div className={styles.inputGroup}>
-                    <label htmlFor="txId">Transaction ID</label>
-                    <input
-                      type="text"
-                      id="txId"
-                      value={transactionId}
-                      onChange={(e) => setTransactionId(e.target.value)}
-                      onPaste={(e) => {
-                        const pasted = (e.clipboardData || window.clipboardData).getData('text').trim();
-                        if (!pasted) return;
-                        setTransactionId(pasted);
-                        // wait a moment for state to update then submit
-                        setTimeout(() => handleSubmitTransaction({ preventDefault: () => {} }), 50);
-                      }}
-                      placeholder="e.g. DFG60WWREQ"
-                      required
-                      className={styles.input}
-                    />
-                    {error && <div className={styles.errorText}>{error}</div>}
-                  </div>
-                  
-                  <button type="submit" className={styles.paidBtn} disabled={loading}>
-                    {loading ? 'Verifying...' : 'Verify Transaction'}
-                  </button>
-                </form>
-              )}
+              </form>
             </div>
           </div>
         )}
