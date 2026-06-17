@@ -89,12 +89,22 @@ export default function ChoosePlan() {
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
+        // If backend returns 202, Telebirr is unavailable — show pending verification
+        if (receiptRes.status === 202) {
+          const pending = await receiptRes.json().catch(() => ({}));
+          setError(pending.error || 'Payment is pending manual verification.');
+          setLoading(false);
+          // Navigate back to browse or keep user on page as desired
+          navigate('/browse');
+          return;
+        }
+
         if (!receiptRes.ok) {
-          const errData = await receiptRes.json();
+          const errData = await receiptRes.json().catch(() => ({}));
           throw new Error(errData.error || 'Could not fetch receipt from Telebirr');
         }
-        
+
         htmlContent = await receiptRes.text();
       } catch (fetchErr) {
         throw new Error(fetchErr.message || 'Unable to fetch receipt. Please check your transaction ID and try again.');
@@ -163,6 +173,14 @@ export default function ChoosePlan() {
       });
 
       const data = await res.json();
+
+      // Handle server-side pending verification responses
+      if (res.status === 202 || data?.status === 'pending' || /PENDING|TIMEOUT/.test(data?.code)) {
+        setError(data.error || 'Your payment is pending manual verification.');
+        setLoading(false);
+        navigate('/browse');
+        return;
+      }
 
       if (!res.ok) {
         throw new Error(data.error || 'Verification failed');
