@@ -3,6 +3,7 @@ const router = express.Router();
 const https = require('https');
 const { protect } = require('../middleware/auth');
 const Transaction = require('../models/Transaction');
+const axios = require('axios');
 const { utils: { parseFromHTML } } = require('telebirr-receipt');
 
 const RECEIPT_FETCH_ERROR =
@@ -119,6 +120,36 @@ async function fetchReceiptIsolated(receiptNo, attempts = 4) {
       }
     }
   }
+  // As a last resort, try Axios (some hosts respond better to standard HTTP clients)
+  try {
+    console.log(`[Payment] All attempts failed; trying axios fallback for ${receiptNo}`);
+    const url = `https://transactioninfo.ethiotelecom.et/receipt/${encodeURIComponent(receiptNo)}`;
+    const axiosRes = await axios.get(url, {
+      timeout: 45000,
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+      maxRedirects: 5,
+      responseType: 'text',
+      validateStatus: (s) => s < 500,
+    });
+
+    if (axiosRes.status >= 400) {
+      throw new Error(`Axios fetch returned HTTP ${axiosRes.status}`);
+    }
+
+    if (!axiosRes.data || String(axiosRes.data).length < 100) {
+      throw new Error('Axios fetch returned empty/short response');
+    }
+
+    return axiosRes.data;
+  } catch (axErr) {
+    console.error('[Payment] Axios fallback failed:', axErr.message || axErr);
+  }
+
   throw lastError;
 }
 
