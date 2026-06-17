@@ -78,114 +78,10 @@ export default function ChoosePlan() {
       const token = localStorage.getItem('mt_token');
       const receiptNo = transactionId.trim().toUpperCase();
 
-      // Try fetching receipt directly from the user's browser first (faster when user can access Telebirr).
-      setError('Fetching receipt from Telebirr...');
-
-      let htmlContent;
-      const teleUrl = `https://transactioninfo.ethiotelecom.et/receipt/${encodeURIComponent(receiptNo)}`;
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000); // 8s client-side timeout
-
-        const directRes = await fetch(teleUrl, {
-          method: 'GET',
-          mode: 'cors',
-          headers: { Accept: 'text/html' },
-          signal: controller.signal,
-        });
-        clearTimeout(timeout);
-
-        if (directRes.ok) {
-          const ct = directRes.headers.get('content-type') || '';
-          if (ct.includes('text/html')) {
-            htmlContent = await directRes.text();
-          }
-        }
-      } catch (clientErr) {
-        // Client-side fetch may fail due to CORS or network restrictions; fallback to proxy below
-        console.debug('Client-side Telebirr fetch failed, will fallback to server proxy:', clientErr && clientErr.message);
-      }
-
-      // If client couldn't fetch the HTML, use backend proxy (handles CORS and geo-restrictions)
-      if (!htmlContent) {
-        try {
-          const receiptRes = await fetch(`${API_BASE_URL}/payments/fetch-receipt/${receiptNo}`, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-
-          // If backend returns 202, Telebirr is unavailable — show pending verification
-          if (receiptRes.status === 202) {
-            const pending = await receiptRes.json().catch(() => ({}));
-            setError(pending.error || 'Payment is pending manual verification.');
-            setLoading(false);
-            // Navigate back to browse or keep user on page as desired
-            navigate('/browse');
-            return;
-          }
-
-          if (!receiptRes.ok) {
-            const errData = await receiptRes.json().catch(() => ({}));
-            throw new Error(errData.error || 'Could not fetch receipt from Telebirr');
-          }
-
-          htmlContent = await receiptRes.text();
-        } catch (fetchErr) {
-          throw new Error(fetchErr.message || 'Unable to fetch receipt. Please check your transaction ID and try again.');
-        }
-      }
-
-      // Parse the HTML to extract receipt data
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlContent, 'text/html');
-      
-      // Extract data from the HTML
-      const extractText = (selector) => {
-        const elem = doc.querySelector(selector);
-        return elem ? elem.textContent.trim() : '';
-      };
-      
-      // Find payer name
-      const payerNameText = htmlContent.match(/የከፋይ ስም\/Payer Name[\s\S]*?<td[^>]*>\s*([^<]+)/i);
-      const payerName = payerNameText ? payerNameText[1].trim() : 'Unknown';
-      
-      // Find receiver name
-      const receiverNameText = htmlContent.match(/የገንዘብ ተቀባይ ስም\/Credited Party name[\s\S]*?<td[^>]*>\s*([^<]+)/i);
-      const receiverName = receiverNameText ? receiverNameText[1].replace(/<\/?label>/gi, '').trim() : '';
-      
-      // Find receiver phone
-      const receiverPhoneText = htmlContent.match(/የገንዘብ ተቀባይ ቴሌብር ቁ\.\/Credited party account no[\s\S]*?<td[^>]*>\s*([\d*]+)/i);
-      const receiverPhone = receiverPhoneText ? receiverPhoneText[1].trim() : '';
-      
-      // Find status
-      const statusText = htmlContent.match(/የክፍያው ሁኔታ\/transaction status[\s\S]*?<td[^>]*>\s*([^<]+)/i);
-      const status = statusText ? statusText[1].trim() : '';
-      
-      // Find settled amount
-      const settledAmountText = htmlContent.match(/የተከፈለው መጠን\/Settled Amount[\s\S]*?<td[^>]*>\s*(\d+(?:\.\d+)?)\s*Birr/i);
-      const settledAmount = settledAmountText ? parseFloat(settledAmountText[1]) : 0;
-      
-      const receiptData = {
-        payerName,
-        receiverName,
-        receiverPhone,
-        status,
-        settledAmount,
-        amount: settledAmount
-      };
-      
-      console.log('Parsed receipt data:', receiptData);
-      
-      if (!settledAmount) {
-        throw new Error('Could not parse receipt amount. Please try again or contact support.');
-      }
-      
+      // Call backend to verify (backend will use proxy if configured)
       setError('Verifying payment...');
 
-      // Send parsed data to server for validation
-      const res = await fetch(`${API_BASE_URL}/payments/verify-client`, {
+      const res = await fetch(`${API_BASE_URL}/payments/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -193,21 +89,12 @@ export default function ChoosePlan() {
         },
         body: JSON.stringify({
           receiptNo,
-          receiptData,
           expectedAmount: selectedPlan.price,
           planName: selectedPlan.name,
         })
       });
 
       const data = await res.json();
-
-      // Handle server-side pending verification responses
-      if (res.status === 202 || data?.status === 'pending' || /PENDING|TIMEOUT/.test(data?.code)) {
-        setError(data.error || 'Your payment is pending manual verification.');
-        setLoading(false);
-        navigate('/browse');
-        return;
-      }
 
       if (!res.ok) {
         throw new Error(data.error || 'Verification failed');
@@ -218,9 +105,12 @@ export default function ChoosePlan() {
         updateUser(data.user);
       }
       
+      alert('Payment verified! Your plan is now active.');
       navigate('/browse');
+      
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Verification failed. Please try again or contact support.');
+      console.error('Payment verification error:', err);
     } finally {
       setLoading(false);
     }
@@ -310,13 +200,13 @@ export default function ChoosePlan() {
           <div className={styles.stepContainer}>
             <div className={styles.header}>
               <h1 className={styles.title}>Verify Payment</h1>
-              <p className={styles.subtitle}>Please enter the transaction ID from your Telebirr receipt.</p>
+              <p className={styles.subtitle}>Enter your transaction details from the Telebirr receipt.</p>
             </div>
 
             <div className={styles.paymentCard}>
               <form onSubmit={handleSubmitTransaction}>
                 <div className={styles.inputGroup}>
-                  <label htmlFor="txId">Transaction ID</label>
+                  <label htmlFor="txId">Transaction ID *</label>
                   <input
                     type="text"
                     id="txId"
@@ -326,8 +216,9 @@ export default function ChoosePlan() {
                     required
                     className={styles.input}
                   />
-                  {error && <div className={styles.errorText}>{error}</div>}
                 </div>
+                
+                {error && <div className={styles.errorText}>{error}</div>}
                 
                 <button type="submit" className={styles.paidBtn} disabled={loading}>
                   {loading ? 'Verifying...' : 'Verify Transaction'}

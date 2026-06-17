@@ -97,6 +97,17 @@ const PlanScreen = ({ navigation }) => {
         planName: selectedPlan.name,
       });
 
+      // Handle pending verification responses (202) or explicit pending codes
+      if (res.status === 202 || res.data?.status === "pending" || /PENDING|TIMEOUT/.test(res.data?.code)) {
+        setLoading(false);
+        Alert.alert(
+          "Pending Verification",
+          res.data?.error || "Your payment is pending manual verification. We'll activate your plan once verified.",
+          [{ text: "OK", onPress: () => navigation.navigate("Main") }]
+        );
+        return;
+      }
+
       if (updateUser && res.data.user) {
         updateUser(res.data.user);
       }
@@ -105,9 +116,7 @@ const PlanScreen = ({ navigation }) => {
         { text: "Browse", onPress: () => navigation.navigate("Main") },
       ]);
     } catch (err) {
-      setError(
-        err.response?.data?.error || "Verification failed. Please try again.",
-      );
+      setError(err.response?.data?.error || "Verification failed. Please try again.");
     } finally {
       setLoading(false);
     }

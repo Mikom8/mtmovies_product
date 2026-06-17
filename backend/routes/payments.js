@@ -6,8 +6,34 @@ const Transaction = require('../models/Transaction');
 const axios = require('axios');
 const { utils: { parseFromHTML } } = require('telebirr-receipt');
 
+// Telebirr proxy URL - Deploy telebirr-proxy folder separately and set this URL
+const TELEBIRR_PROXY_URL = process.env.TELEBIRR_PROXY_URL || null;
+
 const RECEIPT_FETCH_ERROR =
   'Could not verify your Telebirr receipt. Check the transaction ID and try again in a moment.';
+
+// Fetch via proxy if available, otherwise direct
+const fetchReceiptViaProxy = async (receiptNo) => {
+  if (!TELEBIRR_PROXY_URL) {
+    throw new Error('Telebirr proxy not configured');
+  }
+  
+  const proxyUrl = `${TELEBIRR_PROXY_URL}/fetch/${receiptNo}`;
+  console.log(`[Payment] Fetching via proxy: ${proxyUrl}`);
+  
+  const response = await axios.get(proxyUrl, {
+    timeout: 35000,
+    headers: {
+      'Accept': 'text/html'
+    }
+  });
+  
+  if (response.status !== 200) {
+    throw new Error(`Proxy returned ${response.status}`);
+  }
+  
+  return response.data;
+};
 
 const fetchReceiptOnce = (receiptNo) =>
   new Promise((resolve, reject) => {
@@ -106,6 +132,20 @@ const fetchReceiptOnce = (receiptNo) =>
 
 async function fetchReceiptIsolated(receiptNo, attempts = 4) {
   let lastError;
+  
+  // Try proxy first if available
+  if (TELEBIRR_PROXY_URL) {
+    try {
+      console.log(`[Payment] Using proxy to fetch receipt ${receiptNo}`);
+      return await fetchReceiptViaProxy(receiptNo);
+    } catch (proxyErr) {
+      console.error(`[Payment] Proxy fetch failed:`, proxyErr.message);
+      lastError = proxyErr;
+      // Fall through to direct attempts
+    }
+  }
+  
+  // Try direct fetch as fallback
   for (let i = 0; i < attempts; i += 1) {
     try {
       console.log(`[Payment] Attempt ${i + 1}/${attempts} to fetch receipt ${receiptNo}`);
@@ -334,6 +374,53 @@ router.post('/verify', protect, async (req, res) => {
   } catch (err) {
     console.error('Payment Verification Error:', err);
     res.status(500).json({ error: 'Verification failed. Please try again or contact support.' });
+  }
+});
+
+// Submit payment for manual verification
+router.post('/submit-pending', protect, async (req, res) => {
+  try {
+    const { receiptNo, expectedAmount, planName } = req.body;
+
+    if (!receiptNo || expectedAmount == null || !planName) {
+      return res.status(400).json({ error: 'Missing payment details.' });
+    }
+
+    const normalizedReceiptNo = String(receiptNo).trim().toUpperCase();
+    if (!/^[A-Z0-9]{6,20}$/.test(normalizedReceiptNo)) {
+      return res.status(400).json({ error: 'Invalid transaction ID format.' });
+    }
+
+    // Check if already exists
+    const existingTx = await Transaction.findOne({ receiptNo: normalizedReceiptNo });
+    if (existingTx) {
+      if (existingTx.status === 'pending') {
+        return res.status(400).json({ error: 'This transaction is already pending verification.' });
+      }
+      return res.status(400).json({ error: 'This transaction ID has already been used.' });
+    }
+
+    // Create pending transaction
+    const tx = new Transaction({
+      receiptNo: normalizedReceiptNo,
+      amount: parseFloat(expectedAmount),
+      payerName: 'Pending Verification',
+      usedBy: req.user._id,
+      status: 'pending',
+      planRequested: planName,
+    });
+    await tx.save();
+
+    console.log(`[Payment] Created pending transaction: ${normalizedReceiptNo} for user ${req.user.email}`);
+
+    res.json({ 
+      message: 'Payment submitted for verification. You will be notified within 24 hours.',
+      receiptNo: normalizedReceiptNo,
+      status: 'pending'
+    });
+  } catch (err) {
+    console.error('Submit Pending Error:', err);
+    res.status(500).json({ error: 'Submission failed. Please try again.' });
   }
 });
 
