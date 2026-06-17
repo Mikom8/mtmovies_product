@@ -80,36 +80,63 @@ export default function ChoosePlan() {
       const token = localStorage.getItem('mt_token');
       const receiptNo = transactionId.trim().toUpperCase();
 
-      // Fetch receipt HTML via backend proxy
+      // Try fetching receipt directly from the user's browser first (faster when user can access Telebirr).
       setError('Fetching receipt from Telebirr...');
-      
+
       let htmlContent;
+      const teleUrl = `https://transactioninfo.ethiotelecom.et/receipt/${encodeURIComponent(receiptNo)}`;
       try {
-        const receiptRes = await fetch(`${API_BASE_URL}/payments/fetch-receipt/${receiptNo}`, {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000); // 8s client-side timeout
+
+        const directRes = await fetch(teleUrl, {
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          mode: 'cors',
+          headers: { Accept: 'text/html' },
+          signal: controller.signal,
         });
+        clearTimeout(timeout);
 
-        // If backend returns 202, Telebirr is unavailable — show pending verification
-        if (receiptRes.status === 202) {
-          const pending = await receiptRes.json().catch(() => ({}));
-          setError(pending.error || 'Payment is pending manual verification.');
-          setLoading(false);
-          // Navigate back to browse or keep user on page as desired
-          navigate('/browse');
-          return;
+        if (directRes.ok) {
+          const ct = directRes.headers.get('content-type') || '';
+          if (ct.includes('text/html')) {
+            htmlContent = await directRes.text();
+          }
         }
+      } catch (clientErr) {
+        // Client-side fetch may fail due to CORS or network restrictions; fallback to proxy below
+        console.debug('Client-side Telebirr fetch failed, will fallback to server proxy:', clientErr && clientErr.message);
+      }
 
-        if (!receiptRes.ok) {
-          const errData = await receiptRes.json().catch(() => ({}));
-          throw new Error(errData.error || 'Could not fetch receipt from Telebirr');
+      // If client couldn't fetch the HTML, use backend proxy (handles CORS and geo-restrictions)
+      if (!htmlContent) {
+        try {
+          const receiptRes = await fetch(`${API_BASE_URL}/payments/fetch-receipt/${receiptNo}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          // If backend returns 202, Telebirr is unavailable — show pending verification
+          if (receiptRes.status === 202) {
+            const pending = await receiptRes.json().catch(() => ({}));
+            setError(pending.error || 'Payment is pending manual verification.');
+            setLoading(false);
+            // Navigate back to browse or keep user on page as desired
+            navigate('/browse');
+            return;
+          }
+
+          if (!receiptRes.ok) {
+            const errData = await receiptRes.json().catch(() => ({}));
+            throw new Error(errData.error || 'Could not fetch receipt from Telebirr');
+          }
+
+          htmlContent = await receiptRes.text();
+        } catch (fetchErr) {
+          throw new Error(fetchErr.message || 'Unable to fetch receipt. Please check your transaction ID and try again.');
         }
-
-        htmlContent = await receiptRes.text();
-      } catch (fetchErr) {
-        throw new Error(fetchErr.message || 'Unable to fetch receipt. Please check your transaction ID and try again.');
       }
 
       // Parse the HTML to extract receipt data
