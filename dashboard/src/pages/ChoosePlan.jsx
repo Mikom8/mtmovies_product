@@ -88,7 +88,7 @@ export default function ChoosePlan() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          receiptNo,
+          transactionId: receiptNo,
           expectedAmount: selectedPlan.price,
           planName: selectedPlan.name,
         })
@@ -97,7 +97,7 @@ export default function ChoosePlan() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Verification failed');
+        throw new Error(data.message || 'Verification failed');
       }
 
       // Update user plan in context
