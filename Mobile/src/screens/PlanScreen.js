@@ -89,36 +89,26 @@ const PlanScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const receiptNo = transactionId.trim().toUpperCase();
+      const transactionIdValue = transactionId.trim().toUpperCase();
 
-      const res = await client.post("/payments/verify", {
-        receiptNo,
+      const res = await client.post("/payments/submit", {
+        transactionId: transactionIdValue,
         expectedAmount: selectedPlan.price,
         planName: selectedPlan.name,
       });
 
-      // Handle pending verification responses (202) or explicit pending codes
-      if (res.status === 202 || res.data?.status === "pending" || /PENDING|TIMEOUT/.test(res.data?.code)) {
-        setLoading(false);
-        Alert.alert(
-          "Pending Verification",
-          res.data?.error || "Your payment is pending manual verification. We'll activate your plan once verified.",
-          [{ text: "OK", onPress: () => navigation.navigate("Main") }]
-        );
-        return;
-      }
-
-      if (updateUser && res.data.user) {
-        updateUser(res.data.user);
-      }
-
-      Alert.alert("Success", "Your payment has been verified successfully!", [
-        { text: "Browse", onPress: () => navigation.navigate("Main") },
-      ]);
-    } catch (err) {
-      setError(err.response?.data?.error || "Verification failed. Please try again.");
-    } finally {
       setLoading(false);
+      
+      // Payment submitted successfully - now pending admin verification
+      Alert.alert(
+        "✅ Payment Submitted",
+        "Your payment has been submitted for verification. We'll activate your plan within a few hours once our admin verifies it.",
+        [{ text: "OK", onPress: () => navigation.navigate("Main") }]
+      );
+    } catch (err) {
+      setLoading(false);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to submit payment. Please try again.";
+      setError(errorMessage);
     }
   };
 
@@ -295,9 +285,9 @@ const PlanScreen = ({ navigation }) => {
 
           {step === 3 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.title}>Verify Payment</Text>
+              <Text style={styles.title}>Submit Payment</Text>
               <Text style={styles.subtitle}>
-                Please enter the transaction ID from your Telebirr receipt.
+                Enter your Telebirr transaction ID. Our admin will verify it and activate your plan within a few hours.
               </Text>
 
               <View style={styles.paymentCard}>
@@ -332,7 +322,7 @@ const PlanScreen = ({ navigation }) => {
                   {loading ? (
                     <ActivityIndicator color="#000" />
                   ) : (
-                    <Text style={styles.paidBtnText}>Verify Transaction</Text>
+                    <Text style={styles.paidBtnText}>Submit Transaction</Text>
                   )}
                 </Pressable>
 
