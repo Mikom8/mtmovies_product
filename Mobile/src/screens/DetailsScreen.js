@@ -21,13 +21,13 @@ import client from "../api/client";
 import { useWatchlist } from "../context/WatchlistContext";
 import { useAuth } from "../context/AuthContext";
 import Toast from "../components/Toast";
-import Svg, { G, Path, Rect, Defs, ClipPath } from 'react-native-svg';
+import Svg, { G, Path, Rect, Defs, ClipPath } from "react-native-svg";
 
 const { width: W, height: H } = Dimensions.get("window");
 const HERO_H = H * 0.32;
 
 // ── Custom Watchlist Icons ────────────────────────────────────────────────────
-const AddToListIcon = ({ size = 24, color = '#fff' }) => (
+const AddToListIcon = ({ size = 24, color = "#fff" }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
     <Defs>
       <ClipPath id="clip_add">
@@ -35,14 +35,23 @@ const AddToListIcon = ({ size = 24, color = '#fff' }) => (
       </ClipPath>
     </Defs>
     <G clipPath="url(#clip_add)">
-      <Path d="M14.5 11.4004H9.5C9.09 11.4004 8.75 11.0604 8.75 10.6504C8.75 10.2404 9.09 9.90039 9.5 9.90039H14.5C14.91 9.90039 15.25 10.2404 15.25 10.6504C15.25 11.0604 14.91 11.4004 14.5 11.4004Z" fill={color} />
-      <Path d="M12 13.9609C11.59 13.9609 11.25 13.6209 11.25 13.2109V8.21094C11.25 7.80094 11.59 7.46094 12 7.46094C12.41 7.46094 12.75 7.80094 12.75 8.21094V13.2109C12.75 13.6209 12.41 13.9609 12 13.9609Z" fill={color} />
-      <Path d="M19.0701 22.75C18.5601 22.75 18.0001 22.6 17.4601 22.29L12.5801 19.58C12.2901 19.42 11.7201 19.42 11.4301 19.58L6.55007 22.29C5.56007 22.84 4.55007 22.9 3.78007 22.44C3.01007 21.99 2.57007 21.08 2.57007 19.95V5.86C2.57007 3.32 4.64007 1.25 7.18007 1.25H16.8301C19.3701 1.25 21.4401 3.32 21.4401 5.86V19.95C21.4401 21.08 21.0001 21.99 20.2301 22.44C19.8801 22.65 19.4801 22.75 19.0701 22.75ZM12.0001 17.96C12.4701 17.96 12.9301 18.06 13.3001 18.27L18.1801 20.98C18.6901 21.27 19.1601 21.33 19.4601 21.15C19.7601 20.97 19.9301 20.54 19.9301 19.95V5.86C19.9301 4.15 18.5301 2.75 16.8201 2.75H7.18007C5.47007 2.75 4.07007 4.15 4.07007 5.86V19.95C4.07007 20.54 4.24007 20.98 4.54007 21.15C4.84007 21.32 5.31007 21.27 5.82007 20.98L10.7001 18.27C11.0701 18.06 11.5301 17.96 12.0001 17.96Z" fill={color} />
+      <Path
+        d="M14.5 11.4004H9.5C9.09 11.4004 8.75 11.0604 8.75 10.6504C8.75 10.2404 9.09 9.90039 9.5 9.90039H14.5C14.91 9.90039 15.25 10.2404 15.25 10.6504C15.25 11.0604 14.91 11.4004 14.5 11.4004Z"
+        fill={color}
+      />
+      <Path
+        d="M12 13.9609C11.59 13.9609 11.25 13.6209 11.25 13.2109V8.21094C11.25 7.80094 11.59 7.46094 12 7.46094C12.41 7.46094 12.75 7.80094 12.75 8.21094V13.2109C12.75 13.6209 12.41 13.9609 12 13.9609Z"
+        fill={color}
+      />
+      <Path
+        d="M19.0701 22.75C18.5601 22.75 18.0001 22.6 17.4601 22.29L12.5801 19.58C12.2901 19.42 11.7201 19.42 11.4301 19.58L6.55007 22.29C5.56007 22.84 4.55007 22.9 3.78007 22.44C3.01007 21.99 2.57007 21.08 2.57007 19.95V5.86C2.57007 3.32 4.64007 1.25 7.18007 1.25H16.8301C19.3701 1.25 21.4401 3.32 21.4401 5.86V19.95C21.4401 21.08 21.0001 21.99 20.2301 22.44C19.8801 22.65 19.4801 22.75 19.0701 22.75ZM12.0001 17.96C12.4701 17.96 12.9301 18.06 13.3001 18.27L18.1801 20.98C18.6901 21.27 19.1601 21.33 19.4601 21.15C19.7601 20.97 19.9301 20.54 19.9301 19.95V5.86C19.9301 4.15 18.5301 2.75 16.8201 2.75H7.18007C5.47007 2.75 4.07007 4.15 4.07007 5.86V19.95C4.07007 20.54 4.24007 20.98 4.54007 21.15C4.84007 21.32 5.31007 21.27 5.82007 20.98L10.7001 18.27C11.0701 18.06 11.5301 17.96 12.0001 17.96Z"
+        fill={color}
+      />
     </G>
   </Svg>
 );
 
-const AddedToListIcon = ({ size = 24, color = '#E50914' }) => (
+const AddedToListIcon = ({ size = 24, color = "#E50914" }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
     <Defs>
       <ClipPath id="clip_added">
@@ -50,7 +59,10 @@ const AddedToListIcon = ({ size = 24, color = '#E50914' }) => (
       </ClipPath>
     </Defs>
     <G clipPath="url(#clip_added)">
-      <Path d="M16.8201 1.91016H7.18007C5.06007 1.91016 3.32007 3.65016 3.32007 5.77016V19.8602C3.32007 21.6602 4.61007 22.4202 6.19007 21.5502L11.0701 18.8402C11.5901 18.5502 12.4301 18.5502 12.9401 18.8402L17.8201 21.5502C19.4001 22.4302 20.6901 21.6702 20.6901 19.8602V5.77016C20.6801 3.65016 18.9501 1.91016 16.8201 1.91016ZM15.6201 9.03016L11.6201 13.0302C11.4701 13.1802 11.2801 13.2502 11.0901 13.2502C10.9001 13.2502 10.7101 13.1802 10.5601 13.0302L9.06007 11.5302C8.77007 11.2402 8.77007 10.7602 9.06007 10.4702C9.35007 10.1802 9.83007 10.1802 10.1201 10.4702L11.0901 11.4402L14.5601 7.97016C14.8501 7.68016 15.3301 7.68016 15.6201 7.97016C15.9101 8.26016 15.9101 8.74016 15.6201 9.03016Z" fill={color} />
+      <Path
+        d="M16.8201 1.91016H7.18007C5.06007 1.91016 3.32007 3.65016 3.32007 5.77016V19.8602C3.32007 21.6602 4.61007 22.4202 6.19007 21.5502L11.0701 18.8402C11.5901 18.5502 12.4301 18.5502 12.9401 18.8402L17.8201 21.5502C19.4001 22.4302 20.6901 21.6702 20.6901 19.8602V5.77016C20.6801 3.65016 18.9501 1.91016 16.8201 1.91016ZM15.6201 9.03016L11.6201 13.0302C11.4701 13.1802 11.2801 13.2502 11.0901 13.2502C10.9001 13.2502 10.7101 13.1802 10.5601 13.0302L9.06007 11.5302C8.77007 11.2402 8.77007 10.7602 9.06007 10.4702C9.35007 10.1802 9.83007 10.1802 10.1201 10.4702L11.0901 11.4402L14.5601 7.97016C14.8501 7.68016 15.3301 7.68016 15.6201 7.97016C15.9101 8.26016 15.9101 8.74016 15.6201 9.03016Z"
+        fill={color}
+      />
     </G>
   </Svg>
 );
@@ -99,7 +111,14 @@ function getRecommendations(target, allItems, count = 9) {
 // ── Sub-components ────────────────────────────────────────────────────────────
 const MetaBadge = ({ label, icon }) => (
   <View style={styles.metaBadge}>
-    {icon && <MaterialIcons name={icon} size={12} color="#aaa" style={{ marginRight: 3 }} />}
+    {icon && (
+      <MaterialIcons
+        name={icon}
+        size={12}
+        color="#aaa"
+        style={{ marginRight: 3 }}
+      />
+    )}
     <Text style={styles.metaBadgeText}>{label}</Text>
   </View>
 );
@@ -111,7 +130,11 @@ const GenreChip = ({ label }) => (
 );
 
 const RecommendCard = ({ item, type, onPress }) => (
-  <TouchableOpacity style={styles.recCard} onPress={onPress} activeOpacity={0.8}>
+  <TouchableOpacity
+    style={styles.recCard}
+    onPress={onPress}
+    activeOpacity={0.8}
+  >
     <Image
       source={{ uri: item.poster || item.backdrop }}
       style={styles.recPoster}
@@ -122,7 +145,9 @@ const RecommendCard = ({ item, type, onPress }) => (
       style={StyleSheet.absoluteFill}
     />
     <View style={styles.recMeta}>
-      <Text style={styles.recTitle} numberOfLines={2}>{item.title}</Text>
+      <Text style={styles.recTitle} numberOfLines={2}>
+        {item.title}
+      </Text>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
         <MaterialIcons name="star" size={10} color="#FFD700" />
         <Text style={styles.recRating}>{item.rating || "—"}</Text>
@@ -133,7 +158,8 @@ const RecommendCard = ({ item, type, onPress }) => (
 
 function parseDuration(str) {
   if (!str) return 0;
-  let h = 0, m = 0;
+  let h = 0,
+    m = 0;
   const hMatch = str.match(/(\d+)h/);
   const mMatch = str.match(/(\d+)m/);
   if (hMatch) h = parseInt(hMatch[1], 10);
@@ -179,7 +205,11 @@ const DetailsScreen = ({ route, navigation }) => {
   const [resolvedType, setResolvedType] = useState(type);
   const [selectedSeason, setSelectedSeason] = useState(0);
   const scrollRef = useRef(null);
-  const [toast, setToast] = useState({ visible: false, message: '', variant: 'added' });
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    variant: "added",
+  });
 
   const hideToast = useCallback(() => {
     setToast((prev) => ({ ...prev, visible: false }));
@@ -188,17 +218,17 @@ const DetailsScreen = ({ route, navigation }) => {
   const handleWatchlistToggle = useCallback(async () => {
     const result = await toggleWatchlist(id, resolvedType);
     if (result?.success) {
-      const added = result.action === 'added';
+      const added = result.action === "added";
       setToast({
         visible: true,
-        message: added ? 'Added to My List' : 'Removed from My List',
-        variant: added ? 'added' : 'removed',
+        message: added ? "Added to My List" : "Removed from My List",
+        variant: added ? "added" : "removed",
       });
-    } else if (result?.error === 'Not logged in') {
+    } else if (result?.error === "Not logged in") {
       setToast({
         visible: true,
-        message: 'Sign in to save titles to your list',
-        variant: 'info',
+        message: "Sign in to save titles to your list",
+        variant: "info",
       });
     }
   }, [toggleWatchlist, id, resolvedType]);
@@ -206,13 +236,13 @@ const DetailsScreen = ({ route, navigation }) => {
   useFocusEffect(
     useCallback(() => {
       refreshUser();
-    }, [refreshUser])
+    }, [refreshUser]),
   );
 
   const [fontsLoaded] = useFonts({
-    "Coolvetica": require("../../assets/fonts/Coolvetica-Rg.otf"),
-    "Code": require("../../assets/fonts/CODE-Bold.otf"),
-    "TT": require("../../assets/fonts/TT-Chocolates-Trial-Light.otf"),
+    Coolvetica: require("../../assets/fonts/Coolvetica-Rg.otf"),
+    Code: require("../../assets/fonts/CODE-Bold.otf"),
+    TT: require("../../assets/fonts/TT-Chocolates-Trial-Light.otf"),
     "TT Medium": require("../../assets/fonts/TT-Chocolates-Trial-Medium.otf"),
   });
 
@@ -225,7 +255,8 @@ const DetailsScreen = ({ route, navigation }) => {
     try {
       // First attempt with the passed type
       let currentType = type;
-      let endpoint = currentType === "series" ? `/series/${id}` : `/movies/${id}`;
+      let endpoint =
+        currentType === "series" ? `/series/${id}` : `/movies/${id}`;
       let detailRes;
 
       try {
@@ -234,8 +265,11 @@ const DetailsScreen = ({ route, navigation }) => {
         // If 404, try the other collection (fallback for mis-typed items)
         if (err.response?.status === 404) {
           const otherType = currentType === "series" ? "movie" : "series";
-          const otherEndpoint = otherType === "series" ? `/series/${id}` : `/movies/${id}`;
-          console.log(`[Details] 404 on ${endpoint}, trying fallback: ${otherEndpoint}`);
+          const otherEndpoint =
+            otherType === "series" ? `/series/${id}` : `/movies/${id}`;
+          console.log(
+            `[Details] 404 on ${endpoint}, trying fallback: ${otherEndpoint}`,
+          );
           detailRes = await client.get(otherEndpoint);
           currentType = otherType; // Update type if fallback succeeds
         } else {
@@ -243,28 +277,35 @@ const DetailsScreen = ({ route, navigation }) => {
         }
       }
 
-      const detail = currentType === "series" ? detailRes.data.series : detailRes.data.movie;
+      const detail =
+        currentType === "series" ? detailRes.data.series : detailRes.data.movie;
       if (!detail) throw new Error("Item data is empty");
 
       setData(detail);
       setResolvedType(currentType);
 
       // Fetch recommendations based on the resolved type
-      const listRes = await client.get(currentType === "series" ? "/series" : "/movies");
-      const allItems = currentType === "series"
-        ? (listRes.data.series || listRes.data || [])
-        : (listRes.data.movies || listRes.data || []);
+      const listRes = await client.get(
+        currentType === "series" ? "/series" : "/movies",
+      );
+      const allItems =
+        currentType === "series"
+          ? listRes.data.series || listRes.data || []
+          : listRes.data.movies || listRes.data || [];
 
       setRecommendations(getRecommendations(detail, allItems, 9));
     } catch (e) {
-      console.error("DetailsScreen fetch error:", e?.response?.data || e.message);
+      console.error(
+        "DetailsScreen fetch error:",
+        e?.response?.data || e.message,
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const checkAccess = useCallback(() => {
-    if (!data.isFree && (!user || user.plan === 'free')) {
+    if (!data.isFree && (!user || user.plan === "free")) {
       navigation.navigate("Plan");
       return false;
     }
@@ -273,7 +314,8 @@ const DetailsScreen = ({ route, navigation }) => {
 
   const handleWatch = useCallback(() => {
     if (!checkAccess()) return;
-    const isSeriesContent = resolvedType === "series" || (data.seasons && data.seasons.length > 0);
+    const isSeriesContent =
+      resolvedType === "series" || (data.seasons && data.seasons.length > 0);
 
     if (!isSeriesContent || !data.seasons) {
       navigation.navigate("Player", {
@@ -292,8 +334,12 @@ const DetailsScreen = ({ route, navigation }) => {
       continueInfo.progressPct > 0 &&
       continueInfo.progressPct < 95
     ) {
-      const sIndex = data.seasons.findIndex((s) => s._id === continueInfo.season._id);
-      const eIndex = continueInfo.season.episodes.findIndex((e) => e._id === continueInfo.ep._id);
+      const sIndex = data.seasons.findIndex(
+        (s) => s._id === continueInfo.season._id,
+      );
+      const eIndex = continueInfo.season.episodes.findIndex(
+        (e) => e._id === continueInfo.ep._id,
+      );
       navigation.navigate("Player", {
         title: `${data.title} · S${continueInfo.sNum}E${continueInfo.eNum} – ${continueInfo.ep.title || ""}`,
         chatId: continueInfo.ep.telegramChatId,
@@ -318,13 +364,20 @@ const DetailsScreen = ({ route, navigation }) => {
         movieId: `${data._id}_S${data.seasons[selectedSeason].seasonNumber}_E${ep.episodeNumber}`,
       });
     }
-  }, [data, resolvedType, selectedSeason, navigation, user?.watchHistory, checkAccess]);
+  }, [
+    data,
+    resolvedType,
+    selectedSeason,
+    navigation,
+    user?.watchHistory,
+    checkAccess,
+  ]);
 
   const handleEpisodePlay = useCallback(
     (ep, season) => {
       if (!checkAccess()) return;
-      const sIndex = data.seasons.findIndex(s => s._id === season._id);
-      const eIndex = season.episodes.findIndex(e => e._id === ep._id);
+      const sIndex = data.seasons.findIndex((s) => s._id === season._id);
+      const eIndex = season.episodes.findIndex((e) => e._id === ep._id);
       navigation.navigate("Player", {
         title: `${data.title} · S${season.seasonNumber}E${ep.episodeNumber} – ${ep.title}`,
         chatId: ep.telegramChatId,
@@ -335,34 +388,44 @@ const DetailsScreen = ({ route, navigation }) => {
         movieId: `${data._id}_S${season.seasonNumber}_E${ep.episodeNumber}`,
       });
     },
-    [data, navigation]
+    [data, navigation],
   );
 
   const handleRecPress = useCallback(
     (item) => {
       navigation.push("Details", { id: item._id, type });
     },
-    [navigation, type]
+    [navigation, type],
   );
 
   // ── Loading / Error ─────────────────────────────────────────────────────────
   if (loading || !data) {
     return (
       <View style={styles.centered}>
-        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <StatusBar
+          barStyle="light-content"
+          translucent
+          backgroundColor="transparent"
+        />
         <ActivityIndicator size="large" color="#E50914" />
       </View>
     );
   }
 
   const currentSeason = data.seasons?.[selectedSeason];
-  const totalEpisodes = data.seasons?.reduce((s, se) => s + (se.episodes?.length || 0), 0) || 0;
-  const isActuallySeries = resolvedType === "series" && data.seasons?.length > 0;
+  const totalEpisodes =
+    data.seasons?.reduce((s, se) => s + (se.episodes?.length || 0), 0) || 0;
+  const isActuallySeries =
+    resolvedType === "series" && data.seasons?.length > 0;
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
 
       <ScrollView
         ref={scrollRef}
@@ -405,12 +468,26 @@ const DetailsScreen = ({ route, navigation }) => {
 
           {/* Genres */}
           {data.genres?.length > 0 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.genreRow}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.genreRow}
+            >
               {data.genres.map((g, i) => (
-                <View key={i} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View
+                  key={i}
+                  style={{ flexDirection: "row", alignItems: "center" }}
+                >
                   <Text style={styles.genreChipText}>{g}</Text>
                   {i < data.genres.length - 1 && (
-                    <Text style={{ color: 'rgba(255,255,255,0.4)', marginHorizontal: 8 }}>•</Text>
+                    <Text
+                      style={{
+                        color: "rgba(255,255,255,0.4)",
+                        marginHorizontal: 8,
+                      }}
+                    >
+                      •
+                    </Text>
                   )}
                 </View>
               ))}
@@ -421,10 +498,10 @@ const DetailsScreen = ({ route, navigation }) => {
           <View style={styles.metaRow}>
             {data.year && <MetaBadge label={String(data.year)} />}
             {data.quality && <MetaBadge label={data.quality} icon="hd" />}
-            {data.rating ? (
-              <MetaBadge label={`★ ${data.rating}`} />
-            ) : null}
-            {data.duration && <MetaBadge label={data.duration} icon="schedule" />}
+            {data.rating ? <MetaBadge label={`★ ${data.rating}`} /> : null}
+            {data.duration && (
+              <MetaBadge label={data.duration} icon="schedule" />
+            )}
             {isActuallySeries && (
               <MetaBadge
                 label={`${data.seasons?.length || 0} Season${data.seasons?.length !== 1 ? "s" : ""} · ${totalEpisodes} Ep`}
@@ -432,29 +509,38 @@ const DetailsScreen = ({ route, navigation }) => {
             )}
             {data.hasAmharicDub && (
               <View style={[styles.metaBadge, { borderColor: "#E50914" }]}>
-                <Text style={[styles.metaBadgeText, { color: "#E50914" }]}>በትርጉም</Text>
+                <Text style={[styles.metaBadgeText, { color: "#E50914" }]}>
+                  በትርጉም
+                </Text>
               </View>
             )}
-
           </View>
-
-
 
           {/* Action Buttons */}
           <View style={styles.actionRow}>
             {(() => {
-              const isSeriesContent = resolvedType === "series" || (data.seasons && data.seasons.length > 0);
+              const isSeriesContent =
+                resolvedType === "series" ||
+                (data.seasons && data.seasons.length > 0);
               let watchProgressPct = null;
               let watchLabel = "Watch Now";
 
               if (!isSeriesContent && user?.watchHistory) {
-                const historyItem = user.watchHistory.find((h) => h.movieId === String(data._id));
+                const historyItem = user.watchHistory.find(
+                  (h) => h.movieId === String(data._id),
+                );
                 if (historyItem) {
-                  watchProgressPct = getProgressPct(historyItem.progress, data.duration);
+                  watchProgressPct = getProgressPct(
+                    historyItem.progress,
+                    data.duration,
+                  );
                   if (watchProgressPct > 0) watchLabel = "Resume";
                 }
               } else if (isSeriesContent && user?.watchHistory) {
-                const continueInfo = getSeriesContinueInfo(data, user.watchHistory);
+                const continueInfo = getSeriesContinueInfo(
+                  data,
+                  user.watchHistory,
+                );
                 if (continueInfo?.progressPct > 0) {
                   watchProgressPct = continueInfo.progressPct;
                   watchLabel = "Resume";
@@ -463,16 +549,37 @@ const DetailsScreen = ({ route, navigation }) => {
 
               return (
                 <Pressable
-                  style={({ pressed }) => [styles.watchBtn, pressed && styles.watchBtnPressed, { overflow: 'hidden' }]}
+                  style={({ pressed }) => [
+                    styles.watchBtn,
+                    pressed && styles.watchBtnPressed,
+                    { overflow: "hidden" },
+                  ]}
                   onPress={handleWatch}
                 >
                   <MaterialIcons name="play-arrow" size={20} color="#000" />
                   <Text style={styles.watchBtnText}>
-                    {!data.isFree && (!user || user.plan === 'free') ? "Upgrade to Watch" : watchLabel}
+                    {!data.isFree && (!user || user.plan === "free")
+                      ? "Upgrade to Watch"
+                      : watchLabel}
                   </Text>
                   {watchProgressPct !== null && watchProgressPct > 0 && (
-                    <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, backgroundColor: 'rgba(0,0,0,0.1)' }}>
-                      <View style={{ height: '100%', width: `${watchProgressPct}%`, backgroundColor: '#E50914' }} />
+                    <View
+                      style={{
+                        position: "absolute",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 4,
+                        backgroundColor: "rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      <View
+                        style={{
+                          height: "100%",
+                          width: `${watchProgressPct}%`,
+                          backgroundColor: "#E50914",
+                        }}
+                      />
                     </View>
                   )}
                 </Pressable>
@@ -487,14 +594,18 @@ const DetailsScreen = ({ route, navigation }) => {
               ]}
               onPress={handleWatchlistToggle}
             >
-              {isInWatchlist(id)
-                ? <AddedToListIcon size={22} color="#E50914" />
-                : <AddToListIcon size={22} color="#fff" />
-              }
+              {isInWatchlist(id) ? (
+                <AddedToListIcon size={22} color="#E50914" />
+              ) : (
+                <AddToListIcon size={22} color="#fff" />
+              )}
             </Pressable>
 
             <Pressable
-              style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}
+              style={({ pressed }) => [
+                styles.iconBtn,
+                pressed && { opacity: 0.7 },
+              ]}
             >
               <Feather name="share-2" size={20} color="#fff" />
             </Pressable>
@@ -540,8 +651,12 @@ const DetailsScreen = ({ route, navigation }) => {
               {/* Episode List */}
               {currentSeason?.episodes?.map((ep) => {
                 const epMovieId = `${data._id}_S${currentSeason.seasonNumber}_E${ep.episodeNumber}`;
-                const historyItem = user?.watchHistory?.find((h) => h.movieId === epMovieId);
-                const progressPct = historyItem ? getProgressPct(historyItem.progress, ep.duration) : null;
+                const historyItem = user?.watchHistory?.find(
+                  (h) => h.movieId === epMovieId,
+                );
+                const progressPct = historyItem
+                  ? getProgressPct(historyItem.progress, ep.duration)
+                  : null;
 
                 return (
                   <Pressable
@@ -563,16 +678,38 @@ const DetailsScreen = ({ route, navigation }) => {
                         <Text style={styles.epDuration}>{ep.duration}</Text>
                       )}
                       {progressPct !== null && progressPct > 0 && (
-                        <View style={{ height: 3, backgroundColor: 'rgba(255,255,255,0.2)', marginTop: 6, borderRadius: 2, overflow: 'hidden' }}>
-                          <View style={{ height: '100%', width: `${progressPct}%`, backgroundColor: '#E50914' }} />
+                        <View
+                          style={{
+                            height: 3,
+                            backgroundColor: "rgba(255,255,255,0.2)",
+                            marginTop: 6,
+                            borderRadius: 2,
+                            overflow: "hidden",
+                          }}
+                        >
+                          <View
+                            style={{
+                              height: "100%",
+                              width: `${progressPct}%`,
+                              backgroundColor: "#E50914",
+                            }}
+                          />
                         </View>
                       )}
                     </View>
                     <View style={styles.epPlayBtn}>
-                      {!data.isFree && (!user || user.plan === 'free') ? (
-                        <Feather name="lock" size={18} color="rgba(255,255,255,0.5)" />
+                      {!data.isFree && (!user || user.plan === "free") ? (
+                        <Feather
+                          name="lock"
+                          size={18}
+                          color="rgba(255,255,255,0.5)"
+                        />
                       ) : (
-                        <MaterialIcons name="play-arrow" size={20} color="#fff" />
+                        <MaterialIcons
+                          name="play-arrow"
+                          size={20}
+                          color="#fff"
+                        />
                       )}
                     </View>
                   </Pressable>
@@ -782,7 +919,12 @@ const styles = StyleSheet.create({
   },
   epNum: { color: "#aaa", fontSize: 12, fontFamily: "TT Medium" },
   epInfo: { flex: 1, marginRight: 8 },
-  epTitle: { color: "#eee", fontSize: 14, fontFamily: "TT Medium", marginBottom: 2 },
+  epTitle: {
+    color: "#eee",
+    fontSize: 14,
+    fontFamily: "TT Medium",
+    marginBottom: 2,
+  },
   epDuration: { color: "#777", fontSize: 11, fontFamily: "TT" },
   epPlayBtn: {
     width: 34,

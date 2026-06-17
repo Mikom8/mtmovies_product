@@ -13,19 +13,23 @@ import {
   Platform,
   Image,
 } from "react-native";
-import { useFonts } from 'expo-font';
-import Feather from '@expo/vector-icons/Feather';
+import { useFonts } from "expo-font";
+import Feather from "@expo/vector-icons/Feather";
 import { useAuth } from "../context/AuthContext";
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import Constants from 'expo-constants';
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import Constants from "expo-constants";
 
 WebBrowser.maybeCompleteAuthSession();
 
 const { width, height } = Dimensions.get("window");
 
-const cfg = (Constants.expoConfig && Constants.expoConfig.extra) || (Constants.manifest && Constants.manifest.extra) || {};
-const API_BASE = cfg.API_BASE_URL || 'https://mtmoviesproduct-production.up.railway.app/api';
+const cfg =
+  (Constants.expoConfig && Constants.expoConfig.extra) ||
+  (Constants.manifest && Constants.manifest.extra) ||
+  {};
+const API_BASE =
+  cfg.API_BASE_URL || "https://mtmoviesproduct-production.up.railway.app/api";
 
 const LoginScreen = ({ navigation, route }) => {
   const { login, register, googleLogin } = useAuth();
@@ -47,10 +51,10 @@ const LoginScreen = ({ navigation, route }) => {
   //fonts
   const [fontsLoaded] = useFonts({
     "Broche-Cut": require("../../assets/fonts/Broche-Cut.ttf"),
-    "Coolvetica": require("../../assets/fonts/Coolvetica-Rg.otf"),
-    "Code": require("../../assets/fonts/CODE-Bold.otf"),
-    "TT": require("../../assets/fonts/TT-Chocolates-Trial-Light.otf"),
-    "TT Medium": require("../../assets/fonts/TT-Chocolates-Trial-Medium.otf")
+    Coolvetica: require("../../assets/fonts/Coolvetica-Rg.otf"),
+    Code: require("../../assets/fonts/CODE-Bold.otf"),
+    TT: require("../../assets/fonts/TT-Chocolates-Trial-Light.otf"),
+    "TT Medium": require("../../assets/fonts/TT-Chocolates-Trial-Medium.otf"),
   });
 
   const checkEmail = async (val) => {
@@ -60,14 +64,11 @@ const LoginScreen = ({ navigation, route }) => {
     }
     setChecking(true);
     try {
-      const res = await fetch(
-        `${API_BASE}/auth/check-email`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: val }),
-        },
-      );
+      const res = await fetch(`${API_BASE}/auth/check-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: val }),
+      });
       const data = await res.json();
       setMode(data.exists ? "signin" : "signup");
     } catch {
@@ -114,21 +115,21 @@ const LoginScreen = ({ navigation, route }) => {
     // Note: mutating route.params is okay for our simple flow
     try {
       if (route?.params) route.params.mode = undefined;
-    } catch (e) { }
+    } catch (e) {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Google auth request — client IDs loaded from Expo config extra (from .env)
   const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId: cfg.EXPO_GOOGLE_CLIENT_ID || '',
-    iosClientId: cfg.IOS_GOOGLE_CLIENT_ID || '',
-    androidClientId: cfg.ANDROID_GOOGLE_CLIENT_ID || '',
-    webClientId: cfg.WEB_GOOGLE_CLIENT_ID || '',
-    scopes: ['profile', 'email'],
+    expoClientId: cfg.EXPO_GOOGLE_CLIENT_ID || "",
+    iosClientId: cfg.IOS_GOOGLE_CLIENT_ID || "",
+    androidClientId: cfg.ANDROID_GOOGLE_CLIENT_ID || "",
+    webClientId: cfg.WEB_GOOGLE_CLIENT_ID || "",
+    scopes: ["profile", "email"],
   });
 
   useEffect(() => {
-    if (response?.type === 'success') {
+    if (response?.type === "success") {
       const { authentication } = response;
       const accessToken = authentication?.accessToken;
       if (accessToken) handleGoogleBackendLogin(accessToken);
@@ -140,7 +141,7 @@ const LoginScreen = ({ navigation, route }) => {
     try {
       const res = await googleLogin(accessToken);
       if (!res.success) {
-        setError(res.error || 'Google login failed');
+        setError(res.error || "Google login failed");
         return;
       }
 
@@ -148,7 +149,7 @@ const LoginScreen = ({ navigation, route }) => {
       if (navigation.canGoBack()) {
         navigation.goBack();
       } else {
-        navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+        navigation.reset({ index: 0, routes: [{ name: "Main" }] });
       }
     } finally {
       setLoading(false);
@@ -201,7 +202,6 @@ const LoginScreen = ({ navigation, route }) => {
       ? "Sign Up"
       : "Sign In";
 
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -216,7 +216,7 @@ const LoginScreen = ({ navigation, route }) => {
         <Pressable
           style={({ pressed }) => [
             styles.skipBtn,
-            pressed && { backgroundColor: 'rgba(229, 9, 20, 0.2)' }
+            pressed && { backgroundColor: "rgba(229, 9, 20, 0.2)" },
           ]}
           onPress={() => {
             if (navigation?.canGoBack && navigation.canGoBack()) {
@@ -235,9 +235,7 @@ const LoginScreen = ({ navigation, route }) => {
         {/* Brand */}
         <View style={styles.brandContainer}>
           <Image
-            source={
-              require("../../assets/img/unnamed-removebg-preview.png")
-            }
+            source={require("../../assets/img/unnamed-removebg-preview.png")}
             style={styles.logo}
           />
           <Text style={styles.brandText}>
@@ -315,11 +313,15 @@ const LoginScreen = ({ navigation, route }) => {
               onPress={() => setShowPass(!showPass)}
               style={({ pressed }) => [
                 { padding: 4, borderRadius: 10 },
-                pressed && { backgroundColor: 'rgba(255,255,255,0.1)' }
+                pressed && { backgroundColor: "rgba(255,255,255,0.1)" },
               ]}
             >
               {showPass ? (
-                <Feather name="eye-off" size={18} color="rgba(255, 255, 255, 1)" />
+                <Feather
+                  name="eye-off"
+                  size={18}
+                  color="rgba(255, 255, 255, 1)"
+                />
               ) : (
                 <Feather name="eye" size={18} color="rgba(255, 255, 255, 1)" />
               )}
@@ -361,7 +363,7 @@ const LoginScreen = ({ navigation, route }) => {
           style={({ pressed }) => [
             styles.submitBtn,
             loading && styles.submitBtnDisabled,
-            pressed && !loading && styles.submitPressed
+            pressed && !loading && styles.submitPressed,
           ]}
           onPress={handleSubmit}
           disabled={loading}
@@ -373,7 +375,9 @@ const LoginScreen = ({ navigation, route }) => {
         {/* Forgot Password */}
         {mode === "signin" && (
           <View style={styles.forgotWrap}>
-            <Pressable style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}>
+            <Pressable
+              style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+            >
               <Text style={styles.forgotText}>Forgot Password?</Text>
             </Pressable>
           </View>
@@ -390,13 +394,13 @@ const LoginScreen = ({ navigation, route }) => {
         <Pressable
           style={({ pressed }) => [
             styles.googleBtn,
-            pressed && { backgroundColor: 'rgba(255,255,255,0.15)' }
+            pressed && { backgroundColor: "rgba(255,255,255,0.15)" },
           ]}
           onPress={() => promptAsync()}
           disabled={!request}
         >
           <Image
-            source={require('../../assets/img/transparent-google-logo-google-logo-in-black-circle-colorful-1710875294177-removebg-preview.png')}
+            source={require("../../assets/img/transparent-google-logo-google-logo-in-black-circle-colorful-1710875294177-removebg-preview.png")}
             style={{ width: 18, height: 18, marginRight: 8 }}
           />
           <Text style={styles.googleBtnText}>Continue with Google</Text>
@@ -479,7 +483,7 @@ const styles = StyleSheet.create({
     color: "#E50914",
     fontSize: 14,
     fontWeight: "600",
-    fontFamily: 'TT Medium',
+    fontFamily: "TT Medium",
   },
   brandContainer: {
     alignItems: "center",
@@ -494,12 +498,12 @@ const styles = StyleSheet.create({
   },
   brandText: {
     fontSize: 19,
-    fontFamily: 'Broche-Cut',
+    fontFamily: "Broche-Cut",
   },
   brandBold: {
     color: "#fff",
     letterSpacing: 1,
-    fontFamily: 'Broche-Cut',
+    fontFamily: "Broche-Cut",
   },
   brandRegular: {
     color: "#ff0f0fff",
@@ -513,11 +517,11 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginBottom: 8,
     textAlign: "center",
-    fontFamily: 'TT Medium'
+    fontFamily: "TT Medium",
   },
   subtitle: {
     fontSize: 14,
-    fontFamily: 'TT Medium',
+    fontFamily: "TT Medium",
     color: "rgba(255, 255, 255, 0.5)",
     textAlign: "center",
     lineHeight: 20,
@@ -576,7 +580,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 12,
-    fontFamily: 'TT Medium',
+    fontFamily: "TT Medium",
     color: "#ff6b6b",
   },
   submitBtn: {
@@ -600,7 +604,7 @@ const styles = StyleSheet.create({
   submitBtnText: {
     color: "#fff",
     fontSize: 16,
-    fontFamily: 'TT Medium',
+    fontFamily: "TT Medium",
     letterSpacing: 0.4,
   },
   forgotWrap: {
@@ -610,7 +614,7 @@ const styles = StyleSheet.create({
   forgotText: {
     color: "#ff6666",
     fontSize: 13,
-    fontFamily: 'TT'
+    fontFamily: "TT",
   },
   divider: {
     flexDirection: "row",
@@ -626,7 +630,7 @@ const styles = StyleSheet.create({
   dividerText: {
     color: "rgba(255, 255, 255, 0.7)",
     fontSize: 12,
-    fontFamily: 'TT',
+    fontFamily: "TT",
   },
   googleBtn: {
     flexDirection: "row",
@@ -646,16 +650,16 @@ const styles = StyleSheet.create({
   signupText: {
     color: "rgba(255, 255, 255, 0.85)",
     fontSize: 13,
-    fontFamily: 'TT',
+    fontFamily: "TT",
   },
   signupLink: {
     color: "#ff6666",
-    fontFamily: 'TT Medium',
+    fontFamily: "TT Medium",
   },
   googleBtnText: {
     color: "#fff",
     fontSize: 14,
-    fontFamily: 'TT Medium',
+    fontFamily: "TT Medium",
     fontWeight: "600",
   },
   terms: {
@@ -664,21 +668,21 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 5,
     lineHeight: 18,
-    fontFamily: 'TT'
+    fontFamily: "TT",
   },
   termsLink: {
     color: "rgba(255, 77, 77, 1)",
-    fontFamily: 'TT',
+    fontFamily: "TT",
   },
   footer: {
     fontSize: 12,
     color: "rgba(255, 255, 255, 0.5)",
     textAlign: "center",
     marginBottom: 20,
-    fontFamily: 'Code',
+    fontFamily: "Code",
   },
   submitPressed: {
-    backgroundColor: '#B20710',
+    backgroundColor: "#B20710",
     transform: [{ scale: 0.98 }],
   },
 });

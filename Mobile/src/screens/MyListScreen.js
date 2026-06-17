@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
-import client from '../api/client';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState, useCallback } from "react";
+import client from "../api/client";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -12,24 +12,25 @@ import {
   Dimensions,
   StatusBar,
   Platform,
-} from 'react-native';
-import { useFonts } from 'expo-font';
-import { useWatchlist } from '../context/WatchlistContext';
-import { useMovies } from '../context/MovieContext';
-import { useAuth } from '../context/AuthContext';
-import Feather from '@expo/vector-icons/Feather';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { LinearGradient } from 'expo-linear-gradient';
+} from "react-native";
+import { useFonts } from "expo-font";
+import { useWatchlist } from "../context/WatchlistContext";
+import { useMovies } from "../context/MovieContext";
+import { useAuth } from "../context/AuthContext";
+import Feather from "@expo/vector-icons/Feather";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { LinearGradient } from "expo-linear-gradient";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const COLUMN_COUNT = 3;
 const SPACING = 12;
-const CARD_W = (width - (SPACING * (COLUMN_COUNT + 1))) / COLUMN_COUNT;
+const CARD_W = (width - SPACING * (COLUMN_COUNT + 1)) / COLUMN_COUNT;
 const CARD_H = CARD_W * 1.5;
 
 function parseDuration(str) {
   if (!str) return 0;
-  let h = 0, m = 0;
+  let h = 0,
+    m = 0;
   const hMatch = str.match(/(\d+)h/);
   const mMatch = str.match(/(\d+)m/);
   if (hMatch) h = parseInt(hMatch[1], 10);
@@ -40,63 +41,71 @@ function parseDuration(str) {
 const MyListScreen = ({ navigation }) => {
   const [fontsLoaded] = useFonts({
     "Broche-Cut": require("../../assets/fonts/Broche-Cut.ttf"),
-    "Coolvetica": require("../../assets/fonts/Coolvetica-Rg.otf"),
-    "Code": require("../../assets/fonts/CODE-Bold.otf"),
-    "TT": require("../../assets/fonts/TT-Chocolates-Trial-Light.otf"),
-    "TT Medium": require("../../assets/fonts/TT-Chocolates-Trial-Medium.otf")
+    Coolvetica: require("../../assets/fonts/Coolvetica-Rg.otf"),
+    Code: require("../../assets/fonts/CODE-Bold.otf"),
+    TT: require("../../assets/fonts/TT-Chocolates-Trial-Light.otf"),
+    "TT Medium": require("../../assets/fonts/TT-Chocolates-Trial-Medium.otf"),
   });
 
   const { watchlist, loading } = useWatchlist();
   const { movies, series } = useMovies();
   const { user, refreshUser } = useAuth();
-  const [activeTab, setActiveTab] = useState('watchlist'); // 'watchlist' | 'history'
+  const [activeTab, setActiveTab] = useState("watchlist"); // 'watchlist' | 'history'
   const [playingId, setPlayingId] = useState(null);
 
-  const playFromHistory = useCallback(async (item) => {
-    setPlayingId(item.movieId);
-    try {
-      const seriesMatch = item.movieId.match(/^(.+)_S(\d+)_E(\d+)$/);
+  const playFromHistory = useCallback(
+    async (item) => {
+      setPlayingId(item.movieId);
+      try {
+        const seriesMatch = item.movieId.match(/^(.+)_S(\d+)_E(\d+)$/);
 
-      if (seriesMatch) {
-        const [, seriesId, sNum, eNum] = seriesMatch;
-        const { data } = await client.get(`/series/${seriesId}`);
-        const detail = data.series;
-        if (!detail) return;
+        if (seriesMatch) {
+          const [, seriesId, sNum, eNum] = seriesMatch;
+          const { data } = await client.get(`/series/${seriesId}`);
+          const detail = data.series;
+          if (!detail) return;
 
-        const sIndex = detail.seasons?.findIndex(s => String(s.seasonNumber) === sNum) ?? -1;
-        const season = detail.seasons?.[sIndex >= 0 ? sIndex : 0];
-        const eIndex = season?.episodes?.findIndex(e => String(e.episodeNumber) === eNum) ?? -1;
-        const ep = season?.episodes?.[eIndex >= 0 ? eIndex : 0];
+          const sIndex =
+            detail.seasons?.findIndex((s) => String(s.seasonNumber) === sNum) ??
+            -1;
+          const season = detail.seasons?.[sIndex >= 0 ? sIndex : 0];
+          const eIndex =
+            season?.episodes?.findIndex(
+              (e) => String(e.episodeNumber) === eNum,
+            ) ?? -1;
+          const ep = season?.episodes?.[eIndex >= 0 ? eIndex : 0];
 
-        if (!ep?.telegramChatId || !ep?.telegramMessageId) return;
+          if (!ep?.telegramChatId || !ep?.telegramMessageId) return;
 
-        navigation.navigate('Player', {
-          title: `${detail.title} · S${sNum}E${eNum}${ep.title ? ` – ${ep.title}` : ''}`,
-          chatId: ep.telegramChatId,
-          messageId: ep.telegramMessageId,
-          seriesData: detail,
-          seasonIndex: sIndex >= 0 ? sIndex : 0,
-          episodeIndex: eIndex >= 0 ? eIndex : 0,
-          movieId: item.movieId,
-        });
-      } else {
-        const { data } = await client.get(`/movies/${item.movieId}`);
-        const detail = data.movie;
-        if (!detail?.telegram?.chatId || !detail?.telegram?.messageId) return;
+          navigation.navigate("Player", {
+            title: `${detail.title} · S${sNum}E${eNum}${ep.title ? ` – ${ep.title}` : ""}`,
+            chatId: ep.telegramChatId,
+            messageId: ep.telegramMessageId,
+            seriesData: detail,
+            seasonIndex: sIndex >= 0 ? sIndex : 0,
+            episodeIndex: eIndex >= 0 ? eIndex : 0,
+            movieId: item.movieId,
+          });
+        } else {
+          const { data } = await client.get(`/movies/${item.movieId}`);
+          const detail = data.movie;
+          if (!detail?.telegram?.chatId || !detail?.telegram?.messageId) return;
 
-        navigation.navigate('Player', {
-          title: detail.title,
-          chatId: detail.telegram.chatId,
-          messageId: detail.telegram.messageId,
-          movieId: item.movieId,
-        });
+          navigation.navigate("Player", {
+            title: detail.title,
+            chatId: detail.telegram.chatId,
+            messageId: detail.telegram.messageId,
+            movieId: item.movieId,
+          });
+        }
+      } catch (e) {
+        console.error("Error playing from history", e);
+      } finally {
+        setPlayingId(null);
       }
-    } catch (e) {
-      console.error('Error playing from history', e);
-    } finally {
-      setPlayingId(null);
-    }
-  }, [navigation]);
+    },
+    [navigation],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -104,7 +113,7 @@ const MyListScreen = ({ navigation }) => {
         refreshUser();
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, []),
   );
 
   if (!fontsLoaded) return null;
@@ -114,64 +123,76 @@ const MyListScreen = ({ navigation }) => {
     if (item.itemDetails) return item.itemDetails;
 
     // Local fallback
-    if (item.itemType === 'series') {
-      return series.find(s => s._id === item.itemId);
+    if (item.itemType === "series") {
+      return series.find((s) => s._id === item.itemId);
     } else {
-      return movies.find(m => m._id === item.itemId);
+      return movies.find((m) => m._id === item.itemId);
     }
   };
 
   const resolvedWatchlist = watchlist
-    .map(item => ({
+    .map((item) => ({
       ...item,
-      details: resolveItemDetails(item)
+      details: resolveItemDetails(item),
     }))
-    .filter(item => item.details !== undefined && item.details !== null);
+    .filter((item) => item.details !== undefined && item.details !== null);
 
   const resolvedHistory = (user?.watchHistory || [])
-    .map(h => {
-      const isSeries = h.movieId.includes('_');
-      const baseId = isSeries ? h.movieId.split('_')[0] : h.movieId;
+    .map((h) => {
+      const isSeries = h.movieId.includes("_");
+      const baseId = isSeries ? h.movieId.split("_")[0] : h.movieId;
       let details;
       if (isSeries) {
-        details = series.find(s => String(s._id) === String(baseId));
+        details = series.find((s) => String(s._id) === String(baseId));
       } else {
-        details = movies.find(m => String(m._id) === String(baseId));
+        details = movies.find((m) => String(m._id) === String(baseId));
       }
       return {
         ...h,
         details,
-        itemType: isSeries ? 'series' : 'movie',
-        itemId: baseId
+        itemType: isSeries ? "series" : "movie",
+        itemId: baseId,
       };
     })
-    .filter(item => item.details !== undefined && item.details !== null)
+    .filter((item) => item.details !== undefined && item.details !== null)
     .sort((a, b) => new Date(b.watchedAt) - new Date(a.watchedAt));
 
   const renderItem = ({ item }) => {
     const detail = item.details;
-    const isSeries = item.itemType === 'series' || !!detail.seasons;
+    const isSeries = item.itemType === "series" || !!detail.seasons;
 
     let progressPct = null;
     let title = detail.title;
 
-    if (activeTab === 'history') {
-      if (isSeries && item.movieId.includes('_')) {
-        const parts = item.movieId.split('_');
+    if (activeTab === "history") {
+      if (isSeries && item.movieId.includes("_")) {
+        const parts = item.movieId.split("_");
         if (parts.length >= 3) {
-          const sNum = parts[1].replace('S', '');
-          const eNum = parts[2].replace('E', '');
-          const season = detail.seasons?.find(s => String(s.seasonNumber) === sNum);
-          const ep = season?.episodes?.find(e => String(e.episodeNumber) === eNum);
+          const sNum = parts[1].replace("S", "");
+          const eNum = parts[2].replace("E", "");
+          const season = detail.seasons?.find(
+            (s) => String(s.seasonNumber) === sNum,
+          );
+          const ep = season?.episodes?.find(
+            (e) => String(e.episodeNumber) === eNum,
+          );
           if (ep) {
             title = `${detail.title} S${sNum}E${eNum}`;
             const durSec = parseDuration(ep.duration);
-            if (durSec > 0) progressPct = Math.min(100, Math.max(0, (item.progress / durSec) * 100));
+            if (durSec > 0)
+              progressPct = Math.min(
+                100,
+                Math.max(0, (item.progress / durSec) * 100),
+              );
           }
         }
       } else {
         const durSec = parseDuration(detail.duration);
-        if (durSec > 0) progressPct = Math.min(100, Math.max(0, (item.progress / durSec) * 100));
+        if (durSec > 0)
+          progressPct = Math.min(
+            100,
+            Math.max(0, (item.progress / durSec) * 100),
+          );
       }
     }
 
@@ -179,19 +200,19 @@ const MyListScreen = ({ navigation }) => {
       <Pressable
         style={({ pressed }) => [
           styles.card,
-          pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
+          pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] },
         ]}
         onPress={() => {
-          if (activeTab === 'history') {
+          if (activeTab === "history") {
             playFromHistory(item);
           } else {
-            navigation.navigate('Details', {
+            navigation.navigate("Details", {
               id: item.itemId,
-              type: isSeries ? 'series' : 'movie'
+              type: isSeries ? "series" : "movie",
             });
           }
         }}
-        disabled={activeTab === 'history' && playingId === item.movieId}
+        disabled={activeTab === "history" && playingId === item.movieId}
       >
         <View style={styles.imageContainer}>
           <Image
@@ -199,12 +220,14 @@ const MyListScreen = ({ navigation }) => {
             style={styles.poster}
             resizeMode="cover"
           />
-          {activeTab === 'history' && progressPct !== null && (
+          {activeTab === "history" && progressPct !== null && (
             <View style={styles.progressContainer}>
-              <View style={[styles.progressBar, { width: `${progressPct}%` }]} />
+              <View
+                style={[styles.progressBar, { width: `${progressPct}%` }]}
+              />
             </View>
           )}
-          {activeTab === 'history' && playingId === item.movieId && (
+          {activeTab === "history" && playingId === item.movieId && (
             <View style={styles.playingOverlay}>
               <ActivityIndicator size="small" color="#E50914" />
             </View>
@@ -218,13 +241,19 @@ const MyListScreen = ({ navigation }) => {
   };
 
   const renderEmptyState = () => {
-    const isHistory = activeTab === 'history';
+    const isHistory = activeTab === "history";
     return (
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIconCircle}>
-          <Feather name={isHistory ? "clock" : "bookmark"} size={40} color="#E50914" />
+          <Feather
+            name={isHistory ? "clock" : "bookmark"}
+            size={40}
+            color="#E50914"
+          />
         </View>
-        <Text style={styles.emptyTitle}>{isHistory ? "No watch history" : "Your list is empty"}</Text>
+        <Text style={styles.emptyTitle}>
+          {isHistory ? "No watch history" : "Your list is empty"}
+        </Text>
         <Text style={styles.emptySubtitle}>
           {isHistory
             ? "Your recently watched Movies and TV shows will appear here."
@@ -233,9 +262,9 @@ const MyListScreen = ({ navigation }) => {
         <Pressable
           style={({ pressed }) => [
             styles.browseBtn,
-            pressed && { backgroundColor: '#B20710' }
+            pressed && { backgroundColor: "#B20710" },
           ]}
-          onPress={() => navigation.navigate('Main', { screen: 'HomeTab' })}
+          onPress={() => navigation.navigate("Main", { screen: "HomeTab" })}
         >
           <Text style={styles.browseText}>Browse Home</Text>
         </Pressable>
@@ -245,14 +274,18 @@ const MyListScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
 
       {/* Premium Header */}
       <View style={styles.header}>
         <Pressable
           style={({ pressed }) => [
             styles.backBtn,
-            pressed && { backgroundColor: 'rgba(255,255,255,0.1)' }
+            pressed && { backgroundColor: "rgba(255,255,255,0.1)" },
           ]}
           onPress={() => navigation.goBack()}
         >
@@ -266,16 +299,36 @@ const MyListScreen = ({ navigation }) => {
 
       <View style={styles.tabsContainer}>
         <Pressable
-          style={[styles.tabBtn, activeTab === 'watchlist' && styles.tabBtnActive]}
-          onPress={() => setActiveTab('watchlist')}
+          style={[
+            styles.tabBtn,
+            activeTab === "watchlist" && styles.tabBtnActive,
+          ]}
+          onPress={() => setActiveTab("watchlist")}
         >
-          <Text style={[styles.tabText, activeTab === 'watchlist' && styles.tabTextActive]}>My List</Text>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "watchlist" && styles.tabTextActive,
+            ]}
+          >
+            My List
+          </Text>
         </Pressable>
         <Pressable
-          style={[styles.tabBtn, activeTab === 'history' && styles.tabBtnActive]}
-          onPress={() => setActiveTab('history')}
+          style={[
+            styles.tabBtn,
+            activeTab === "history" && styles.tabBtnActive,
+          ]}
+          onPress={() => setActiveTab("history")}
         >
-          <Text style={[styles.tabText, activeTab === 'history' && styles.tabTextActive]}>Watch History</Text>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "history" && styles.tabTextActive,
+            ]}
+          >
+            Watch History
+          </Text>
         </Pressable>
       </View>
 
@@ -283,13 +336,16 @@ const MyListScreen = ({ navigation }) => {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#E50914" />
         </View>
-      ) : (activeTab === 'watchlist' ? resolvedWatchlist : resolvedHistory).length === 0 ? (
+      ) : (activeTab === "watchlist" ? resolvedWatchlist : resolvedHistory)
+          .length === 0 ? (
         renderEmptyState()
       ) : (
         <FlatList
-          data={activeTab === 'watchlist' ? resolvedWatchlist : resolvedHistory}
+          data={activeTab === "watchlist" ? resolvedWatchlist : resolvedHistory}
           renderItem={renderItem}
-          keyExtractor={(item) => activeTab === 'watchlist' ? item.itemId : item.movieId}
+          keyExtractor={(item) =>
+            activeTab === "watchlist" ? item.itemId : item.movieId
+          }
           numColumns={COLUMN_COUNT}
           contentContainerStyle={styles.listContainer}
           columnWrapperStyle={styles.columnWrapper}
@@ -303,48 +359,48 @@ const MyListScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: "#0a0a0a",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingTop: 50,
     paddingBottom: 15,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: "rgba(255,255,255,0.05)",
   },
   backBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
   titleWrapper: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   headerTitle: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 20,
-    fontFamily: 'Coolvetica',
+    fontFamily: "Coolvetica",
     letterSpacing: 0.5,
   },
   countText: {
-    color: 'rgba(255,255,255,0.4)',
+    color: "rgba(255,255,255,0.4)",
     fontSize: 12,
-    fontFamily: 'TT',
+    fontFamily: "TT",
     marginTop: 2,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   tabsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
@@ -354,28 +410,28 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: "rgba(255,255,255,0.05)",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: "rgba(255,255,255,0.1)",
   },
   tabBtnActive: {
-    backgroundColor: 'rgba(229,9,20,0.15)',
-    borderColor: '#E50914',
+    backgroundColor: "rgba(229,9,20,0.15)",
+    borderColor: "#E50914",
   },
   tabText: {
-    color: 'rgba(255,255,255,0.6)',
-    fontFamily: 'TT Medium',
+    color: "rgba(255,255,255,0.6)",
+    fontFamily: "TT Medium",
     fontSize: 14,
   },
   tabTextActive: {
-    color: '#E50914',
+    color: "#E50914",
   },
   listContainer: {
     padding: SPACING,
     paddingBottom: 40,
   },
   columnWrapper: {
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
     gap: SPACING,
     marginBottom: 16,
   },
@@ -386,118 +442,118 @@ const styles = StyleSheet.create({
     width: CARD_W,
     height: CARD_H,
     borderRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: '#1a1a1a',
-    position: 'relative',
+    overflow: "hidden",
+    backgroundColor: "#1a1a1a",
+    position: "relative",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: "rgba(255,255,255,0.05)",
   },
   poster: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   progressContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     height: 4,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: "rgba(255,255,255,0.2)",
   },
   progressBar: {
-    height: '100%',
-    backgroundColor: '#E50914',
+    height: "100%",
+    backgroundColor: "#E50914",
   },
   playingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(0,0,0,0.55)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   qualityBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: 6,
     right: 6,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: "rgba(0, 0, 0, 0.75)",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
     borderWidth: 0.5,
-    borderColor: 'rgba(33, 226, 65, 0.6)',
+    borderColor: "rgba(33, 226, 65, 0.6)",
   },
   qualityText: {
-    color: '#1af03d',
+    color: "#1af03d",
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   seriesBadge: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 6,
     left: 6,
-    backgroundColor: '#E50914',
+    backgroundColor: "#E50914",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
   seriesText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 8,
-    fontFamily: 'Code',
+    fontFamily: "Code",
     letterSpacing: 0.5,
   },
   itemTitle: {
-    color: 'rgba(255,255,255,0.9)',
+    color: "rgba(255,255,255,0.9)",
     fontSize: 13,
-    fontFamily: 'TT Medium',
+    fontFamily: "TT Medium",
     marginTop: 6,
     paddingHorizontal: 2,
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 32,
   },
   emptyIconCircle: {
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: 'rgba(229,9,20,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(229,9,20,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(229,9,20,0.2)',
+    borderColor: "rgba(229,9,20,0.2)",
   },
   emptyTitle: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 22,
-    fontFamily: 'Coolvetica',
+    fontFamily: "Coolvetica",
     marginBottom: 10,
   },
   emptySubtitle: {
-    color: 'rgba(255,255,255,0.5)',
-    textAlign: 'center',
+    color: "rgba(255,255,255,0.5)",
+    textAlign: "center",
     fontSize: 14,
-    fontFamily: 'TT',
+    fontFamily: "TT",
     lineHeight: 20,
     marginBottom: 30,
   },
   browseBtn: {
-    backgroundColor: '#E50914',
+    backgroundColor: "#E50914",
     paddingHorizontal: 28,
     paddingVertical: 14,
     borderRadius: 24,
-    shadowColor: '#E50914',
+    shadowColor: "#E50914",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   browseText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 15,
-    fontFamily: 'Coolvetica',
+    fontFamily: "Coolvetica",
     letterSpacing: 0.5,
   },
 });

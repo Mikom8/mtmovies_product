@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,14 +10,14 @@ import {
   Platform,
   Modal,
   TouchableWithoutFeedback,
-} from 'react-native';
+} from "react-native";
 import { useFonts } from "expo-font";
-import { useAuth } from '../context/AuthContext';
-import Feather from '@expo/vector-icons/Feather';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { useAuth } from "../context/AuthContext";
+import Feather from "@expo/vector-icons/Feather";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 const ProfileScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
@@ -25,10 +25,10 @@ const ProfileScreen = ({ navigation }) => {
 
   const [fontsLoaded] = useFonts({
     "Broche-Cut": require("../../assets/fonts/Broche-Cut.ttf"),
-    "Coolvetica": require("../../assets/fonts/Coolvetica-Rg.otf"),
-    "Code": require("../../assets/fonts/CODE-Bold.otf"),
-    "TT": require("../../assets/fonts/TT-Chocolates-Trial-Light.otf"),
-    "TT Medium": require("../../assets/fonts/TT-Chocolates-Trial-Medium.otf")
+    Coolvetica: require("../../assets/fonts/Coolvetica-Rg.otf"),
+    Code: require("../../assets/fonts/CODE-Bold.otf"),
+    TT: require("../../assets/fonts/TT-Chocolates-Trial-Light.otf"),
+    "TT Medium": require("../../assets/fonts/TT-Chocolates-Trial-Medium.otf"),
   });
 
   const handleLogout = () => {
@@ -45,15 +45,17 @@ const ProfileScreen = ({ navigation }) => {
           <Feather name="user" size={50} color="#d8000bff" />
         </View>
         <Text style={styles.promptTitle}>Welcome Back</Text>
-        <Text style={styles.promptSubtitle}>Join MTMovies to watch your favorite movies and Tv shows.</Text>
+        <Text style={styles.promptSubtitle}>
+          Join MTMovies to watch your favorite movies and Tv shows.
+        </Text>
         <View style={styles.authButtons}>
           <Pressable
             style={({ pressed }) => [
               styles.ctaBtn,
               styles.primaryBtn,
-              pressed && { backgroundColor: '#B20710' }
+              pressed && { backgroundColor: "#B20710" },
             ]}
-            onPress={() => navigation.navigate('Login', { mode: 'signup' })}
+            onPress={() => navigation.navigate("Login", { mode: "signup" })}
           >
             <Text style={styles.ctaText}>Create Account</Text>
           </Pressable>
@@ -61,9 +63,9 @@ const ProfileScreen = ({ navigation }) => {
             style={({ pressed }) => [
               styles.ctaBtn,
               styles.secondaryBtn,
-              pressed && { backgroundColor: 'rgba(255,255,255,0.1)' }
+              pressed && { backgroundColor: "rgba(255,255,255,0.1)" },
             ]}
-            onPress={() => navigation.navigate('Login', { mode: 'signin' })}
+            onPress={() => navigation.navigate("Login", { mode: "signin" })}
           >
             <Text style={styles.secondaryText}>Log In</Text>
           </Pressable>
@@ -74,19 +76,30 @@ const ProfileScreen = ({ navigation }) => {
 
   // Map backend plan names to display labels and prices
   const planInfo = {
-    free: { label: 'FREE PLAN', price: '0 Birr/mo' },
-    basic: { label: 'BASIC PLAN', price: '150 Birr/mo' },
-    popular: { label: 'POPULAR PLAN', price: '250 Birr/mo' }, // Adjusted to a more realistic price than the '2' in dashboard
-    family: { label: 'FAMILY PLAN', price: '350 Birr/mo' },
+    free: { label: "FREE PLAN", price: "0 Birr/mo" },
+    basic: { label: "BASIC PLAN", price: "150 Birr/mo" },
+    popular: { label: "POPULAR PLAN", price: "250 Birr/mo" }, // Adjusted to a more realistic price than the '2' in dashboard
+    family: { label: "FAMILY PLAN", price: "350 Birr/mo" },
   };
 
-  const currentPlan = planInfo[user.plan] || { label: (user.plan || 'FREE').toUpperCase() + ' PLAN', price: 'Custom' };
+  const currentPlan = planInfo[user.plan] || {
+    label: (user.plan || "FREE").toUpperCase() + " PLAN",
+    price: "Custom",
+  };
 
-  const SettingRow = ({ icon, lib: IconLib = Feather, title, meta, color = '#fff', fontFamily, onPress }) => (
+  const SettingRow = ({
+    icon,
+    lib: IconLib = Feather,
+    title,
+    meta,
+    color = "#fff",
+    fontFamily,
+    onPress,
+  }) => (
     <Pressable
       style={({ pressed }) => [
         styles.row,
-        pressed && { backgroundColor: 'rgba(255,255,255,0.08)' }
+        pressed && { backgroundColor: "rgba(255,255,255,0.08)" },
       ]}
       onPress={onPress}
     >
@@ -94,7 +107,9 @@ const ProfileScreen = ({ navigation }) => {
         <View style={[styles.iconBox, { backgroundColor: `${color}15` }]}>
           <IconLib name={icon} size={18} color={color} />
         </View>
-        <Text style={[styles.rowTitle, fontFamily && { fontFamily }]}>{title}</Text>
+        <Text style={[styles.rowTitle, fontFamily && { fontFamily }]}>
+          {title}
+        </Text>
       </View>
       <View style={styles.rowRight}>
         {meta && <Text style={styles.rowMeta}>{meta}</Text>}
@@ -113,20 +128,41 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.header}>
           <View style={styles.avatarWrapper}>
             <Image
-              source={{ uri: user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80' }}
+              source={{
+                uri:
+                  user.avatar ||
+                  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+              }}
               style={styles.avatar}
             />
           </View>
 
           <View style={styles.infoRow}>
-            <Text style={styles.name}>{user.name || 'MT User'}</Text>
+            <Text style={styles.name}>{user.name || "MT User"}</Text>
             <Text style={styles.email}>{user.email}</Text>
           </View>
 
           <View style={styles.badgeRow}>
-            <View style={[styles.premiumBadge, user.plan === 'free' && styles.freeBadge]}>
-              <Feather name="star" size={12} color={user.plan === 'free' ? '#888' : '#FFD700'} style={{ marginRight: 4 }} />
-              <Text style={[styles.premiumText, user.plan === 'free' && styles.freeText]}>{currentPlan.label}</Text>
+            <View
+              style={[
+                styles.premiumBadge,
+                user.plan === "free" && styles.freeBadge,
+              ]}
+            >
+              <Feather
+                name="star"
+                size={12}
+                color={user.plan === "free" ? "#888" : "#FFD700"}
+                style={{ marginRight: 4 }}
+              />
+              <Text
+                style={[
+                  styles.premiumText,
+                  user.plan === "free" && styles.freeText,
+                ]}
+              >
+                {currentPlan.label}
+              </Text>
             </View>
           </View>
         </View>
@@ -135,10 +171,34 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>ACCOUNT</Text>
           <View style={styles.sectionCard}>
-            <SettingRow icon="user" title="Personal Info" meta="Edit profile" color="#4dabf7" fontFamily='Coolvetica' />
-            <SettingRow icon="shield" title="Security" meta="Password" color="#4dabf7" fontFamily='Coolvetica' />
-            <SettingRow icon="bell" title="Notifications" color="#4dabf7" fontFamily='Coolvetica' />
-            <SettingRow icon="bookmark" lib={MaterialIcons} title="My Activity" color="#ff00ee" fontFamily='Coolvetica' onPress={() => navigation.navigate('MyList')} />
+            <SettingRow
+              icon="user"
+              title="Personal Info"
+              meta="Edit profile"
+              color="#4dabf7"
+              fontFamily="Coolvetica"
+            />
+            <SettingRow
+              icon="shield"
+              title="Security"
+              meta="Password"
+              color="#4dabf7"
+              fontFamily="Coolvetica"
+            />
+            <SettingRow
+              icon="bell"
+              title="Notifications"
+              color="#4dabf7"
+              fontFamily="Coolvetica"
+            />
+            <SettingRow
+              icon="bookmark"
+              lib={MaterialIcons}
+              title="My Activity"
+              color="#ff00ee"
+              fontFamily="Coolvetica"
+              onPress={() => navigation.navigate("MyList")}
+            />
           </View>
         </View>
 
@@ -148,35 +208,66 @@ const ProfileScreen = ({ navigation }) => {
             <SettingRow
               icon="credit-card"
               title="Plan Details"
-              meta={`${user.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) : 'Free'} Plan`}
-              color="#62980c" fontFamily='Coolvetica'
-              onPress={() => navigation.navigate('Plan')}
+              meta={`${user.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) : "Free"} Plan`}
+              color="#62980c"
+              fontFamily="Coolvetica"
+              onPress={() => navigation.navigate("Plan")}
             />
-            <SettingRow icon="receipt-long" lib={MaterialIcons} title="Billing History" meta={currentPlan.price} color="#62980c" fontFamily='Coolvetica' />
+            <SettingRow
+              icon="receipt-long"
+              lib={MaterialIcons}
+              title="Billing History"
+              meta={currentPlan.price}
+              color="#62980c"
+              fontFamily="Coolvetica"
+            />
           </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>APP SETTINGS</Text>
           <View style={styles.sectionCard}>
-            <SettingRow icon="download" title="Downloads" color="#845ef7" fontFamily='Coolvetica' />
-            <SettingRow icon="settings" title="Playback" meta="Auto-play ON" color="#845ef7" fontFamily='Coolvetica' />
-            <SettingRow icon="help-circle" title="Help Center" color="#adb5bd" fontFamily='Coolvetica' />
+            <SettingRow
+              icon="download"
+              title="Downloads"
+              color="#845ef7"
+              fontFamily="Coolvetica"
+            />
+            <SettingRow
+              icon="settings"
+              title="Playback"
+              meta="Auto-play ON"
+              color="#845ef7"
+              fontFamily="Coolvetica"
+            />
+            <SettingRow
+              icon="help-circle"
+              title="Help Center"
+              color="#adb5bd"
+              fontFamily="Coolvetica"
+            />
           </View>
         </View>
 
         <Pressable
           style={({ pressed }) => [
             styles.signoutBtn,
-            pressed && { backgroundColor: 'rgba(216,0,11,0.2)' }
+            pressed && { backgroundColor: "rgba(216,0,11,0.2)" },
           ]}
           onPress={() => setShowLogoutModal(true)}
         >
-          <Feather name="log-out" size={18} color="#fff" style={{ marginRight: 8 }} />
+          <Feather
+            name="log-out"
+            size={18}
+            color="#fff"
+            style={{ marginRight: 8 }}
+          />
           <Text style={styles.signoutText}>Log Out</Text>
         </Pressable>
 
-        <Text style={styles.versionText}>MTMovies © {new Date().getFullYear()}</Text>
+        <Text style={styles.versionText}>
+          MTMovies © {new Date().getFullYear()}
+        </Text>
       </ScrollView>
 
       {/* Modern Logout Modal */}
@@ -194,13 +285,15 @@ const ProfileScreen = ({ navigation }) => {
                   <Feather name="log-out" size={32} color="#E50914" />
                 </View>
                 <Text style={styles.modalTitle}>Log Out</Text>
-                <Text style={styles.modalSubtitle}>Are you sure you want to log out?</Text>
+                <Text style={styles.modalSubtitle}>
+                  Are you sure you want to log out?
+                </Text>
 
                 <View style={styles.modalActionRow}>
                   <Pressable
                     style={({ pressed }) => [
                       styles.modalCancelBtn,
-                      pressed && { backgroundColor: 'rgba(255,255,255,0.1)' }
+                      pressed && { backgroundColor: "rgba(255,255,255,0.1)" },
                     ]}
                     onPress={() => setShowLogoutModal(false)}
                   >
@@ -210,7 +303,7 @@ const ProfileScreen = ({ navigation }) => {
                   <Pressable
                     style={({ pressed }) => [
                       styles.modalConfirmBtn,
-                      pressed && { backgroundColor: '#B20710' }
+                      pressed && { backgroundColor: "#B20710" },
                     ]}
                     onPress={handleLogout}
                   >
@@ -229,7 +322,7 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: "#0a0a0a",
   },
   scrollContent: {
     paddingBottom: 110,
@@ -237,68 +330,68 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#0a0a0a",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 30,
   },
   emptyIconCircle: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(216,0,11,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(216,0,11,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 24,
   },
   promptTitle: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 26,
-    fontFamily: 'Coolvetica',
+    fontFamily: "Coolvetica",
     marginBottom: 12,
   },
   promptSubtitle: {
-    color: 'rgba(255,255,255,0.5)',
-    textAlign: 'center',
+    color: "rgba(255,255,255,0.5)",
+    textAlign: "center",
     fontSize: 15,
-    fontFamily: 'TT',
+    fontFamily: "TT",
     lineHeight: 22,
     marginBottom: 32,
   },
   authButtons: {
-    width: '100%',
+    width: "100%",
     gap: 16,
   },
   ctaBtn: {
     paddingVertical: 16,
     borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   primaryBtn: {
-    backgroundColor: '#d8000bff',
-    shadowColor: '#d8000bff',
+    backgroundColor: "#d8000bff",
+    shadowColor: "#d8000bff",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 5,
   },
   secondaryBtn: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: "rgba(255,255,255,0.05)",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: "rgba(255,255,255,0.1)",
   },
-  ctaText: { color: '#fff', fontSize: 16, fontFamily: 'Code' },
-  secondaryText: { color: '#fff', fontSize: 16, fontFamily: 'TT Medium' },
+  ctaText: { color: "#fff", fontSize: 16, fontFamily: "Code" },
+  secondaryText: { color: "#fff", fontSize: 16, fontFamily: "TT Medium" },
 
   header: {
-    paddingTop: Platform.OS === 'ios' ? 40 : 70,
+    paddingTop: Platform.OS === "ios" ? 40 : 70,
     paddingBottom: 30,
-    position: 'relative',
+    position: "relative",
   },
   avatarWrapper: {
-    alignItems: 'center',
-    position: 'relative',
+    alignItems: "center",
+    position: "relative",
     marginBottom: 16,
   },
   avatar: {
@@ -306,53 +399,51 @@ const styles = StyleSheet.create({
     height: 110,
     borderRadius: 55,
     borderWidth: 3,
-    borderColor: '#d8000bff',
-
+    borderColor: "#d8000bff",
   },
   infoRow: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   name: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 24,
-    fontFamily: 'Coolvetica',
+    fontFamily: "Coolvetica",
     letterSpacing: 0.5,
-
   },
   email: {
-    color: 'rgba(255,255,255,0.5)',
+    color: "rgba(255,255,255,0.5)",
     fontSize: 14,
-    fontFamily: 'TT',
+    fontFamily: "TT",
     marginTop: 4,
     marginBottom: 16,
   },
   badgeRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
   },
   premiumBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,215,0,0.1)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,215,0,0.1)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,215,0,0.2)',
+    borderColor: "rgba(255,215,0,0.2)",
   },
   premiumText: {
-    color: '#FFD700',
+    color: "#FFD700",
     fontSize: 11,
-    fontFamily: 'TT',
+    fontFamily: "TT",
     letterSpacing: 1,
   },
   freeBadge: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderColor: "rgba(255,255,255,0.1)",
   },
   freeText: {
-    color: '#888',
-    fontFamily: 'TT',
+    color: "#888",
+    fontFamily: "TT",
   },
 
   section: {
@@ -360,7 +451,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   sectionLabel: {
-    color: 'rgba(255,255,255,0.6)',
+    color: "rgba(255,255,255,0.6)",
     fontSize: 12,
     fontFamily: "TT",
     letterSpacing: 1.5,
@@ -368,71 +459,71 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   sectionCard: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: "rgba(255,255,255,0.04)",
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: "rgba(255,255,255,0.05)",
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.03)',
+    borderBottomColor: "rgba(255,255,255,0.03)",
   },
   rowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   iconBox: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 14,
   },
   rowTitle: {
-    color: 'rgba(255,255,255,0.89)',
+    color: "rgba(255,255,255,0.89)",
     fontSize: 16,
     letterSpacing: 0.3,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   rowRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   rowMeta: {
-    color: 'rgba(255,255,255,0.4)',
+    color: "rgba(255,255,255,0.4)",
     fontSize: 13,
     marginRight: 8,
-    fontFamily: 'TT',
+    fontFamily: "TT",
   },
 
   signoutBtn: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginHorizontal: 20,
     marginTop: 10,
-    backgroundColor: 'rgba(216,0,11,0.1)',
+    backgroundColor: "rgba(216,0,11,0.1)",
     paddingVertical: 16,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: 'rgba(216,0,11,0.2)',
+    borderColor: "rgba(216,0,11,0.2)",
   },
   signoutText: {
-    color: '#ff4d4d',
-    fontFamily: 'TT',
+    color: "#ff4d4d",
+    fontFamily: "TT",
     fontSize: 16,
   },
   versionText: {
-    color: 'rgba(255,255,255,0.39)',
-    textAlign: 'center',
-    fontFamily: 'Code',
+    color: "rgba(255,255,255,0.39)",
+    textAlign: "center",
+    fontFamily: "Code",
     marginTop: 30,
     marginBottom: 20,
     fontSize: 12,
@@ -441,83 +532,83 @@ const styles = StyleSheet.create({
   /* Modal Styles */
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.85)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
     width: width * 0.85,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
     borderRadius: 30,
     padding: 24,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: "rgba(255,255,255,0.1)",
   },
   modalIconContainer: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(216,0,11,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(216,0,11,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 16,
   },
   modalTitle: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 22,
     marginBottom: 12,
-    fontFamily: 'TT Medium',
+    fontFamily: "TT Medium",
   },
   modalSubtitle: {
-    color: 'rgba(255,255,255,0.6)',
-    textAlign: 'center',
+    color: "rgba(255,255,255,0.6)",
+    textAlign: "center",
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 24,
-    fontFamily: 'TT',
+    fontFamily: "TT",
   },
   modalActionRow: {
-    flexDirection: 'row',
-    width: '100%',
+    flexDirection: "row",
+    width: "100%",
     gap: 12,
   },
   modalCancelBtn: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: "rgba(255,255,255,0.05)",
     paddingVertical: 14,
     borderRadius: 16,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: "rgba(255,255,255,0.1)",
   },
   modalCancelText: {
-    color: '#fff',
-    fontFamily: 'TT Medium',
+    color: "#fff",
+    fontFamily: "TT Medium",
     fontSize: 16,
   },
   modalConfirmBtn: {
     flex: 1,
-    backgroundColor: '#d8000bff',
+    backgroundColor: "#d8000bff",
     paddingVertical: 14,
     borderRadius: 16,
-    alignItems: 'center',
-    shadowColor: '#d8000bff',
+    alignItems: "center",
+    shadowColor: "#d8000bff",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 5,
   },
   modalConfirmText: {
-    color: '#fff',
-    fontFamily: 'TT Medium',
+    color: "#fff",
+    fontFamily: "TT Medium",
     fontSize: 16,
   },
   centered: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#0a0a0a",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 30,
   },
 });
