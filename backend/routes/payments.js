@@ -323,10 +323,14 @@ router.get('/fetch-receipt/:receiptNo', protect, async (req, res) => {
       htmlAsString = await fetchReceiptIsolated(normalizedReceiptNo);
     } catch (e) {
       console.error('[Payment] Proxy fetch failed:', e.message);
-      return res.status(400).json({
-        error: 'Could not fetch receipt from Telebirr. The server may be down.',
-        code: 'FETCH_FAILED',
-        details: e.message
+      // When Telebirr is unavailable or slow, return 202 Accepted so client
+      // can show a pending verification state instead of failure.
+      return res.status(202).json({
+        error: 'Could not fetch receipt from Telebirr. Your request has been saved for manual verification.',
+        code: 'FETCH_PENDING',
+        receiptNo: normalizedReceiptNo,
+        status: 'pending',
+        details: e.message,
       });
     }
 
