@@ -1,22 +1,36 @@
 const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({
-  receiptNo: {
+  transactionId: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    index: true,
+    uppercase: true
   },
-  amount: {
-    type: Number,
-    required: true
-  },
-  usedBy: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
   payerName: {
+    type: String,
+    required: true
+  },
+  payerNo: {
     type: String
+  },
+  amount: {
+    type: Number,
+    required: true
+  },
+  expectedAmount: {
+    type: Number,
+    required: true
+  },
+  overpayment: {
+    type: Number,
+    default: 0
   },
   status: {
     type: String,
@@ -26,7 +40,7 @@ const transactionSchema = new mongoose.Schema({
   planRequested: {
     type: String
   },
-  usedAt: {
+  processedAt: {
     type: Date,
     default: Date.now
   }

@@ -1,61 +1,145 @@
-# Telebirr Receipt Proxy Server
+# Telebirr Proxy Server
 
-This is a simple proxy server that fetches Telebirr receipts and returns them to your main backend.
+A lightweight proxy server to fetch Telebirr payment receipts from regions where `transactioninfo.ethiotelecom.et` is blocked or restricted.
 
-## Why is this needed?
+## Purpose
 
-Railway's servers cannot access `transactioninfo.ethiotelecom.et` due to network/geo restrictions. This proxy needs to be deployed on a service that CAN access Telebirr.
+Railway and most Western cloud providers cannot directly access Ethio Telecom's transaction info service due to geo-restrictions. This proxy server should be deployed in a region with access (like Render) to act as a bridge.
 
-## Deployment Options
+## Deployment on Render
 
-### Option 1: Render.com (Free Tier)
-1. Go to https://render.com
-2. Sign up/login
-3. Click "New +" → "Web Service"
-4. Connect your GitHub repo (push this folder)
-5. Set:
-   - **Name**: telebirr-proxy
-   - **Environment**: Node
-   - **Build Command**: `npm install`
-   - **Start Command**: `npm start`
-   - **Plan**: Free
-6. Deploy!
+### Step 1: Push to GitHub
 
-### Option 2: Heroku
 ```bash
 cd telebirr-proxy
-heroku create telebirr-proxy-YOUR-NAME
 git init
 git add .
-git commit -m "Telebirr proxy"
-heroku git:remote -a telebirr-proxy-YOUR-NAME
-git push heroku master
+git commit -m "Initial commit: Telebirr proxy server"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/telebirr-proxy.git
+git push -u origin main
 ```
 
-### Option 3: VPS in Ethiopia
-If you have a VPS in Ethiopia:
+### Step 2: Deploy on Render
+
+1. Go to [render.com](https://render.com) and sign up/login
+2. Click **"New +"** → **"Web Service"**
+3. Connect your GitHub repository
+4. Configure:
+   - **Name**: `telebirr-proxy`
+   - **Environment**: `Node`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+   - **Plan**: Free (sufficient for this service)
+5. Click **"Create Web Service"**
+
+### Step 3: Get Your Proxy URL
+
+After deployment, Render will give you a URL like:
+```
+https://telebirr-proxy.onrender.com
+```
+
+Copy this URL!
+
+### Step 4: Configure Railway Backend
+
+In your Railway backend, set environment variable:
+
+```
+TELEBIRR_PROXY_URL=https://telebirr-proxy.onrender.com
+```
+
+## How It Works
+
+1. Railway backend makes request to: `https://telebirr-proxy.onrender.com/fetch/DFG60WWREQ`
+2. Render proxy server fetches from: `https://transactioninfo.ethiotelecom.et/receipt/DFG60WWREQ`
+3. Render returns HTML to Railway
+4. Railway parses and validates the receipt
+
+## API Endpoints
+
+### GET /
+Health check endpoint
+
+**Response**:
+```json
+{
+  "status": "online",
+  "service": "Telebirr Proxy Server",
+  "message": "This proxy fetches Telebirr receipts for regions with restricted access"
+}
+```
+
+### GET /fetch/:transactionId
+Fetch Telebirr receipt HTML
+
+**Parameters**:
+- `transactionId` - Telebirr transaction ID (e.g., DFG60WWREQ)
+
+**Success Response**:
+```html
+<!DOCTYPE html>
+<html>
+  <!-- Telebirr receipt HTML -->
+</html>
+```
+
+**Error Response** (502):
+```json
+{
+  "error": "Failed to fetch receipt from Telebirr",
+  "details": "Request timed out",
+  "transactionId": "DFG60WWREQ"
+}
+```
+
+## Testing Locally
+
 ```bash
-cd telebirr-proxy
 npm install
 npm start
 ```
 
-## Testing
-
-Once deployed, test with:
+Test endpoint:
 ```bash
-curl https://your-proxy-url.onrender.com/fetch/DFG60WWREQ
+curl http://localhost:10000/fetch/DFG60WWREQ
 ```
 
-You should get HTML back.
+## Security
 
-## Environment Variables
+- CORS restricted to your Railway backend URL
+- No authentication needed (public proxy)
+- Rate limiting recommended for production (add express-rate-limit)
 
-None required! Just deploy and use.
+## Cost
 
-## Usage in Your Main Backend
+**Render Free Tier**:
+- ✅ 750 hours/month
+- ✅ Spins down after 15 min inactivity
+- ✅ First request after spin-down takes ~30s
+- ✅ Perfect for low-medium traffic
 
-Update your backend to use the proxy URL:
-```javascript
-const TELEBIRR_PROXY = process.env.TELEBIRR_PROXY_URL || 'https://your-proxy.onrender.com';
-```
+**Note**: If Render also cannot access Telebirr, you'll need to deploy on an Ethiopian VPS or use a different cloud provider with Ethiopian region support.
+
+## Troubleshooting
+
+### Render still can't access Telebirr?
+
+Try these alternatives:
+1. **DigitalOcean** (Bangalore/Singapore datacenter)
+2. **AWS EC2** (Middle East region)
+3. **Google Cloud** (Middle East/Asia region)
+4. **Ethiopian hosting** (Ethio Telecom Cloud, etc.)
+
+### Proxy returning 502 errors?
+
+- Check Render logs
+- Verify Telebirr service is online
+- Test direct access: `curl https://transactioninfo.ethiotelecom.et`
+
+### First request slow?
+
+- Render free tier spins down after inactivity
+- Use Render paid tier ($7/mo) for always-on
+- Or implement keep-alive pings from Railway
