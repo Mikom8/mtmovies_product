@@ -411,6 +411,13 @@ export default function ChoosePlan() {
                       id="txId"
                       value={transactionId}
                       onChange={(e) => setTransactionId(e.target.value)}
+                      onPaste={(e) => {
+                        const pasted = (e.clipboardData || window.clipboardData).getData('text').trim();
+                        if (!pasted) return;
+                        setTransactionId(pasted);
+                        // wait a moment for state to update then submit
+                        setTimeout(() => handleSubmitTransaction({ preventDefault: () => {} }), 50);
+                      }}
                       placeholder="e.g. DFG60WWREQ"
                       required
                       className={styles.input}
