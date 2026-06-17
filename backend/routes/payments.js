@@ -3,7 +3,7 @@ const router = express.Router();
 const { protect } = require('../middleware/auth');
 const paymentController = require('../controllers/paymentController');
 
-// Modern automated verification endpoint
-router.post('/verify', protect, paymentController.verifyPayment);
+// Submit payment for manual verification
+router.post('/submit', protect, paymentController.submitPayment);
 
 module.exports = router;

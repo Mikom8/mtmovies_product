@@ -14,6 +14,7 @@ import SearchPage from './pages/SearchPage';
 import MoviesPage from './pages/MoviesPage';
 import SeriesPage from './pages/SeriesPage';
 import FreePage from './pages/FreePage';
+import Admin from './pages/Admin';
 
 // Protect the /browse route
 function ProtectedRoute({ children }) {
@@ -122,6 +123,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/admin" element={<Admin />} />
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

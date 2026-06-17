@@ -81,7 +81,7 @@ export default function ChoosePlan() {
       // Call backend to verify (backend will use proxy if configured)
       setError('Verifying payment...');
 
-      const res = await fetch(`${API_BASE_URL}/payments/verify`, {
+      const res = await fetch(`${API_BASE_URL}/payments/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,7 +105,7 @@ export default function ChoosePlan() {
         updateUser(data.user);
       }
       
-      alert('Payment verified! Your plan is now active.');
+      alert(data.message || 'Payment submitted! We will verify and activate your plan within 24 hours.');
       navigate('/browse');
       
     } catch (err) {

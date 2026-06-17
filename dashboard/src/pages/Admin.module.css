@@ -1,0 +1,170 @@
+.page {
+  min-height: 100vh;
+  background: #0a0a0a;
+  padding: 2rem;
+  color: #fff;
+}
+
+.header {
+  max-width: 1400px;
+  margin: 0 auto 2rem;
+}
+
+.header h1 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 2px solid #222;
+}
+
+.tab, .activeTab {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: transparent;
+  color: #999;
+  font-size: 1rem;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.activeTab {
+  color: #e50914;
+  border-bottom-color: #e50914;
+}
+
+.tab:hover {
+  color: #fff;
+}
+
+.loading, .empty {
+  text-align: center;
+  padding: 4rem;
+  color: #999;
+  font-size: 1.1rem;
+}
+
+.table {
+  max-width: 1400px;
+  margin: 0 auto;
+  overflow-x: auto;
+  background: #141414;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #1a1a1a;
+}
+
+th {
+  text-align: left;
+  padding: 1rem;
+  font-weight: 600;
+  color: #fff;
+  border-bottom: 2px solid #222;
+}
+
+td {
+  padding: 1rem;
+  border-bottom: 1px solid #222;
+}
+
+tbody tr:hover {
+  background: #1a1a1a;
+}
+
+.txId {
+  font-family: 'Courier New', monospace;
+  color: #4a9eff;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status.pending {
+  background: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+}
+
+.status.completed {
+  background: rgba(0, 255, 0, 0.2);
+  color: #00ff00;
+}
+
+.status.rejected {
+  background: rgba(255, 0, 0, 0.2);
+  color: #ff4444;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.approve, .reject {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.approve {
+  background: #00a000;
+  color: #fff;
+}
+
+.approve:hover {
+  background: #00c000;
+  transform: scale(1.05);
+}
+
+.reject {
+  background: #c00;
+  color: #fff;
+}
+
+.reject:hover {
+  background: #e00;
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .table {
+    overflow-x: scroll;
+  }
+
+  table {
+    min-width: 800px;
+  }
+
+  th, td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
+}

@@ -16,6 +16,7 @@ const seriesRoutes = require('./routes/series');
 const userRoutes = require('./routes/users');
 const streamRoutes = require('./routes/stream');
 const paymentRoutes = require('./routes/payments');
+const adminRoutes = require('./routes/admin');
 const { initTelegramClient } = require('./services/telegram');
 
 const app = express();
@@ -36,6 +37,7 @@ app.use('/api/series', seriesRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/stream', streamRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Serve already-transcoded HLS segments statically (fallback after dynamic routes)
 app.use('/api/stream/hls', (req, res, next) => {
