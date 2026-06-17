@@ -8,8 +8,8 @@ const MY_MERCHANT_NUMBER = '2519****6418';
 const MERCHANT_NAMES = ['BIKILA', 'MELESE', 'BANTI'];
 const TELEBIRR_RECEIPT_URL = 'https://transactioninfo.ethiotelecom.et/receipt';
 
-// Render Proxy configuration - Set this in Railway environment variables
-// Example: TELEBIRR_PROXY_URL=https://telebirr-proxy.onrender.com
+// Netlify Function URL - Set this in Railway environment variables
+// Example: TELEBIRR_PROXY_URL=https://mtmoviess.netlify.app/.netlify/functions/scrape
 const TELEBIRR_PROXY_URL = process.env.TELEBIRR_PROXY_URL || null;
 
 /**
@@ -51,33 +51,31 @@ exports.verifyPayment = async (req, res) => {
       });
     }
 
-    // STEP 2: Fetch HTML from Telebirr (via Render proxy or direct)
+    // STEP 2: Fetch HTML from Telebirr (via Netlify Function)
     console.log(`[Payment] Fetching receipt for: ${normalizedTxId}`);
     let receiptHTML;
     
     try {
-      let fetchUrl;
-      
-      // Use Render proxy if configured (recommended for Railway)
-      if (TELEBIRR_PROXY_URL) {
-        fetchUrl = `${TELEBIRR_PROXY_URL}/fetch/${encodeURIComponent(normalizedTxId)}`;
-        console.log(`[Payment] Using Render proxy: ${TELEBIRR_PROXY_URL}`);
-      } else {
-        // Direct access (only works if deployed in accessible region)
-        fetchUrl = `${TELEBIRR_RECEIPT_URL}/${encodeURIComponent(normalizedTxId)}`;
-        console.log(`[Payment] Using direct access (no proxy configured)`);
+      if (!TELEBIRR_PROXY_URL) {
+        throw new Error('TELEBIRR_PROXY_URL not configured. Please set it in Railway environment variables.');
       }
 
-      const response = await axios.get(fetchUrl, {
-        timeout: 35000, // 35 seconds (Render may spin up from sleep)
+      console.log(`[Payment] Using Netlify Function: ${TELEBIRR_PROXY_URL}`);
+
+      const response = await axios.post(TELEBIRR_PROXY_URL, {
+        transactionId: normalizedTxId
+      }, {
+        timeout: 15000, // 15 seconds
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.9',
+          'Content-Type': 'application/json'
         }
       });
 
-      receiptHTML = response.data;
+      if (response.data && response.data.html) {
+        receiptHTML = response.data.html;
+      } else {
+        throw new Error('Invalid response from Netlify Function');
+      }
 
       if (!receiptHTML || receiptHTML.length < 100) {
         throw new Error('Empty or invalid response from Telebirr');
@@ -88,13 +86,10 @@ exports.verifyPayment = async (req, res) => {
     } catch (networkError) {
       console.error('[Payment] Network error:', networkError.message);
       
-      // Provide helpful error messages
       if (networkError.code === 'ECONNABORTED' || networkError.code === 'ETIMEDOUT') {
         return res.status(400).json({
           success: false,
-          message: TELEBIRR_PROXY_URL 
-            ? '❌ Proxy server timeout. The Render proxy may be waking up (first request after sleep). Please try again in 30 seconds.'
-            : '❌ Unable to connect to Telebirr servers. Please try again in a moment.',
+          message: '❌ Request timeout. Telebirr may be slow. Please try again.',
           code: 'NETWORK_TIMEOUT'
         });
       }
@@ -102,16 +97,14 @@ exports.verifyPayment = async (req, res) => {
       if (networkError.response?.status === 502) {
         return res.status(400).json({
           success: false,
-          message: '❌ Proxy server cannot reach Telebirr. Please contact support.',
+          message: '❌ Unable to reach Telebirr servers. Please try again later.',
           code: 'PROXY_ERROR'
         });
       }
 
       return res.status(400).json({
         success: false,
-        message: TELEBIRR_PROXY_URL
-          ? '❌ Unable to connect to verification servers via proxy. Please try again.'
-          : '❌ Unable to connect to verification servers. Please configure TELEBIRR_PROXY_URL.',
+        message: '❌ Unable to verify payment. Please try again or contact support.',
         code: 'NETWORK_ERROR',
         details: networkError.message
       });
