@@ -1,11 +1,12 @@
 services:
   - type: web
     name: telebirr-proxy
-    env: node
+    env: docker
     plan: free
-    buildCommand: npm install
-    startCommand: npm start
-    healthCheckPath: /
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000

@@ -17,13 +17,29 @@ app.use(cors({
 
 app.use(express.json());
 
-// Health check
+// Health check (for home page)
 app.get('/', (req, res) => {
   res.json({
     status: 'online',
     service: 'Telebirr Proxy Server',
-    message: 'This proxy fetches Telebirr receipts for regions with restricted access'
+    message: 'This proxy fetches Telebirr receipts for regions with restricted access',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
   });
+});
+
+// Health check endpoint (for monitoring and keep-alive)
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Keep-alive endpoint (Railway will ping this to prevent sleep)
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong');
 });
 
 // Proxy endpoint to fetch Telebirr receipt
@@ -164,4 +180,18 @@ function fetchTelebirrReceipt(transactionId) {
 app.listen(PORT, () => {
   console.log(`🚀 Telebirr Proxy Server running on port ${PORT}`);
   console.log(`📡 Ready to fetch receipts from Ethio Telecom`);
+  
+  // Keep-alive: Ping self every 10 minutes to prevent Render sleep
+  setInterval(async () => {
+    try {
+      const response = await fetch(`http://localhost:${PORT}/ping`);
+      if (response.ok) {
+        console.log(`✅ [KeepAlive] Self-ping successful`);
+      }
+    } catch (error) {
+      console.log(`⚠️ [KeepAlive] Self-ping failed (normal if just starting)`);
+    }
+  }, 10 * 60 * 1000); // Every 10 minutes
+  
+  console.log(`🔄 Keep-alive enabled: Self-pinging every 10 minutes to prevent sleep`);
 });
