@@ -1,6 +1,13 @@
 node_modules/
 .expo/
+android/.gradle/
+android/app/build/
 android/build/
 ios/build/
+ios/Pods/
 .git/
 *.log
+.eas/
+dist/
+build/
+.cxx/
