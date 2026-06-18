@@ -1,0 +1,21 @@
+backend/
+dashboard/
+telebirr-proxy/
+.git/
+.idea/
+.vscode/
+node_modules/
+
+# Mobile specific huge folders
+Mobile/node_modules/
+Mobile/android/.gradle/
+Mobile/android/app/build/
+Mobile/android/build/
+Mobile/ios/build/
+Mobile/ios/Pods/
+Mobile/.cxx/
+Mobile/.expo/
+Mobile/dist/
+Mobile/build/
+
+*.log
