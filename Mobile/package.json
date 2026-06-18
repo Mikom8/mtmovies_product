@@ -39,6 +39,7 @@
     "react-native-volume-manager": "^2.0.8"
   },
   "devDependencies": {
+    "@react-native-community/cli": "latest",
     "@babel/core": "^7.26.0",
     "babel-preset-expo": "~54.0.10",
     "dotenv": "^16.4.5"
