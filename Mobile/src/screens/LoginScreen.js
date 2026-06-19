@@ -16,11 +16,8 @@ import {
 import { useFonts } from "expo-font";
 import Feather from "@expo/vector-icons/Feather";
 import { useAuth } from "../context/AuthContext";
-import * as WebBrowser from "expo-web-browser";
-import * as Google from "expo-auth-session/providers/google";
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import Constants from "expo-constants";
-
-WebBrowser.maybeCompleteAuthSession();
 
 const { width, height } = Dimensions.get("window");
 
@@ -119,22 +116,13 @@ const LoginScreen = ({ navigation, route }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Google auth request — client IDs loaded from Expo config extra (from .env)
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId: cfg.EXPO_GOOGLE_CLIENT_ID || "",
-    iosClientId: cfg.IOS_GOOGLE_CLIENT_ID || "",
-    androidClientId: cfg.ANDROID_GOOGLE_CLIENT_ID || "",
-    webClientId: cfg.WEB_GOOGLE_CLIENT_ID || "",
-    scopes: ["profile", "email"],
-  });
-
+  // Google auth setup
   useEffect(() => {
-    if (response?.type === "success") {
-      const { authentication } = response;
-      const accessToken = authentication?.accessToken;
-      if (accessToken) handleGoogleBackendLogin(accessToken);
-    }
-  }, [response]);
+    GoogleSignin.configure({
+      webClientId: cfg.WEB_GOOGLE_CLIENT_ID || "",
+      offlineAccess: true,
+    });
+  }, []);
 
   const handleGoogleBackendLogin = async (accessToken) => {
     setLoading(true);
