@@ -386,15 +386,18 @@ const LoginScreen = ({ navigation, route }) => {
           onPress={async () => {
             try {
               await GoogleSignin.hasPlayServices();
-              const userInfo = await GoogleSignin.signIn();
-              const idToken = userInfo?.data?.idToken || userInfo?.idToken;
-              if (idToken) {
-                await handleGoogleBackendLogin(idToken);
+              await GoogleSignin.signIn();
+              // The backend requires an access_token, not an idToken
+              const { accessToken } = await GoogleSignin.getTokens();
+              
+              if (accessToken) {
+                await handleGoogleBackendLogin(accessToken);
               } else {
-                setError("Google Sign-In failed: No ID token returned");
+                setError("Google Sign-In failed: No access token returned");
               }
             } catch (error) {
               console.log("Google Sign-In Error:", error);
+              setError("Google Sign-in failed locally.");
             }
           }}
           disabled={loading}
