@@ -378,14 +378,26 @@ const LoginScreen = ({ navigation, route }) => {
           <View style={styles.dividerLine} />
         </View>
 
-        {/* Google Button */}
         <Pressable
           style={({ pressed }) => [
             styles.googleBtn,
             pressed && { backgroundColor: "rgba(255,255,255,0.15)" },
           ]}
-          onPress={() => promptAsync()}
-          disabled={!request}
+          onPress={async () => {
+            try {
+              await GoogleSignin.hasPlayServices();
+              const userInfo = await GoogleSignin.signIn();
+              const idToken = userInfo?.data?.idToken || userInfo?.idToken;
+              if (idToken) {
+                await handleGoogleBackendLogin(idToken);
+              } else {
+                setError("Google Sign-In failed: No ID token returned");
+              }
+            } catch (error) {
+              console.log("Google Sign-In Error:", error);
+            }
+          }}
+          disabled={loading}
         >
           <Image
             source={require("../../assets/img/transparent-google-logo-google-logo-in-black-circle-colorful-1710875294177-removebg-preview.png")}
