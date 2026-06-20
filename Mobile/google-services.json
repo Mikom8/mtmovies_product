@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "733179551984",
+    "project_id": "mtmovies-5d364",
+    "storage_bucket": "mtmovies-5d364.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733179551984:android:130d8c271c6027445b6235",
+        "android_client_info": {
+          "package_name": "com.mtmovies.mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "733179551984-695g0hi3a8c0pl4rk5j7u7ii14seh8l5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mtmovies.mobile",
+            "certificate_hash": "c34aa838ef12a2c3ea6a3db04f80d26d3132d439"
+          }
+        },
+        {
+          "client_id": "733179551984-0ji089a9lptnkofd0es2jbdkpi6qfeb6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGEA_UyHTzudeB_JTnnofXhTEGHqzGDBA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733179551984-0ji089a9lptnkofd0es2jbdkpi6qfeb6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -17,6 +17,7 @@
     },
     "android": {
       "package": "com.mtmovies.mobile",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/img/transparent-google-logo-google-logo-in-black-circle-colorful-1710875294177-removebg-preview.png",
         "backgroundColor": "#000000"
