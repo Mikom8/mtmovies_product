@@ -22,17 +22,16 @@ function getLocalIp() {
 const withGradleJavaHome = (config) => {
   const { withGradleProperties } = require('@expo/config-plugins');
   return withGradleProperties(config, (cfg) => {
-    // Only set on local Windows builds, not on EAS cloud servers (Linux)
-    if (process.platform === 'win32' && process.env.EAS_BUILD !== 'true') {
-      const jbrPath = 'C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr';
-      // Remove any existing entry first to avoid duplicates
-      cfg.modResults = cfg.modResults.filter(
-        (item) => !(item.type === 'property' && item.key === 'org.gradle.java.home')
-      );
+    // ALWAYS remove first to ensure EAS Linux servers never see the Windows path
+    cfg.modResults = cfg.modResults.filter(
+      (item) => !(item.type === 'property' && item.key === 'org.gradle.java.home')
+    );
+    // Only inject on local Windows builds (not EAS cloud Linux servers)
+    if (process.platform === 'win32') {
       cfg.modResults.push({
         type: 'property',
         key: 'org.gradle.java.home',
-        value: jbrPath,
+        value: 'C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr',
       });
     }
     return cfg;
