@@ -17,6 +17,28 @@ function getLocalIp() {
   return 'localhost';
 }
 
+// Config plugin: injects org.gradle.java.home into gradle.properties
+// so it survives every `expo prebuild --clean`
+const withGradleJavaHome = (config) => {
+  const { withGradleProperties } = require('@expo/config-plugins');
+  return withGradleProperties(config, (cfg) => {
+    // Only set on local Windows builds, not on EAS cloud servers (Linux)
+    if (process.platform === 'win32' && process.env.EAS_BUILD !== 'true') {
+      const jbrPath = 'C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr';
+      // Remove any existing entry first to avoid duplicates
+      cfg.modResults = cfg.modResults.filter(
+        (item) => !(item.type === 'property' && item.key === 'org.gradle.java.home')
+      );
+      cfg.modResults.push({
+        type: 'property',
+        key: 'org.gradle.java.home',
+        value: jbrPath,
+      });
+    }
+    return cfg;
+  });
+};
+
 module.exports = ({ config }) => {
   return {
     ...config,
@@ -33,7 +55,9 @@ module.exports = ({ config }) => {
     },
     plugins: [
       "expo-font",
-      "expo-video"
+      "expo-video",
+      "@react-native-google-signin/google-signin",
+      withGradleJavaHome,
     ],
   };
 };
