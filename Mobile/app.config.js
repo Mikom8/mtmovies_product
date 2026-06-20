@@ -17,27 +17,6 @@ function getLocalIp() {
   return 'localhost';
 }
 
-// Config plugin: injects org.gradle.java.home into gradle.properties
-// so it survives every `expo prebuild --clean`
-const withGradleJavaHome = (config) => {
-  const { withGradleProperties } = require('@expo/config-plugins');
-  return withGradleProperties(config, (cfg) => {
-    // ALWAYS remove first to ensure EAS Linux servers never see the Windows path
-    cfg.modResults = cfg.modResults.filter(
-      (item) => !(item.type === 'property' && item.key === 'org.gradle.java.home')
-    );
-    // Only inject on local Windows builds (not EAS cloud Linux servers)
-    if (process.platform === 'win32') {
-      cfg.modResults.push({
-        type: 'property',
-        key: 'org.gradle.java.home',
-        value: 'C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr',
-      });
-    }
-    return cfg;
-  });
-};
-
 // Config plugin: writes local.properties with sdk.dir so it survives every prebuild
 const withLocalProperties = (config) => {
   const { withDangerousMod } = require('@expo/config-plugins');
@@ -72,7 +51,6 @@ module.exports = ({ config }) => {
       "expo-font",
       "expo-video",
       "@react-native-google-signin/google-signin",
-      withGradleJavaHome,
       withLocalProperties,
     ],
   };
