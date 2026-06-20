@@ -39,6 +39,22 @@ const withGradleJavaHome = (config) => {
   });
 };
 
+// Config plugin: writes local.properties with sdk.dir so it survives every prebuild
+const withLocalProperties = (config) => {
+  const { withDangerousMod } = require('@expo/config-plugins');
+  return withDangerousMod(config, [
+    'android',
+    async (cfg) => {
+      if (process.platform === 'win32' && process.env.EAS_BUILD !== 'true') {
+        const localPropsPath = path.join(cfg.modRequest.platformProjectRoot, 'local.properties');
+        const sdkPath = 'C:\\\\Users\\\\hp\\\\AppData\\\\Local\\\\Android\\\\Sdk';
+        fs.writeFileSync(localPropsPath, `sdk.dir=${sdkPath}\n`, 'utf8');
+      }
+      return cfg;
+    },
+  ]);
+};
+
 module.exports = ({ config }) => {
   return {
     ...config,
@@ -58,6 +74,7 @@ module.exports = ({ config }) => {
       "expo-video",
       "@react-native-google-signin/google-signin",
       withGradleJavaHome,
+      withLocalProperties,
     ],
   };
 };
