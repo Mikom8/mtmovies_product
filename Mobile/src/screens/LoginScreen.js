@@ -116,10 +116,6 @@ const LoginScreen = ({ navigation, route }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!fontsLoaded) {
-    return null;
-  }
-
   // Google auth setup
   useEffect(() => {
     GoogleSignin.configure({
@@ -127,6 +123,10 @@ const LoginScreen = ({ navigation, route }) => {
       offlineAccess: true,
     });
   }, []);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   const handleGoogleBackendLogin = async (accessToken) => {
     setLoading(true);
