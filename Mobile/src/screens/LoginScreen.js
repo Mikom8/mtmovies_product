@@ -16,7 +16,7 @@ import {
 import { useFonts } from "expo-font";
 import Feather from "@expo/vector-icons/Feather";
 import { useAuth } from "../context/AuthContext";
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Constants from "expo-constants";
 
 const { width, height } = Dimensions.get("window");
@@ -396,8 +396,17 @@ const LoginScreen = ({ navigation, route }) => {
                 setError("Google Sign-In failed: No access token returned");
               }
             } catch (error) {
-              console.log("Google Sign-In Error:", error);
-              setError("Google Sign-in failed locally.");
+              if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+                // user cancelled the login flow, clear any existing error and do nothing
+                setError("");
+              } else if (error.code === statusCodes.IN_PROGRESS) {
+                setError("Sign in is already in progress.");
+              } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+                setError("Google Play Services not available or outdated.");
+              } else {
+                console.log("Google Sign-In Error:", error);
+                setError("Google Sign-in failed. Please try again.");
+              }
             }
           }}
           disabled={loading}
