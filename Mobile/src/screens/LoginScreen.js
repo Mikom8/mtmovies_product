@@ -116,6 +116,10 @@ const LoginScreen = ({ navigation, route }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  if (!fontsLoaded) {
+    return null;
+  }
+
   // Google auth setup
   useEffect(() => {
     GoogleSignin.configure({
@@ -511,11 +515,15 @@ const styles = StyleSheet.create({
   brandText: {
     fontSize: 19,
     fontFamily: "Broche-Cut",
+    includeFontPadding: false,
+    paddingTop: 4,
+    lineHeight: 26,
   },
   brandBold: {
     color: "#fff",
     letterSpacing: 1,
     fontFamily: "Broche-Cut",
+    includeFontPadding: false,
   },
   brandRegular: {
     color: "#ff0f0fff",
