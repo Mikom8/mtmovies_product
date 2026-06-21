@@ -5,10 +5,10 @@
     "scheme": "mtmovies",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/img/transparent-google-logo-google-logo-in-black-circle-colorful-1710875294177-removebg-preview.png",
+    "icon": "./assets/img/unnamed-removebg-preview.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/img/transparent-google-logo-google-logo-in-black-circle-colorful-1710875294177-removebg-preview.png",
+      "image": "./assets/img/unnamed-removebg-preview.png",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
@@ -19,12 +19,12 @@
       "package": "com.mtmovies.mobile",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/img/transparent-google-logo-google-logo-in-black-circle-colorful-1710875294177-removebg-preview.png",
+        "foregroundImage": "./assets/img/unnamed-removebg-preview.png",
         "backgroundColor": "#000000"
       }
     },
     "web": {
-      "favicon": "./assets/img/transparent-google-logo-google-logo-in-black-circle-colorful-1710875294177-removebg-preview.png"
+      "favicon": "./assets/img/unnamed-removebg-preview.png"
     },
     "extra": {
       "EXPO_GOOGLE_CLIENT_ID": "1234-your-expo-client-id.apps.googleusercontent.com",
