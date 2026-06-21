@@ -11,6 +11,7 @@ import {
   Dimensions,
   StatusBar,
   Platform,
+  Animated,
 } from "react-native";
 import { useFonts } from "expo-font";
 import { useMovies } from "../context/MovieContext";
@@ -28,8 +29,49 @@ import Svg, {
 } from "react-native-svg";
 import client from "../api/client";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
+const SkeletonLoader = () => {
+  const pulseAnim = React.useRef(new Animated.Value(0.3)).current;
+  
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 0.7, duration: 800, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.3, duration: 800, useNativeDriver: true })
+      ])
+    ).start();
+  }, [pulseAnim]);
+
+  return (
+    <View style={{ flex: 1, backgroundColor: "#000000ff", paddingTop: 40 }}>
+      <Animated.View style={{ opacity: pulseAnim }}>
+        {/* Hero Skeleton */}
+        <View style={{ width: "100%", height: height * 0.6, backgroundColor: "#1c1c1c", marginBottom: 30 }} />
+        
+        {/* Section Title 1 */}
+        <View style={{ width: 140, height: 24, backgroundColor: "#1c1c1c", borderRadius: 4, marginLeft: 20, marginBottom: 15 }} />
+        {/* Horizontal Scroll 1 */}
+        <View style={{ flexDirection: "row", paddingLeft: 20, marginBottom: 30 }}>
+          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
+          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
+          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
+          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
+        </View>
+
+        {/* Section Title 2 */}
+        <View style={{ width: 180, height: 24, backgroundColor: "#1c1c1c", borderRadius: 4, marginLeft: 20, marginBottom: 15 }} />
+        {/* Horizontal Scroll 2 */}
+        <View style={{ flexDirection: "row", paddingLeft: 20 }}>
+          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
+          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
+          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
+          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
+        </View>
+      </Animated.View>
+    </View>
+  );
+};
 const HomeScreen = () => {
   const [fontsLoaded] = useFonts({
     "Broche-Cut": require("../../assets/fonts/Broche-Cut.ttf"),
@@ -102,11 +144,7 @@ const HomeScreen = () => {
   }
 
   if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#E50914" />
-      </View>
-    );
+    return <SkeletonLoader />;
   }
 
   const renderContentItem = ({
