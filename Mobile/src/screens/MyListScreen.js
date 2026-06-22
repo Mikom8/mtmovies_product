@@ -281,20 +281,10 @@ const MyListScreen = ({ navigation }) => {
       />
 
       {/* Premium Header */}
-      <View style={styles.header}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.backBtn,
-            pressed && { backgroundColor: "rgba(255,255,255,0.1)" },
-          ]}
-          onPress={() => navigation.goBack()}
-        >
-          <Feather name="chevron-left" size={26} color="#fff" />
-        </Pressable>
+      <View style={[styles.header, { justifyContent: "center" }]}>
         <View style={styles.titleWrapper}>
           <Text style={styles.headerTitle}>My Activity</Text>
         </View>
-        <View style={{ width: 40 }} />
       </View>
 
       <View style={styles.tabsContainer}>

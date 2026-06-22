@@ -738,7 +738,11 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
   },
-  newBadgeText: { color: "#fff", fontSize: 9, fontFamily: "TT Medium" },
+  newBadgeText: {
+    color: "#fff",
+    fontSize: 9,
+    fontFamily: "TT Medium"
+  },
   pressedOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(255, 255, 255, 0.15)",

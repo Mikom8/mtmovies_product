@@ -192,14 +192,6 @@ const ProfileScreen = ({ navigation }) => {
               color="#4dabf7"
               fontFamily="Coolvetica"
             />
-            <SettingRow
-              icon="bookmark"
-              lib={MaterialIcons}
-              title="My Activity"
-              color="#ff00ee"
-              fontFamily="Coolvetica"
-              onPress={() => navigation.navigate("MyList")}
-            />
           </View>
         </View>
 
