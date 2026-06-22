@@ -35,7 +35,7 @@ const BLANK_FORM = {
   title: '', year: '', duration: '', quality: '', rating: '',
   poster: '', backdrop: '', genres: '', description: '',
   telegram_chatId: '', telegram_messageId: '',
-  isFree: false, isFeatured: false, isNew: false,
+  isFree: false, isFeatured: false, isNew: false, hasAmharicDub: true,
 };
 
 // ─── Edit / Add Modal ──────────────────────────────────────────
@@ -60,6 +60,7 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
           isFree:             item.isFree ?? false,
           isFeatured:         item.isFeatured ?? false,
           isNew:              item.isNew ?? false,
+          hasAmharicDub:      item.hasAmharicDub ?? true,
         }
       : { ...BLANK_FORM }
   );
@@ -144,7 +145,7 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
               </div>
             ))}
             <div className={styles.checkboxRow}>
-              {[['isFree','Free to Watch'],['isFeatured','Featured (Hero)'],['isNew','New Release']].map(([n,l]) => (
+              {[['isFree','Free to Watch'],['isFeatured','Featured (Hero)'],['isNew','New Release'],['hasAmharicDub','Amharic Dub']].map(([n,l]) => (
                 <label key={n} className={styles.checkboxLabel}>
                   <input type="checkbox" name={n} checked={form[n]} onChange={handleChange} />
                   {l}
