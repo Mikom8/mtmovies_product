@@ -11,6 +11,7 @@ import {
   Pressable,
   StatusBar,
   FlatList,
+  Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFonts } from "expo-font";
@@ -193,6 +194,50 @@ function getSeriesContinueInfo(data, watchHistory) {
 
   return { historyItem: latest, progressPct, sNum, eNum, season, ep };
 }
+
+// ── Skeleton Loader ───────────────────────────────────────────────────────────
+const DetailsSkeleton = () => {
+  const anim = useRef(new Animated.Value(0.4)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim, { toValue: 1.0, duration: 600, useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0.4, duration: 600, useNativeDriver: true })
+      ])
+    ).start();
+  }, [anim]);
+
+  const baseColor = 'rgba(255, 255, 255, 0.25)'; // Slightly brighter gray for more visibility
+
+  return (
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <Animated.View style={{ height: HERO_H, backgroundColor: baseColor, opacity: anim }} />
+      <View style={styles.infoSection}>
+        <Animated.View style={{ height: 32, width: '70%', backgroundColor: baseColor, borderRadius: 4, marginBottom: 16, opacity: anim }} />
+        <View style={styles.metaRow}>
+          <Animated.View style={{ height: 24, width: 60, backgroundColor: baseColor, borderRadius: 12, opacity: anim }} />
+          <Animated.View style={{ height: 24, width: 80, backgroundColor: baseColor, borderRadius: 12, opacity: anim }} />
+          <Animated.View style={{ height: 24, width: 50, backgroundColor: baseColor, borderRadius: 12, opacity: anim }} />
+        </View>
+        <Animated.View style={{ height: 48, width: '100%', backgroundColor: baseColor, borderRadius: 8, marginBottom: 24, opacity: anim }} />
+        <Animated.View style={{ height: 16, width: '100%', backgroundColor: baseColor, borderRadius: 4, marginBottom: 10, opacity: anim }} />
+        <Animated.View style={{ height: 16, width: '90%', backgroundColor: baseColor, borderRadius: 4, marginBottom: 10, opacity: anim }} />
+        <Animated.View style={{ height: 16, width: '80%', backgroundColor: baseColor, borderRadius: 4, opacity: anim }} />
+        
+        {/* Skeleton for More Like This */}
+        <View style={{ marginTop: 32 }}>
+          <Animated.View style={{ height: 20, width: 120, backgroundColor: baseColor, borderRadius: 4, marginBottom: 14, opacity: anim }} />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Animated.View key={i} style={{ width: CARD_W, height: CARD_W * 1.5, backgroundColor: baseColor, borderRadius: 10, opacity: anim }} />
+            ))}
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
 
 // ── Main Component ────────────────────────────────────────────────────────────
 const DetailsScreen = ({ route, navigation }) => {
@@ -400,16 +445,7 @@ const DetailsScreen = ({ route, navigation }) => {
 
   // ── Loading / Error ─────────────────────────────────────────────────────────
   if (loading || !data) {
-    return (
-      <View style={styles.centered}>
-        <StatusBar
-          barStyle="light-content"
-          translucent
-          backgroundColor="transparent"
-        />
-        <ActivityIndicator size="large" color="#E50914" />
-      </View>
-    );
+    return <DetailsSkeleton />;
   }
 
   const currentSeason = data.seasons?.[selectedSeason];
