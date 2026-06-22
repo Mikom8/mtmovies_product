@@ -4,32 +4,36 @@ import styles from './Admin.module.css';
 
 // ─── Shared field definitions ─────────────────────────────────
 const MOVIE_FIELDS = [
-  { name: 'title',            label: 'Title *',          placeholder: 'Movie title',   required: true },
-  { name: 'year',             label: 'Year',             placeholder: '2024' },
-  { name: 'quality',          label: 'Quality',          placeholder: 'HD / FHD / 4K' },
-  { name: 'rating',           label: 'Rating',           placeholder: '8.5' },
-  { name: 'poster',           label: 'Poster URL',       placeholder: 'https://...', full: true },
-  { name: 'backdrop',         label: 'Backdrop URL',     placeholder: 'https://...', full: true },
-  { name: 'genres',           label: 'Genres (comma)',   placeholder: 'Action, Drama', full: true },
-  { name: 'telegram_chatId',  label: 'Telegram Chat ID',    placeholder: '-100xxxxxxxxxx' },
+  { name: 'title',              label: 'Title *',             placeholder: 'Movie title',   required: true },
+  { name: 'year',               label: 'Year',                placeholder: '2024' },
+  { name: 'duration',           label: 'Duration',            placeholder: '2h 15m' },
+  { name: 'quality',            label: 'Quality',             placeholder: 'HD / FHD / 4K' },
+  { name: 'rating',             label: 'Rating',              placeholder: '8.5' },
+  { name: 'poster',             label: 'Poster URL',          placeholder: 'https://...', full: true },
+  { name: 'backdrop',           label: 'Backdrop URL',        placeholder: 'https://...', full: true },
+  { name: 'genres',             label: 'Genres (comma)',      placeholder: 'Action, Drama', full: true },
+  { name: 'description',        label: 'Description',         placeholder: 'Brief plot overview…', full: true, textarea: true },
+  { name: 'telegram_chatId',    label: 'Telegram Chat ID',    placeholder: '-100xxxxxxxxxx' },
   { name: 'telegram_messageId', label: 'Telegram Message ID', placeholder: '12345' },
 ];
 
 const SERIES_FIELDS = [
-  { name: 'title',            label: 'Title *',          placeholder: 'Series title',  required: true },
-  { name: 'year',             label: 'Year',             placeholder: '2024' },
-  { name: 'quality',          label: 'Quality',          placeholder: 'HD / FHD / 4K' },
-  { name: 'rating',           label: 'Rating',           placeholder: '8.5' },
-  { name: 'poster',           label: 'Poster URL',       placeholder: 'https://...', full: true },
-  { name: 'backdrop',         label: 'Backdrop URL',     placeholder: 'https://...', full: true },
-  { name: 'genres',           label: 'Genres (comma)',   placeholder: 'Action, Drama', full: true },
-  { name: 'telegram_chatId',  label: 'Telegram Chat ID',    placeholder: '-100xxxxxxxxxx' },
+  { name: 'title',              label: 'Title *',             placeholder: 'Series title',  required: true },
+  { name: 'year',               label: 'Year',                placeholder: '2024' },
+  { name: 'duration',           label: 'Avg Episode Duration', placeholder: '45m' },
+  { name: 'quality',            label: 'Quality',             placeholder: 'HD / FHD / 4K' },
+  { name: 'rating',             label: 'Rating',              placeholder: '8.5' },
+  { name: 'poster',             label: 'Poster URL',          placeholder: 'https://...', full: true },
+  { name: 'backdrop',           label: 'Backdrop URL',        placeholder: 'https://...', full: true },
+  { name: 'genres',             label: 'Genres (comma)',      placeholder: 'Action, Drama', full: true },
+  { name: 'description',        label: 'Description',         placeholder: 'Brief plot overview…', full: true, textarea: true },
+  { name: 'telegram_chatId',    label: 'Telegram Chat ID',    placeholder: '-100xxxxxxxxxx' },
   { name: 'telegram_messageId', label: 'Telegram Message ID', placeholder: '12345' },
 ];
 
 const BLANK_FORM = {
-  title: '', year: '', quality: '', rating: '',
-  poster: '', backdrop: '', genres: '',
+  title: '', year: '', duration: '', quality: '', rating: '',
+  poster: '', backdrop: '', genres: '', description: '',
   telegram_chatId: '', telegram_messageId: '',
   isFree: false, isFeatured: false, isNew: false,
 };
@@ -44,11 +48,13 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
       ? {
           title:              item.title || '',
           year:               item.year || '',
+          duration:           item.duration || '',
           quality:            item.quality || '',
           rating:             item.rating || '',
           poster:             item.poster || '',
           backdrop:           item.backdrop || '',
           genres:             (item.genres || []).join(', '),
+          description:        item.description || '',
           telegram_chatId:    item.telegram?.chatId || '',
           telegram_messageId: item.telegram?.messageId || '',
           isFree:             item.isFree ?? false,
@@ -118,12 +124,23 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
             {fields.map(f => (
               <div key={f.name} className={`${styles.formGroup} ${f.full ? styles.fullWidth : ''}`}>
                 <label>{f.label}</label>
-                <input
-                  name={f.name}
-                  value={form[f.name]}
-                  onChange={handleChange}
-                  placeholder={f.placeholder}
-                />
+                {f.textarea ? (
+                  <textarea
+                    name={f.name}
+                    value={form[f.name]}
+                    onChange={handleChange}
+                    placeholder={f.placeholder}
+                    className={styles.textarea}
+                    rows={4}
+                  />
+                ) : (
+                  <input
+                    name={f.name}
+                    value={form[f.name]}
+                    onChange={handleChange}
+                    placeholder={f.placeholder}
+                  />
+                )}
               </div>
             ))}
             <div className={styles.checkboxRow}>

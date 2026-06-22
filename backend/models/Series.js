@@ -33,6 +33,9 @@ const seriesSchema = new mongoose.Schema({
     type: String,
     default: '1080p'
   },
+  duration: {
+    type: String
+  },
   hasAmharicDub: {
     type: Boolean,
     default: false
