@@ -216,10 +216,7 @@ const ProfileScreen = ({ navigation }) => {
                 if (!user.plan || user.plan === "free") {
                   navigation.navigate("Plan");
                 } else {
-                  Alert.alert(
-                    "Subscription Details",
-                    `Current Plan: ${currentPlan.label}\nPrice: ${currentPlan.price}\nStatus: Active\n\nIf you wish to upgrade or change your plan, please contact support or perform a new payment.`
-                  );
+                  navigation.navigate("SubscriptionDetails");
                 }
               }}
             />

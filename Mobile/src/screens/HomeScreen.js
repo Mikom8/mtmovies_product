@@ -33,7 +33,7 @@ const { width, height } = Dimensions.get("window");
 
 const SkeletonLoader = () => {
   const pulseAnim = React.useRef(new Animated.Value(0.3)).current;
-  
+
   React.useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -48,7 +48,7 @@ const SkeletonLoader = () => {
       <Animated.View style={{ opacity: pulseAnim }}>
         {/* Hero Skeleton */}
         <View style={{ width: "100%", height: height * 0.6, backgroundColor: "#1c1c1c", marginBottom: 30 }} />
-        
+
         {/* Section Title 1 */}
         <View style={{ width: 140, height: 24, backgroundColor: "#1c1c1c", borderRadius: 4, marginLeft: 20, marginBottom: 15 }} />
         {/* Horizontal Scroll 1 */}
@@ -448,9 +448,9 @@ const HomeScreen = () => {
 
         {/* Dynamic Genre Sections when 'Movies' or 'Series' or 'All' is selected */}
         {selectedGenre === "All" ||
-        selectedGenre === "Movies" ||
-        selectedGenre === "Series" ||
-        selectedGenre === "Free" ? (
+          selectedGenre === "Movies" ||
+          selectedGenre === "Series" ||
+          selectedGenre === "Free" ? (
           <>
             <Section
               title="New Releases"
@@ -485,21 +485,21 @@ const HomeScreen = () => {
                 data={
                   selectedGenre === "Series"
                     ? filteredSeries.filter((s) =>
-                        s.genres?.some(
+                      s.genres?.some(
+                        (g) => g.toLowerCase() === genre.toLowerCase(),
+                      ),
+                    )
+                    : selectedGenre === "Free"
+                      ? [...filteredMovies, ...filteredSeries].filter((item) =>
+                        item.genres?.some(
                           (g) => g.toLowerCase() === genre.toLowerCase(),
                         ),
                       )
-                    : selectedGenre === "Free"
-                      ? [...filteredMovies, ...filteredSeries].filter((item) =>
-                          item.genres?.some(
-                            (g) => g.toLowerCase() === genre.toLowerCase(),
-                          ),
-                        )
                       : filteredMovies.filter((m) =>
-                          m.genres?.some(
-                            (g) => g.toLowerCase() === genre.toLowerCase(),
-                          ),
-                        )
+                        m.genres?.some(
+                          (g) => g.toLowerCase() === genre.toLowerCase(),
+                        ),
+                      )
                 }
               />
             ))}
@@ -738,7 +738,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
   },
-  newBadgeText: { color: "#fff", fontSize: 9, fontWeight: "900" },
+  newBadgeText: { color: "#fff", fontSize: 9, fontFamily: "TT Medium" },
   pressedOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(255, 255, 255, 0.15)",
