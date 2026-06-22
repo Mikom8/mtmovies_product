@@ -168,6 +168,162 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
   );
 }
 
+// ─── Episodes Modal ──────────────────────────────────────────
+function EpisodesModal({ series, onClose, onSaved }) {
+  const [seasons, setSeasons] = useState(series.seasons || []);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [editingEp, setEditingEp] = useState(null); // { seasonIndex, epIndex, data }
+
+  const handleSaveAll = async () => {
+    setSaving(true); setError('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/series/${series._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seasons })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save episodes');
+      onSaved();
+      onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addSeason = () => {
+    const nextNum = seasons.length > 0 ? Math.max(...seasons.map(s => s.seasonNumber)) + 1 : 1;
+    setSeasons([...seasons, { seasonNumber: nextNum, episodes: [] }]);
+  };
+
+  const deleteSeason = (sIdx) => {
+    if (!confirm('Delete entire season?')) return;
+    const newSeasons = [...seasons];
+    newSeasons.splice(sIdx, 1);
+    setSeasons(newSeasons);
+  };
+
+  const addEpisode = (seasonIndex) => {
+    const season = seasons[seasonIndex];
+    const nextNum = season.episodes.length > 0 ? Math.max(...season.episodes.map(e => e.episodeNumber)) + 1 : 1;
+    setEditingEp({
+      seasonIndex,
+      epIndex: -1, // new
+      data: { episodeNumber: nextNum, title: `Episode ${nextNum}`, duration: '45m', telegramChatId: '', telegramMessageId: '' }
+    });
+  };
+
+  const editEpisode = (seasonIndex, epIndex) => {
+    setEditingEp({ seasonIndex, epIndex, data: { ...seasons[seasonIndex].episodes[epIndex] } });
+  };
+
+  const deleteEpisode = (seasonIndex, epIndex) => {
+    if (!confirm('Delete episode?')) return;
+    const newSeasons = [...seasons];
+    newSeasons[seasonIndex].episodes.splice(epIndex, 1);
+    setSeasons(newSeasons);
+  };
+
+  const saveEpisodeForm = () => {
+    const newSeasons = [...seasons];
+    if (editingEp.epIndex === -1) {
+      newSeasons[editingEp.seasonIndex].episodes.push(editingEp.data);
+    } else {
+      newSeasons[editingEp.seasonIndex].episodes[editingEp.epIndex] = editingEp.data;
+    }
+    setSeasons(newSeasons);
+    setEditingEp(null);
+  };
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modal} onClick={e => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h2>Manage Episodes: {series.title}</h2>
+          <button className={styles.closeBtn} onClick={onClose}>✕</button>
+        </div>
+
+        <div className={styles.modalBody}>
+          {editingEp ? (
+            <div className={styles.epForm}>
+              <h3>{editingEp.epIndex === -1 ? 'Add Episode' : 'Edit Episode'}</h3>
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label>Episode Number</label>
+                  <input type="number" value={editingEp.data.episodeNumber} onChange={e => setEditingEp({...editingEp, data: {...editingEp.data, episodeNumber: parseInt(e.target.value)||''}})} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Title</label>
+                  <input value={editingEp.data.title} onChange={e => setEditingEp({...editingEp, data: {...editingEp.data, title: e.target.value}})} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Duration</label>
+                  <input value={editingEp.data.duration} onChange={e => setEditingEp({...editingEp, data: {...editingEp.data, duration: e.target.value}})} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Telegram Chat ID</label>
+                  <input value={editingEp.data.telegramChatId} onChange={e => setEditingEp({...editingEp, data: {...editingEp.data, telegramChatId: e.target.value}})} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Telegram Message ID</label>
+                  <input value={editingEp.data.telegramMessageId} onChange={e => setEditingEp({...editingEp, data: {...editingEp.data, telegramMessageId: e.target.value}})} />
+                </div>
+              </div>
+              <div style={{display:'flex', gap:'10px', marginTop:'15px'}}>
+                <button className={styles.cancelBtn} onClick={() => setEditingEp(null)}>Cancel</button>
+                <button className={styles.saveBtn} onClick={saveEpisodeForm}>Save Episode</button>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.seasonsList}>
+              {seasons.map((season, sIdx) => (
+                <div key={sIdx} className={styles.seasonBlock}>
+                  <div className={styles.seasonHeader}>
+                    <h3>Season {season.seasonNumber}</h3>
+                    <div>
+                      <button className={styles.addBtn} onClick={() => addEpisode(sIdx)}>+ Add Episode</button>
+                      <button className={styles.deleteBtn} style={{marginLeft:'10px'}} onClick={() => deleteSeason(sIdx)}>🗑️</button>
+                    </div>
+                  </div>
+                  <div className={styles.episodesGrid}>
+                    {season.episodes.map((ep, eIdx) => (
+                      <div key={eIdx} className={styles.epCard}>
+                        <div className={styles.epInfo}>
+                          <strong>E{ep.episodeNumber}: {ep.title}</strong>
+                          <span className={styles.epMeta}>{ep.duration || 'N/A'} | Chat: {ep.telegramChatId||'N/A'} | Msg: {ep.telegramMessageId||'N/A'}</span>
+                        </div>
+                        <div className={styles.epActions}>
+                          <button onClick={() => editEpisode(sIdx, eIdx)}>✏️</button>
+                          <button onClick={() => deleteEpisode(sIdx, eIdx)}>🗑️</button>
+                        </div>
+                      </div>
+                    ))}
+                    {season.episodes.length === 0 && <p className={styles.empty}>No episodes yet.</p>}
+                  </div>
+                </div>
+              ))}
+              <button className={styles.addBtn} style={{marginTop:'15px', alignSelf:'flex-start'}} onClick={addSeason}>+ Add Season</button>
+            </div>
+          )}
+        </div>
+
+        {!editingEp && (
+          <div className={styles.modalFooter}>
+            {error && <div className={styles.errorMsg}>{error}</div>}
+            <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
+            <button className={styles.saveBtn} onClick={handleSaveAll} disabled={saving}>
+              {saving ? 'Saving...' : '✓ Save All Changes'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Admin Page ───────────────────────────────────────────
 const PAGE_LIMIT = 100;
 
@@ -183,6 +339,7 @@ export default function Admin() {
   const [genreFilter, setGenreFilter] = useState('');
   const [allGenres,   setAllGenres]   = useState([]);
   const [modal,       setModal]       = useState(null); // { mode:'edit'|'add', item, type }
+  const [episodesModal, setEpisodesModal] = useState(null); // holds the series item
   const [toast,       setToast]       = useState('');
 
   // Payments state
@@ -294,6 +451,18 @@ export default function Admin() {
     }
   };
 
+  const handleEpisodesClick = async (item) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/series/${item._id}`);
+      if (!res.ok) throw new Error('Failed to fetch details');
+      const data = await res.json();
+      setEpisodesModal(data.series);
+    } catch (err) {
+      console.error('Error fetching series details:', err);
+      setEpisodesModal(item);
+    }
+  };
+
   const payments = paymentSubTab === 'pending' ? pendingPayments : allPayments;
 
   return (
@@ -307,6 +476,14 @@ export default function Admin() {
           mode={modal.mode}
           onClose={() => setModal(null)}
           onSaved={() => { loadContent(modal.mode === 'add' ? 1 : page); showToast(modal.mode === 'add' ? '✅ Added!' : '✅ Saved!'); }}
+        />
+      )}
+
+      {episodesModal && (
+        <EpisodesModal
+          series={episodesModal}
+          onClose={() => setEpisodesModal(null)}
+          onSaved={() => { loadContent(page); showToast('✅ Episodes Saved!'); }}
         />
       )}
 
@@ -387,6 +564,12 @@ export default function Admin() {
                       onClick={() => handleEditClick(item)}>
                       ✏️ Edit
                     </button>
+                    {activeTab === 'series' && (
+                      <button className={styles.editBtn} style={{background: '#2b2b40', color: '#a0a0ff', borderColor: '#404070'}}
+                        onClick={() => handleEpisodesClick(item)}>
+                        📺 Episodes
+                      </button>
+                    )}
                     <button className={styles.deleteBtn} onClick={() => handleDelete(item)}>🗑️</button>
                   </div>
                 </div>

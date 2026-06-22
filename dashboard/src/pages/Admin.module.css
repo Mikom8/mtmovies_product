@@ -526,6 +526,24 @@
 .saveBtn:hover:not(:disabled) { background: #c20812; }
 .saveBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ─── Episodes Modal ──────────────────────────── */
+.seasonsList { display: flex; flex-direction: column; gap: 24px; }
+.seasonBlock { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; }
+.seasonHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; }
+.seasonHeader h3 { margin: 0; font-size: 1.1rem; color: #fff; }
+.episodesGrid { display: flex; flex-direction: column; gap: 10px; }
+.epCard { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 8px; transition: background 0.2s; }
+.epCard:hover { background: rgba(255,255,255,0.08); }
+.epInfo { display: flex; flex-direction: column; gap: 4px; }
+.epInfo strong { font-size: 0.9rem; color: #fff; }
+.epMeta { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+.epActions { display: flex; gap: 8px; }
+.epActions button { background: none; border: none; font-size: 1rem; cursor: pointer; opacity: 0.7; transition: opacity 0.2s; }
+.epActions button:hover { opacity: 1; }
+.epForm { background: rgba(255,255,255,0.03); border: 1px solid rgba(229,9,20,0.3); border-radius: 12px; padding: 20px; }
+.epForm h3 { margin: 0 0 16px; color: #fff; font-size: 1.05rem; }
+
+
 /* ─── Payments Table ──────────────────────────── */
 .tableWrap { overflow-x: auto; }
 .table {
