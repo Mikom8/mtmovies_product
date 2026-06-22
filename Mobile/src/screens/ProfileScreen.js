@@ -10,6 +10,7 @@ import {
   Platform,
   Modal,
   TouchableWithoutFeedback,
+  Alert,
 } from "react-native";
 import { useFonts } from "expo-font";
 import { useAuth } from "../context/AuthContext";
@@ -211,15 +212,16 @@ const ProfileScreen = ({ navigation }) => {
               meta={`${user.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) : "Free"} Plan`}
               color="#62980c"
               fontFamily="Coolvetica"
-              onPress={() => navigation.navigate("Plan")}
-            />
-            <SettingRow
-              icon="receipt-long"
-              lib={MaterialIcons}
-              title="Billing History"
-              meta={currentPlan.price}
-              color="#62980c"
-              fontFamily="Coolvetica"
+              onPress={() => {
+                if (!user.plan || user.plan === "free") {
+                  navigation.navigate("Plan");
+                } else {
+                  Alert.alert(
+                    "Subscription Details",
+                    `Current Plan: ${currentPlan.label}\nPrice: ${currentPlan.price}\nStatus: Active\n\nIf you wish to upgrade or change your plan, please contact support or perform a new payment.`
+                  );
+                }
+              }}
             />
           </View>
         </View>
