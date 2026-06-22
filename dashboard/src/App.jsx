@@ -123,7 +123,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-      <Route path="/admin" element={<Admin />} />
+      <Route path="/adminmikoonly" element={<Admin />} />
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
