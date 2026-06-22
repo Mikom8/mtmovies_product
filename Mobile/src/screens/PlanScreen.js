@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Modal,
 } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -68,8 +69,13 @@ const PlanScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [inputError, setInputError] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleSelectPlan = (plan) => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
     setSelectedPlan(plan);
     setStep(2);
   };
@@ -338,6 +344,43 @@ const PlanScreen = ({ navigation }) => {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Custom Auth Required Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showAuthModal}
+        onRequestClose={() => setShowAuthModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalIconContainer}>
+              <Feather name="lock" size={32} color="#E50914" />
+            </View>
+            <Text style={styles.modalTitle}>Sign In Required</Text>
+            <Text style={styles.modalText}>
+              Please sign in or create an account to choose a plan and continue.
+            </Text>
+            <View style={styles.modalActions}>
+              <Pressable
+                style={styles.modalCancelBtn}
+                onPress={() => setShowAuthModal(false)}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={styles.modalSignInBtn}
+                onPress={() => {
+                  setShowAuthModal(false);
+                  navigation.navigate("Login");
+                }}
+              >
+                <Text style={styles.modalSignInText}>Sign In</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -595,6 +638,76 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "TT",
     marginBottom: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  modalContainer: {
+    backgroundColor: "#141414",
+    borderRadius: 16,
+    padding: 24,
+    width: "100%",
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    alignItems: "center",
+  },
+  modalIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "rgba(229,9,20,0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  modalTitle: {
+    color: "#fff",
+    fontSize: 22,
+    fontFamily: "TT Medium",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  modalText: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 15,
+    fontFamily: "TT",
+    textAlign: "center",
+    marginBottom: 28,
+    lineHeight: 22,
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+  },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    alignItems: "center",
+  },
+  modalSignInBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: "#E50914",
+    alignItems: "center",
+  },
+  modalCancelText: {
+    color: "#fff",
+    fontSize: 15,
+    fontFamily: "TT Medium",
+  },
+  modalSignInText: {
+    color: "#fff",
+    fontSize: 15,
+    fontFamily: "TT Medium",
   },
 });
 
