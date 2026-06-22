@@ -67,4 +67,26 @@ router.post('/', async (req, res) => {
   }
 });
 
+// ── PUT /api/series/:id — update a series (admin use) ──
+router.put('/:id', async (req, res) => {
+  try {
+    const series = await Series.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!series) return res.status(404).json({ error: 'Series not found.' });
+    res.json({ message: 'Series updated successfully!', series });
+  } catch (err) {
+    res.status(400).json({ error: 'Failed to update series.', message: err.message });
+  }
+});
+
+// ── DELETE /api/series/:id — delete a series (admin use) ──
+router.delete('/:id', async (req, res) => {
+  try {
+    const series = await Series.findByIdAndDelete(req.params.id);
+    if (!series) return res.status(404).json({ error: 'Series not found.' });
+    res.json({ message: 'Series deleted successfully!' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete series.', message: err.message });
+  }
+});
+
 module.exports = router;

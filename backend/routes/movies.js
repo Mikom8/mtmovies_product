@@ -97,4 +97,26 @@ router.post('/', async (req, res) => {
   }
 });
 
+// ── PUT /api/movies/:id — update a movie (admin use) ──
+router.put('/:id', async (req, res) => {
+  try {
+    const movie = await Movie.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!movie) return res.status(404).json({ error: 'Movie not found.' });
+    res.json({ message: 'Movie updated successfully!', movie });
+  } catch (err) {
+    res.status(400).json({ error: 'Failed to update movie.', message: err.message });
+  }
+});
+
+// ── DELETE /api/movies/:id — delete a movie (admin use) ──
+router.delete('/:id', async (req, res) => {
+  try {
+    const movie = await Movie.findByIdAndDelete(req.params.id);
+    if (!movie) return res.status(404).json({ error: 'Movie not found.' });
+    res.json({ message: 'Movie deleted successfully!' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete movie.', message: err.message });
+  }
+});
+
 module.exports = router;
