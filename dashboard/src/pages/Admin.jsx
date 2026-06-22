@@ -261,6 +261,21 @@ export default function Admin() {
     loadContent(page);
   };
 
+  const handleEditClick = async (item) => {
+    try {
+      const type = activeTab === 'movies' ? 'movie' : 'series';
+      const endpoint = activeTab === 'movies' ? '/movies' : '/series';
+      const res = await fetch(`${API_BASE_URL}${endpoint}/${item._id}`);
+      if (!res.ok) throw new Error('Failed to fetch details');
+      const data = await res.json();
+      const detailedItem = type === 'movie' ? data.movie : data.series;
+      setModal({ mode: 'edit', item: detailedItem || item, type });
+    } catch (err) {
+      console.error('Error fetching item details:', err);
+      setModal({ mode: 'edit', item, type: activeTab === 'movies' ? 'movie' : 'series' });
+    }
+  };
+
   const payments = paymentSubTab === 'pending' ? pendingPayments : allPayments;
 
   return (
@@ -351,7 +366,7 @@ export default function Admin() {
                   </div>
                   <div className={styles.cardActions}>
                     <button className={styles.editBtn}
-                      onClick={() => setModal({ mode:'edit', item, type: activeTab === 'movies' ? 'movie' : 'series' })}>
+                      onClick={() => handleEditClick(item)}>
                       ✏️ Edit
                     </button>
                     <button className={styles.deleteBtn} onClick={() => handleDelete(item)}>🗑️</button>
