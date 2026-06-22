@@ -174,6 +174,7 @@ function EpisodesModal({ series, onClose, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [editingEp, setEditingEp] = useState(null); // { seasonIndex, epIndex, data }
+  const [bulkAdd, setBulkAdd] = useState(null); // { seasonIndex, startId, endId, baseDuration, telegramChatId }
 
   const handleSaveAll = async () => {
     setSaving(true); setError('');
@@ -238,6 +239,36 @@ function EpisodesModal({ series, onClose, onSaved }) {
     setEditingEp(null);
   };
 
+  const startBulkAdd = (seasonIndex) => {
+    setBulkAdd({ seasonIndex, startId: '', endId: '', baseDuration: '45m', telegramChatId: '' });
+  };
+
+  const saveBulkAdd = () => {
+    const start = parseInt(bulkAdd.startId);
+    const end = parseInt(bulkAdd.endId);
+    if (isNaN(start) || isNaN(end) || start > end) {
+      alert("Invalid start or end ID");
+      return;
+    }
+    
+    const newSeasons = [...seasons];
+    const season = newSeasons[bulkAdd.seasonIndex];
+    let nextNum = season.episodes.length > 0 ? Math.max(...season.episodes.map(e => e.episodeNumber)) + 1 : 1;
+    
+    for (let msgId = start; msgId <= end; msgId++) {
+      season.episodes.push({
+        episodeNumber: nextNum,
+        title: `Episode ${nextNum}`,
+        duration: bulkAdd.baseDuration,
+        telegramChatId: bulkAdd.telegramChatId,
+        telegramMessageId: String(msgId)
+      });
+      nextNum++;
+    }
+    setSeasons(newSeasons);
+    setBulkAdd(null);
+  };
+
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
@@ -277,6 +308,32 @@ function EpisodesModal({ series, onClose, onSaved }) {
                 <button className={styles.saveBtn} onClick={saveEpisodeForm}>Save Episode</button>
               </div>
             </div>
+          ) : bulkAdd ? (
+            <div className={styles.epForm}>
+              <h3>Bulk Add Episodes (Season {seasons[bulkAdd.seasonIndex].seasonNumber})</h3>
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label>Start Message ID</label>
+                  <input type="number" placeholder="e.g. 13051" value={bulkAdd.startId} onChange={e => setBulkAdd({...bulkAdd, startId: e.target.value})} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>End Message ID</label>
+                  <input type="number" placeholder="e.g. 13058" value={bulkAdd.endId} onChange={e => setBulkAdd({...bulkAdd, endId: e.target.value})} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Duration (All)</label>
+                  <input value={bulkAdd.baseDuration} onChange={e => setBulkAdd({...bulkAdd, baseDuration: e.target.value})} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Telegram Chat ID (All)</label>
+                  <input value={bulkAdd.telegramChatId} onChange={e => setBulkAdd({...bulkAdd, telegramChatId: e.target.value})} />
+                </div>
+              </div>
+              <div style={{display:'flex', gap:'10px', marginTop:'15px'}}>
+                <button className={styles.cancelBtn} onClick={() => setBulkAdd(null)}>Cancel</button>
+                <button className={styles.saveBtn} onClick={saveBulkAdd}>Generate Episodes</button>
+              </div>
+            </div>
           ) : (
             <div className={styles.seasonsList}>
               {seasons.map((season, sIdx) => (
@@ -285,6 +342,7 @@ function EpisodesModal({ series, onClose, onSaved }) {
                     <h3>Season {season.seasonNumber}</h3>
                     <div>
                       <button className={styles.addBtn} onClick={() => addEpisode(sIdx)}>+ Add Episode</button>
+                      <button className={styles.addBtn} style={{marginLeft:'10px', background: 'rgba(160,160,255,0.15)', color: '#a0a0ff', borderColor: 'rgba(160,160,255,0.3)'}} onClick={() => startBulkAdd(sIdx)}>+ Bulk Add</button>
                       <button className={styles.deleteBtn} style={{marginLeft:'10px'}} onClick={() => deleteSeason(sIdx)}>🗑️</button>
                     </div>
                   </div>
@@ -310,7 +368,7 @@ function EpisodesModal({ series, onClose, onSaved }) {
           )}
         </div>
 
-        {!editingEp && (
+        {(!editingEp && !bulkAdd) && (
           <div className={styles.modalFooter}>
             {error && <div className={styles.errorMsg}>{error}</div>}
             <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
