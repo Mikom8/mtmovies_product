@@ -52,6 +52,10 @@ const userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  lastNameChangedAt: {
+    type: Date,
+    default: null
   }
 }, { timestamps: true });
 

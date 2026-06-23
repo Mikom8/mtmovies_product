@@ -17,12 +17,29 @@ router.get('/profile', async (req, res) => {
 router.put('/profile', async (req, res) => {
   try {
     const { name, avatar } = req.body;
-    const updated = await User.findByIdAndUpdate(
-      req.user._id,
-      { ...(name && { name }), ...(avatar && { avatar }) },
-      { new: true, runValidators: true }
-    );
-    res.json({ message: 'Profile updated!', user: updated });
+    const user = await User.findById(req.user._id);
+
+    if (name && name !== user.name) {
+      const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+      if (user.lastNameChangedAt) {
+        const elapsed = Date.now() - new Date(user.lastNameChangedAt).getTime();
+        if (elapsed < THIRTY_DAYS_MS) {
+          const daysLeft = Math.ceil((THIRTY_DAYS_MS - elapsed) / (24 * 60 * 60 * 1000));
+          return res.status(429).json({
+            error: 'Name change not allowed yet.',
+            daysLeft,
+            message: `You can change your name again in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`
+          });
+        }
+      }
+      user.name = name;
+      user.lastNameChangedAt = new Date();
+    }
+
+    if (avatar) user.avatar = avatar;
+
+    await user.save();
+    res.json({ message: 'Profile updated!', user });
   } catch (err) {
     res.status(400).json({ error: 'Update failed.', message: err.message });
   }

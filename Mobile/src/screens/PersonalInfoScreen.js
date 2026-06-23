@@ -26,6 +26,15 @@ const PersonalInfoScreen = ({ navigation }) => {
   const [newName, setNewName] = useState(user?.name || "");
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // Compute cooldown state
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+  const lastChanged = user?.lastNameChangedAt ? new Date(user.lastNameChangedAt) : null;
+  const elapsed = lastChanged ? Date.now() - lastChanged.getTime() : THIRTY_DAYS_MS;
+  const nameChangeLocked = elapsed < THIRTY_DAYS_MS;
+  const daysLeft = nameChangeLocked
+    ? Math.ceil((THIRTY_DAYS_MS - elapsed) / (24 * 60 * 60 * 1000))
+    : 0;
+
   const [toast, setToast] = useState({
     visible: false,
     message: "",
@@ -71,9 +80,10 @@ const PersonalInfoScreen = ({ navigation }) => {
         icon: "edit",
       });
     } catch (error) {
+      const serverMsg = error?.response?.data?.message;
       setToast({
         visible: true,
-        message: "Failed to update name",
+        message: serverMsg || "Failed to update name",
         variant: "error",
       });
     } finally {
@@ -153,11 +163,11 @@ const PersonalInfoScreen = ({ navigation }) => {
               icon="user"
               title="Name"
               meta={user?.name || "No name"}
-              color="#adb5bd"
+              color={nameChangeLocked ? "#666" : "#adb5bd"}
               fontFamily="Coolvetica"
-              hideArrow={false}
+              hideArrow={nameChangeLocked}
               rightIcon="edit-2"
-              onPress={() => {
+              onPress={nameChangeLocked ? null : () => {
                 setNewName(user?.name || "");
                 setNameModalVisible(true);
               }}
@@ -209,7 +219,9 @@ const PersonalInfoScreen = ({ navigation }) => {
               autoFocus
             />
             <Text style={styles.modalHelperText}>
-              Name can only be changed once in 30 days.
+              {nameChangeLocked
+                ? `You can change your name again in ${daysLeft} day${daysLeft === 1 ? "" : "s"}.`
+                : "Name can only be changed once in 30 days."}
             </Text>
             <View style={styles.modalActionRow}>
               <Pressable
