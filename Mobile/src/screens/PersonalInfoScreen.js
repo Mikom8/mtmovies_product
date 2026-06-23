@@ -26,6 +26,17 @@ const PersonalInfoScreen = ({ navigation }) => {
   const [newName, setNewName] = useState(user?.name || "");
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // Password modal state
+  const [isPasswordModalVisible, setPasswordModalVisible] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState({ oldPassword: "", newPassword: "", confirmPassword: "", general: "" });
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   // Compute cooldown state
   const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
   const lastChanged = user?.lastNameChangedAt ? new Date(user.lastNameChangedAt) : null;
@@ -81,6 +92,7 @@ const PersonalInfoScreen = ({ navigation }) => {
       });
     } catch (error) {
       const serverMsg = error?.response?.data?.message;
+      setNameModalVisible(false);
       setToast({
         visible: true,
         message: serverMsg || "Failed to update name",
@@ -88,6 +100,42 @@ const PersonalInfoScreen = ({ navigation }) => {
       });
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const openPasswordModal = () => {
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordErrors({ oldPassword: "", newPassword: "", confirmPassword: "", general: "" });
+    setPasswordModalVisible(true);
+  };
+
+  const handlePasswordChange = async () => {
+    // Client-side validation first
+    const errs = { oldPassword: "", newPassword: "", confirmPassword: "", general: "" };
+    if (!oldPassword.trim()) errs.oldPassword = "Current password is required.";
+    if (!newPassword.trim()) errs.newPassword = "New password is required.";
+    else if (newPassword.length < 6) errs.newPassword = "Password must be at least 6 characters.";
+    if (newPassword && confirmPassword !== newPassword) errs.confirmPassword = "Passwords do not match.";
+    if (errs.oldPassword || errs.newPassword || errs.confirmPassword) {
+      setPasswordErrors(errs);
+      return;
+    }
+    setIsChangingPassword(true);
+    try {
+      await client.put("/users/password", { oldPassword, newPassword });
+      setPasswordModalVisible(false);
+      setToast({ visible: true, message: "Password changed successfully", variant: "added", icon: "lock" });
+    } catch (error) {
+      const data = error?.response?.data;
+      if (data?.field && data.field !== "general") {
+        setPasswordErrors((prev) => ({ ...prev, [data.field]: data.message }));
+      } else {
+        setPasswordErrors((prev) => ({ ...prev, general: data?.message || "Something went wrong." }));
+      }
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -192,9 +240,7 @@ const PersonalInfoScreen = ({ navigation }) => {
               meta="Password"
               color="#4dabf7"
               fontFamily="Coolvetica"
-              onPress={() => {
-                // Future implementation for security settings
-              }}
+              onPress={openPasswordModal}
             />
           </View>
         </View>
@@ -245,6 +291,121 @@ const PersonalInfoScreen = ({ navigation }) => {
                 android_ripple={{ color: "rgba(0,0,0,0.55)", borderless: false }}
               >
                 {isUpdating ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.modalConfirmText}>Save</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Password Change Modal */}
+      <Modal
+        visible={isPasswordModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => !isChangingPassword && setPasswordModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Change Password</Text>
+
+            {/* General error */}
+            {!!passwordErrors.general && (
+              <View style={styles.fieldErrorBox}>
+                <Feather name="alert-circle" size={13} color="#ff6b6b" />
+                <Text style={styles.fieldErrorText}>{passwordErrors.general}</Text>
+              </View>
+            )}
+
+            {/* Old Password */}
+            {!!passwordErrors.oldPassword && (
+              <View style={styles.fieldErrorBox}>
+                <Feather name="alert-circle" size={13} color="#ff6b6b" />
+                <Text style={styles.fieldErrorText}>{passwordErrors.oldPassword}</Text>
+              </View>
+            )}
+            <View style={styles.passwordInputWrapper}>
+              <TextInput
+                style={styles.passwordInput}
+                value={oldPassword}
+                onChangeText={(t) => { setOldPassword(t); setPasswordErrors((p) => ({ ...p, oldPassword: "" })); }}
+                placeholder="Current password"
+                placeholderTextColor="rgba(255,255,255,0.3)"
+                secureTextEntry={!showOld}
+                autoFocus
+              />
+              <Pressable onPress={() => setShowOld((v) => !v)} style={styles.eyeBtn}>
+                <Feather name={showOld ? "eye-off" : "eye"} size={18} color="rgba(255,255,255,0.4)" />
+              </Pressable>
+            </View>
+
+            {/* New Password */}
+            {!!passwordErrors.newPassword && (
+              <View style={styles.fieldErrorBox}>
+                <Feather name="alert-circle" size={13} color="#ff6b6b" />
+                <Text style={styles.fieldErrorText}>{passwordErrors.newPassword}</Text>
+              </View>
+            )}
+            <View style={styles.passwordInputWrapper}>
+              <TextInput
+                style={styles.passwordInput}
+                value={newPassword}
+                onChangeText={(t) => { setNewPassword(t); setPasswordErrors((p) => ({ ...p, newPassword: "" })); }}
+                placeholder="New password"
+                placeholderTextColor="rgba(255,255,255,0.3)"
+                secureTextEntry={!showNew}
+              />
+              <Pressable onPress={() => setShowNew((v) => !v)} style={styles.eyeBtn}>
+                <Feather name={showNew ? "eye-off" : "eye"} size={18} color="rgba(255,255,255,0.4)" />
+              </Pressable>
+            </View>
+
+            {/* Confirm Password */}
+            {!!passwordErrors.confirmPassword && (
+              <View style={styles.fieldErrorBox}>
+                <Feather name="alert-circle" size={13} color="#ff6b6b" />
+                <Text style={styles.fieldErrorText}>{passwordErrors.confirmPassword}</Text>
+              </View>
+            )}
+            <View style={[styles.passwordInputWrapper, { marginBottom: 24 }]}>
+              <TextInput
+                style={styles.passwordInput}
+                value={confirmPassword}
+                onChangeText={(t) => { setConfirmPassword(t); setPasswordErrors((p) => ({ ...p, confirmPassword: "" })); }}
+                placeholder="Confirm new password"
+                placeholderTextColor="rgba(255,255,255,0.3)"
+                secureTextEntry={!showConfirm}
+              />
+              <Pressable onPress={() => setShowConfirm((v) => !v)} style={styles.eyeBtn}>
+                <Feather name={showConfirm ? "eye-off" : "eye"} size={18} color="rgba(255,255,255,0.4)" />
+              </Pressable>
+            </View>
+
+            <View style={styles.modalActionRow}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.modalCancelBtn,
+                  pressed && { backgroundColor: "rgba(255,255,255,0.1)" }
+                ]}
+                onPress={() => setPasswordModalVisible(false)}
+                disabled={isChangingPassword}
+                android_ripple={{ color: "rgba(255,255,255,0.25)", borderless: false }}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.modalConfirmBtn,
+                  isChangingPassword && { opacity: 0.5 }
+                ]}
+                onPress={handlePasswordChange}
+                disabled={isChangingPassword}
+                android_ripple={{ color: "rgba(0,0,0,0.25)", borderless: false }}
+              >
+                {isChangingPassword ? (
                   <ActivityIndicator color="#fff" size="small" />
                 ) : (
                   <Text style={styles.modalConfirmText}>Save</Text>
@@ -428,6 +589,44 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontFamily: "TT Medium",
     fontSize: 16,
+  },
+  passwordInputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    borderRadius: 12,
+    marginBottom: 12,
+    paddingRight: 8,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 16,
+    color: "#fff",
+    fontSize: 15,
+    fontFamily: "TT",
+  },
+  eyeBtn: {
+    padding: 8,
+  },
+  fieldErrorBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(255,107,107,0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(255,107,107,0.25)",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    marginBottom: 8,
+  },
+  fieldErrorText: {
+    color: "#ff6b6b",
+    fontSize: 12,
+    fontFamily: "TT",
+    flexShrink: 1,
   },
 });
 

@@ -45,7 +45,39 @@ router.put('/profile', async (req, res) => {
   }
 });
 
-// Helper to populate watchlist item details from Movie or Series models
+// ── PUT /api/users/password — change password ──
+router.put('/password', async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword)
+      return res.status(400).json({ field: 'general', message: 'All fields are required.' });
+
+    if (newPassword.length < 6)
+      return res.status(400).json({ field: 'newPassword', message: 'Password must be at least 6 characters.' });
+
+    const user = await User.findById(req.user._id).select('+password');
+
+    if (!user.password)
+      return res.status(400).json({ field: 'oldPassword', message: 'Your account uses Google sign-in. No password to change.' });
+
+    const isMatch = await user.comparePassword(oldPassword);
+    if (!isMatch)
+      return res.status(401).json({ field: 'oldPassword', message: 'Current password is incorrect.' });
+
+    if (oldPassword === newPassword)
+      return res.status(400).json({ field: 'newPassword', message: 'New password must be different from current.' });
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password changed successfully!' });
+  } catch (err) {
+    res.status(500).json({ field: 'general', message: 'Something went wrong. Try again.' });
+  }
+});
+
+
 const getPopulatedWatchlist = async (watchlist) => {
   const Series = require('../models/Series');
   const populated = await Promise.all(
