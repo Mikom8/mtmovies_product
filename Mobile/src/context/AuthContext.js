@@ -81,8 +81,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateToken = async (newToken) => {
+    await SecureStore.setItemAsync('token', newToken);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, googleLogin, updateUser: setUser, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, googleLogin, updateUser: setUser, refreshUser, updateToken }}>
       {children}
     </AuthContext.Provider>
   );

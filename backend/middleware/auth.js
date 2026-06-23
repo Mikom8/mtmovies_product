@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 
 // Generate JWT token
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+const generateToken = (userId, tokenVersion = 0) => {
+  return jwt.sign({ id: userId, tokenVersion }, process.env.JWT_SECRET, {
     expiresIn: '30d'
   });
 };
@@ -24,6 +24,10 @@ const protect = async (req, res, next) => {
     const User = require('../models/User');
     req.user = await User.findById(decoded.id);
     if (!req.user) return res.status(401).json({ error: 'User no longer exists.' });
+    // Validate token version — mismatch means user logged out all devices
+    if (decoded.tokenVersion !== undefined && decoded.tokenVersion !== req.user.tokenVersion) {
+      return res.status(401).json({ error: 'Session expired. Please log in again.' });
+    }
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Invalid or expired token.' });

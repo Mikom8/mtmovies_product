@@ -48,7 +48,7 @@ router.put('/profile', async (req, res) => {
 // ── PUT /api/users/password — change password ──
 router.put('/password', async (req, res) => {
   try {
-    const { oldPassword, newPassword } = req.body;
+    const { oldPassword, newPassword, logoutOtherDevices } = req.body;
 
     if (!oldPassword || !newPassword)
       return res.status(400).json({ field: 'general', message: 'All fields are required.' });
@@ -69,9 +69,19 @@ router.put('/password', async (req, res) => {
       return res.status(400).json({ field: 'newPassword', message: 'New password must be different from current.' });
 
     user.password = newPassword;
+
+    // Increment tokenVersion to invalidate all other sessions
+    if (logoutOtherDevices) {
+      user.tokenVersion = (user.tokenVersion || 0) + 1;
+    }
+
     await user.save();
 
-    res.json({ message: 'Password changed successfully!' });
+    // Issue a fresh token for the current device (uses new tokenVersion)
+    const { generateToken } = require('../middleware/auth');
+    const newToken = generateToken(user._id, user.tokenVersion);
+
+    res.json({ message: 'Password changed successfully!', token: newToken });
   } catch (err) {
     res.status(500).json({ field: 'general', message: 'Something went wrong. Try again.' });
   }

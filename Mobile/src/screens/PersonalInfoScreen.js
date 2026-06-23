@@ -21,7 +21,7 @@ import { useFonts } from "expo-font";
 const { width } = Dimensions.get("window");
 
 const PersonalInfoScreen = ({ navigation }) => {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, updateToken } = useAuth();
   const [isNameModalVisible, setNameModalVisible] = useState(false);
   const [newName, setNewName] = useState(user?.name || "");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -36,6 +36,7 @@ const PersonalInfoScreen = ({ navigation }) => {
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [logoutOtherDevices, setLogoutOtherDevices] = useState(false);
 
   // Compute cooldown state
   const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -107,6 +108,7 @@ const PersonalInfoScreen = ({ navigation }) => {
     setOldPassword("");
     setNewPassword("");
     setConfirmPassword("");
+    setLogoutOtherDevices(false);
     setPasswordErrors({ oldPassword: "", newPassword: "", confirmPassword: "", general: "" });
     setPasswordModalVisible(true);
   };
@@ -124,7 +126,11 @@ const PersonalInfoScreen = ({ navigation }) => {
     }
     setIsChangingPassword(true);
     try {
-      await client.put("/users/password", { oldPassword, newPassword });
+      const response = await client.put("/users/password", { oldPassword, newPassword, logoutOtherDevices });
+      // Always save the fresh token returned by the server
+      if (response.data?.token) {
+        await updateToken(response.data.token);
+      }
       setPasswordModalVisible(false);
       setToast({ visible: true, message: "Password changed successfully", variant: "added", icon: "lock" });
     } catch (error) {
@@ -370,7 +376,7 @@ const PersonalInfoScreen = ({ navigation }) => {
                 <Text style={styles.fieldErrorText}>{passwordErrors.confirmPassword}</Text>
               </View>
             )}
-            <View style={[styles.passwordInputWrapper, { marginBottom: 24 }]}>
+            <View style={[styles.passwordInputWrapper, { marginBottom: 16 }]}>
               <TextInput
                 style={styles.passwordInput}
                 value={confirmPassword}
@@ -383,6 +389,20 @@ const PersonalInfoScreen = ({ navigation }) => {
                 <Feather name={showConfirm ? "eye-off" : "eye"} size={18} color="rgba(255,255,255,0.4)" />
               </Pressable>
             </View>
+
+            {/* Logout other devices checkbox */}
+            <Pressable
+              style={styles.checkboxRow}
+              onPress={() => setLogoutOtherDevices((v) => !v)}
+            >
+              <View style={[styles.checkbox, logoutOtherDevices && styles.checkboxChecked]}>
+                {logoutOtherDevices && <Feather name="check" size={12} color="#fff" />}
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.checkboxLabel}>Sign out of all other devices</Text>
+                <Text style={styles.checkboxSub}>Except this one</Text>
+              </View>
+            </Pressable>
 
             <View style={styles.modalActionRow}>
               <Pressable
@@ -627,6 +647,39 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "TT",
     flexShrink: 1,
+  },
+  checkboxRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    marginBottom: 20,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+  },
+  checkboxChecked: {
+    backgroundColor: "#E50914",
+    borderColor: "#E50914",
+  },
+  checkboxLabel: {
+    color: "#fff",
+    fontSize: 14,
+    fontFamily: "TT Medium",
+    marginBottom: 2,
+  },
+  checkboxSub: {
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 12,
+    fontFamily: "TT",
   },
 });
 
