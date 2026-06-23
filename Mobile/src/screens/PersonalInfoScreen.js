@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import Toast from "../components/Toast";
 import Feather from "@expo/vector-icons/Feather";
 import { useFonts } from "expo-font";
 
@@ -24,6 +25,16 @@ const PersonalInfoScreen = ({ navigation }) => {
   const [isNameModalVisible, setNameModalVisible] = useState(false);
   const [newName, setNewName] = useState(user?.name || "");
   const [isUpdating, setIsUpdating] = useState(false);
+
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    variant: "added",
+  });
+
+  const hideToast = useCallback(() => {
+    setToast((prev) => ({ ...prev, visible: false }));
+  }, []);
 
   const [fontsLoaded] = useFonts({
     "Broche-Cut": require("../../assets/fonts/Broche-Cut.ttf"),
@@ -36,7 +47,15 @@ const PersonalInfoScreen = ({ navigation }) => {
   if (!fontsLoaded) return null;
 
   const handleNameUpdate = async () => {
-    if (!newName.trim() || newName === user?.name) {
+    if (!newName.trim()) {
+      setToast({
+        visible: true,
+        message: "Name cannot be empty",
+        variant: "error",
+      });
+      return;
+    }
+    if (newName === user?.name) {
       setNameModalVisible(false);
       return;
     }
@@ -45,8 +64,17 @@ const PersonalInfoScreen = ({ navigation }) => {
       await client.put("/users/profile", { name: newName });
       await refreshUser();
       setNameModalVisible(false);
+      setToast({
+        visible: true,
+        message: "Name updated successfully",
+        variant: "added",
+      });
     } catch (error) {
-      Alert.alert("Error", "Failed to update name");
+      setToast({
+        visible: true,
+        message: "Failed to update name",
+        variant: "error",
+      });
     } finally {
       setIsUpdating(false);
     }
@@ -179,6 +207,9 @@ const PersonalInfoScreen = ({ navigation }) => {
               placeholderTextColor="rgba(255,255,255,0.3)"
               autoFocus
             />
+            <Text style={styles.modalHelperText}>
+              Name can only be changed once in 30 days.
+            </Text>
             <View style={styles.modalActionRow}>
               <Pressable
                 style={styles.modalCancelBtn}
@@ -188,9 +219,12 @@ const PersonalInfoScreen = ({ navigation }) => {
                 <Text style={styles.modalCancelText}>Cancel</Text>
               </Pressable>
               <Pressable
-                style={styles.modalConfirmBtn}
+                style={[
+                  styles.modalConfirmBtn,
+                  (!newName.trim() || isUpdating) && { opacity: 0.5 }
+                ]}
                 onPress={handleNameUpdate}
-                disabled={isUpdating}
+                disabled={!newName.trim() || isUpdating}
               >
                 {isUpdating ? (
                   <ActivityIndicator color="#fff" size="small" />
@@ -202,6 +236,13 @@ const PersonalInfoScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+
+      <Toast
+        message={toast.message}
+        visible={toast.visible}
+        variant={toast.variant}
+        onHide={hideToast}
+      />
     </View>
   );
 };
@@ -328,7 +369,14 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontFamily: "TT",
+    marginBottom: 8,
+  },
+  modalHelperText: {
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 12,
+    fontFamily: "TT",
     marginBottom: 24,
+    textAlign: "center",
   },
   modalActionRow: {
     flexDirection: "row",

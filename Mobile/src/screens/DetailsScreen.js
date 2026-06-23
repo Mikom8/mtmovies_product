@@ -224,7 +224,7 @@ const DetailsSkeleton = () => {
         <Animated.View style={{ height: 16, width: '100%', backgroundColor: baseColor, borderRadius: 4, marginBottom: 10, opacity: anim }} />
         <Animated.View style={{ height: 16, width: '90%', backgroundColor: baseColor, borderRadius: 4, marginBottom: 10, opacity: anim }} />
         <Animated.View style={{ height: 16, width: '80%', backgroundColor: baseColor, borderRadius: 4, opacity: anim }} />
-        
+
         {/* Skeleton for More Like This */}
         <View style={{ marginTop: 32 }}>
           <Animated.View style={{ height: 20, width: 120, backgroundColor: baseColor, borderRadius: 4, marginBottom: 14, opacity: anim }} />
