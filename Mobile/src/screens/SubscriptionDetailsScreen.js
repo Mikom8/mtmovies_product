@@ -40,9 +40,9 @@ const SubscriptionDetailsScreen = ({ navigation }) => {
             <Feather name="star" size={24} color="#FFD700" style={{ marginRight: 8 }} />
             <Text style={styles.cardTitle}>{currentPlan.label}</Text>
           </View>
-          
+
           <View style={styles.divider} />
-          
+
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Status</Text>
             <View style={styles.statusBadge}>
@@ -70,7 +70,7 @@ const SubscriptionDetailsScreen = ({ navigation }) => {
           If you wish to cancel or change your subscription, please contact support or perform a new payment to upgrade.
         </Text>
 
-        <Pressable 
+        <Pressable
           style={({ pressed }) => [styles.upgradeBtn, pressed && { backgroundColor: "#B20710" }]}
           onPress={() => navigation.navigate("Plan")}
         >
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: Platform.OS === "ios" ? 50 : 40,
+    paddingTop: 50,
     paddingHorizontal: 16,
     paddingBottom: 16,
     backgroundColor: "rgba(0,0,0,0.8)",
