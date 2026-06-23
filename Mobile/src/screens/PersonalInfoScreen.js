@@ -261,7 +261,7 @@ const PersonalInfoScreen = ({ navigation }) => {
               value={newName}
               onChangeText={setNewName}
               placeholder="Enter new name"
-              placeholderTextColor="rgba(255,255,255,0.3)"
+              placeholderTextColor="rgba(255,255,255,0.6)"
               autoFocus
             />
             <Text style={styles.modalHelperText}>
@@ -333,7 +333,7 @@ const PersonalInfoScreen = ({ navigation }) => {
                 value={oldPassword}
                 onChangeText={(t) => { setOldPassword(t); setPasswordErrors((p) => ({ ...p, oldPassword: "" })); }}
                 placeholder="Current password"
-                placeholderTextColor="rgba(255,255,255,0.3)"
+                placeholderTextColor="rgba(255,255,255,0.6)"
                 secureTextEntry={!showOld}
                 autoFocus
               />
@@ -355,7 +355,7 @@ const PersonalInfoScreen = ({ navigation }) => {
                 value={newPassword}
                 onChangeText={(t) => { setNewPassword(t); setPasswordErrors((p) => ({ ...p, newPassword: "" })); }}
                 placeholder="New password"
-                placeholderTextColor="rgba(255,255,255,0.3)"
+                placeholderTextColor="rgba(255,255,255,0.6)"
                 secureTextEntry={!showNew}
               />
               <Pressable onPress={() => setShowNew((v) => !v)} style={styles.eyeBtn}>
@@ -376,7 +376,7 @@ const PersonalInfoScreen = ({ navigation }) => {
                 value={confirmPassword}
                 onChangeText={(t) => { setConfirmPassword(t); setPasswordErrors((p) => ({ ...p, confirmPassword: "" })); }}
                 placeholder="Confirm new password"
-                placeholderTextColor="rgba(255,255,255,0.3)"
+                placeholderTextColor="rgba(255,255,255,0.6)"
                 secureTextEntry={!showConfirm}
               />
               <Pressable onPress={() => setShowConfirm((v) => !v)} style={styles.eyeBtn}>

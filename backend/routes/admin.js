@@ -45,7 +45,7 @@ router.post('/payments/:transactionId/approve', async (req, res) => {
     const { transactionId } = req.params;
 
     const transaction = await Transaction.findOne({ transactionId });
-    
+
     if (!transaction) {
       return res.status(404).json({ success: false, message: 'Transaction not found' });
     }
@@ -61,7 +61,7 @@ router.post('/payments/:transactionId/approve', async (req, res) => {
 
     // Activate user plan
     const user = await User.findById(transaction.userId);
-    
+
     if (user) {
       user.plan = transaction.planRequested.toLowerCase();
       const expirationDate = new Date();
@@ -89,7 +89,7 @@ router.post('/payments/:transactionId/reject', async (req, res) => {
     const { transactionId } = req.params;
 
     const transaction = await Transaction.findOne({ transactionId });
-    
+
     if (!transaction) {
       return res.status(404).json({ success: false, message: 'Transaction not found' });
     }

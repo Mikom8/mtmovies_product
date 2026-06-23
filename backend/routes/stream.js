@@ -113,13 +113,13 @@ router.get('/:chatId/:messageId/metadata', async (req, res) => {
     }
 
     if (isAvi || isNonNative) {
-      const result = { 
-        mimeType, 
-        needsTranscode: true, 
-        isAvi, 
-        codec: 'unknown', 
+      const result = {
+        mimeType,
+        needsTranscode: true,
+        isAvi,
+        codec: 'unknown',
         size: fileSize,
-        duration: telegramDuration 
+        duration: telegramDuration
       };
       codecCache.set(cacheKey, result);
       return res.json(result);

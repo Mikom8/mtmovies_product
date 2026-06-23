@@ -17,11 +17,11 @@ router.post('/google', async (req, res) => {
     const profileRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${access_token}` }
     });
-    
+
     if (!profileRes.ok) {
       throw new Error('Failed to fetch Google profile');
     }
-    
+
     const payload = await profileRes.json();
     const { email, name, picture, sub: googleId } = payload;
 
@@ -72,7 +72,7 @@ router.post('/check-email', async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required.' });
-    
+
     const user = await User.findOne({ email: email.toLowerCase() });
     res.json({ exists: !!user });
   } catch (err) {
@@ -155,16 +155,16 @@ router.post('/login', async (req, res) => {
 // ── GET /api/auth/me — get current logged-in user ──
 router.get('/me', protect, async (req, res) => {
   res.json({
-      user: {
-        id: req.user._id,
-        name: req.user.name,
-        email: req.user.email,
-        plan: req.user.plan,
-        planExpiresAt: req.user.planExpiresAt,
-        avatar: req.user.avatar,
-        watchHistory: req.user.watchHistory,
-        watchlist: req.user.watchlist
-      }
+    user: {
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      plan: req.user.plan,
+      planExpiresAt: req.user.planExpiresAt,
+      avatar: req.user.avatar,
+      watchHistory: req.user.watchHistory,
+      watchlist: req.user.watchlist
+    }
   });
 });
 

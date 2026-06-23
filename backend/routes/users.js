@@ -157,7 +157,7 @@ router.post('/history', async (req, res) => {
     if (existing) {
       existing.progress = progress;
       existing.watchedAt = new Date();
-      
+
       // If watched > 30 mins (1800s) and not yet counted
       if (progress >= 1800 && !existing.countedView) {
         existing.countedView = true;
@@ -176,7 +176,7 @@ router.post('/history', async (req, res) => {
     } else {
       const isOver30 = progress >= 1800;
       user.watchHistory.push({ movieId: String(movieId), progress, countedView: isOver30 });
-      
+
       if (isOver30) {
         const isSeries = String(movieId).includes('_');
         const baseId = String(movieId).split('_')[0];
