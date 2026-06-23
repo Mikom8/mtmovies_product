@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import client from '../api/client';
+import { registerForPushNotificationsAsync } from '../utils/notifications';
 
 const AuthContext = createContext();
 
@@ -35,6 +36,20 @@ export const AuthProvider = ({ children }) => {
       const { token, user } = response.data;
       await SecureStore.setItemAsync('token', token);
       setUser(user);
+      
+      // Setup push notifications
+      try {
+        const pushToken = await registerForPushNotificationsAsync();
+        if (pushToken) {
+          // Send push token to backend using the newly acquired auth token
+          await client.post('/users/push-token', { token: pushToken }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+      } catch (e) {
+        console.error("Failed to register push token after login", e);
+      }
+
       return { success: true };
     } catch (error) {
       return { success: false, error: error.response?.data?.error || 'Login failed' };
@@ -47,6 +62,19 @@ export const AuthProvider = ({ children }) => {
       const { token, user, isNewUser } = response.data;
       await SecureStore.setItemAsync('token', token);
       setUser(user);
+
+      // Setup push notifications
+      try {
+        const pushToken = await registerForPushNotificationsAsync();
+        if (pushToken) {
+          await client.post('/users/push-token', { token: pushToken }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+      } catch (e) {
+        console.error("Failed to register push token after google login", e);
+      }
+
       return { success: true, isNewUser: !!isNewUser };
     } catch (error) {
       return { success: false, error: error.response?.data?.error || 'Google login failed' };
@@ -59,6 +87,19 @@ export const AuthProvider = ({ children }) => {
       const { token, user } = response.data;
       await SecureStore.setItemAsync('token', token);
       setUser(user);
+
+      // Setup push notifications
+      try {
+        const pushToken = await registerForPushNotificationsAsync();
+        if (pushToken) {
+          await client.post('/users/push-token', { token: pushToken }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+      } catch (e) {
+        console.error("Failed to register push token after register", e);
+      }
+
       return { success: true };
     } catch (error) {
       return { success: false, error: error.response?.data?.error || 'Registration failed' };

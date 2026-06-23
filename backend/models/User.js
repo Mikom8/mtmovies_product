@@ -60,7 +60,8 @@ const userSchema = new mongoose.Schema({
   tokenVersion: {
     type: Number,
     default: 0
-  }
+  },
+  pushTokens: [{ type: String }]
 }, { timestamps: true });
 
 // Hash password before saving

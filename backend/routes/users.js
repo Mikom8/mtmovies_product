@@ -233,4 +233,27 @@ router.put('/plan', async (req, res) => {
   }
 });
 
+// ── POST /api/users/push-token — save device push token ──
+router.post('/push-token', async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: 'Token is required.' });
+
+    const user = await User.findById(req.user._id);
+    
+    // Add token if it doesn't already exist
+    if (!user.pushTokens) {
+      user.pushTokens = [];
+    }
+    if (!user.pushTokens.includes(token)) {
+      user.pushTokens.push(token);
+      await user.save();
+    }
+
+    res.json({ message: 'Token saved successfully.' });
+  } catch (err) {
+    res.status(400).json({ error: 'Failed to save push token.' });
+  }
+});
+
 module.exports = router;
