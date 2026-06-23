@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,12 @@ import {
   ScrollView,
   StatusBar,
   Dimensions,
+  Modal,
+  TextInput,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
+import client from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import Feather from "@expo/vector-icons/Feather";
 import { useFonts } from "expo-font";
@@ -15,7 +20,10 @@ import { useFonts } from "expo-font";
 const { width } = Dimensions.get("window");
 
 const PersonalInfoScreen = ({ navigation }) => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
+  const [isNameModalVisible, setNameModalVisible] = useState(false);
+  const [newName, setNewName] = useState(user?.name || "");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const [fontsLoaded] = useFonts({
     "Broche-Cut": require("../../assets/fonts/Broche-Cut.ttf"),
@@ -27,6 +35,23 @@ const PersonalInfoScreen = ({ navigation }) => {
 
   if (!fontsLoaded) return null;
 
+  const handleNameUpdate = async () => {
+    if (!newName.trim() || newName === user?.name) {
+      setNameModalVisible(false);
+      return;
+    }
+    setIsUpdating(true);
+    try {
+      await client.put("/users/profile", { name: newName });
+      await refreshUser();
+      setNameModalVisible(false);
+    } catch (error) {
+      Alert.alert("Error", "Failed to update name");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const SettingRow = ({
     icon,
     lib: IconLib = Feather,
@@ -36,6 +61,7 @@ const PersonalInfoScreen = ({ navigation }) => {
     fontFamily,
     onPress,
     hideArrow = false,
+    rightIcon = "chevron-right",
   }) => (
     <Pressable
       style={({ pressed }) => [
@@ -56,7 +82,7 @@ const PersonalInfoScreen = ({ navigation }) => {
       <View style={styles.rowRight}>
         {meta && <Text style={styles.rowMeta}>{meta}</Text>}
         {!hideArrow && (
-          <Feather name="chevron-right" size={16} color="rgba(255,255,255,0.3)" />
+          <Feather name={rightIcon} size={16} color="rgba(255,255,255,0.3)" />
         )}
       </View>
     </Pressable>
@@ -100,7 +126,12 @@ const PersonalInfoScreen = ({ navigation }) => {
               meta={user?.name || "No name"}
               color="#adb5bd"
               fontFamily="Coolvetica"
-              hideArrow={true}
+              hideArrow={false}
+              rightIcon="edit-2"
+              onPress={() => {
+                setNewName(user?.name || "");
+                setNameModalVisible(true);
+              }}
             />
             <SettingRow
               icon="mail"
@@ -129,6 +160,48 @@ const PersonalInfoScreen = ({ navigation }) => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Name Edit Modal */}
+      <Modal
+        visible={isNameModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => !isUpdating && setNameModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Change Name</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={newName}
+              onChangeText={setNewName}
+              placeholder="Enter new name"
+              placeholderTextColor="rgba(255,255,255,0.3)"
+              autoFocus
+            />
+            <View style={styles.modalActionRow}>
+              <Pressable
+                style={styles.modalCancelBtn}
+                onPress={() => setNameModalVisible(false)}
+                disabled={isUpdating}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={styles.modalConfirmBtn}
+                onPress={handleNameUpdate}
+                disabled={isUpdating}
+              >
+                {isUpdating ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.modalConfirmText}>Save</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -224,6 +297,68 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginRight: 8,
     fontFamily: "TT",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.85)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: width * 0.85,
+    backgroundColor: "#1a1a1a",
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  modalTitle: {
+    color: "#fff",
+    fontSize: 20,
+    marginBottom: 20,
+    fontFamily: "Coolvetica",
+    textAlign: "center",
+  },
+  modalInput: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    borderRadius: 12,
+    padding: 16,
+    color: "#fff",
+    fontSize: 16,
+    fontFamily: "TT",
+    marginBottom: 24,
+  },
+  modalActionRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  modalCancelText: {
+    color: "#fff",
+    fontFamily: "TT Medium",
+    fontSize: 16,
+  },
+  modalConfirmBtn: {
+    flex: 1,
+    backgroundColor: "#E50914",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  modalConfirmText: {
+    color: "#fff",
+    fontFamily: "TT Medium",
+    fontSize: 16,
   },
 });
 
