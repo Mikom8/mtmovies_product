@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Text, StyleSheet, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-const Toast = ({ message, visible, onHide, variant = 'success' }) => {
+const Toast = ({ message, visible, onHide, variant = 'success', icon }) => {
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.88)).current;
   const translateY = useRef(new Animated.Value(12)).current;
@@ -33,7 +33,7 @@ const Toast = ({ message, visible, onHide, variant = 'success' }) => {
 
   if (!visible) return null;
 
-  const iconName =
+  const iconName = icon ? icon :
     variant === 'added' ? 'bookmark' :
     variant === 'removed' ? 'bookmark-border' :
     'info-outline';

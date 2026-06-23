@@ -68,6 +68,7 @@ const PersonalInfoScreen = ({ navigation }) => {
         visible: true,
         message: "Name updated successfully",
         variant: "added",
+        icon: "edit",
       });
     } catch (error) {
       setToast({
@@ -246,6 +247,7 @@ const PersonalInfoScreen = ({ navigation }) => {
         message={toast.message}
         visible={toast.visible}
         variant={toast.variant}
+        icon={toast.icon}
         onHide={hideToast}
       />
     </View>
