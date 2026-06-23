@@ -110,7 +110,7 @@ const PersonalInfoScreen = ({ navigation }) => {
       <View style={styles.rowRight}>
         {meta && <Text style={styles.rowMeta}>{meta}</Text>}
         {!hideArrow && (
-          <Feather name={rightIcon} size={16} color="rgba(255,255,255,0.3)" />
+          <Feather name={rightIcon} size={16} color="rgba(255,255,255,0.6)" />
         )}
       </View>
     </Pressable>
@@ -212,19 +212,24 @@ const PersonalInfoScreen = ({ navigation }) => {
             </Text>
             <View style={styles.modalActionRow}>
               <Pressable
-                style={styles.modalCancelBtn}
+                style={({ pressed }) => [
+                  styles.modalCancelBtn,
+                  pressed && { backgroundColor: "rgba(255,255,255,0.1)" }
+                ]}
                 onPress={() => setNameModalVisible(false)}
                 disabled={isUpdating}
+                android_ripple={{ color: "rgba(255,255,255,0.55)", borderless: false }}
               >
                 <Text style={styles.modalCancelText}>Cancel</Text>
               </Pressable>
               <Pressable
-                style={[
+                style={({ pressed }) => [
                   styles.modalConfirmBtn,
                   (!newName.trim() || isUpdating) && { opacity: 0.5 }
                 ]}
                 onPress={handleNameUpdate}
                 disabled={!newName.trim() || isUpdating}
+                android_ripple={{ color: "rgba(0,0,0,0.55)", borderless: false }}
               >
                 {isUpdating ? (
                   <ActivityIndicator color="#fff" size="small" />
@@ -296,11 +301,11 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   sectionCard: {
-    backgroundColor: "rgba(255,255,255,0.04)",
+    backgroundColor: "rgba(255,255,255,0.06)",
     borderRadius: 20,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "rgba(255,255,255,0.08)",
   },
   row: {
     flexDirection: "row",
@@ -334,10 +339,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   rowMeta: {
-    color: "rgba(255,255,255,0.4)",
+    color: "rgba(255,255,255,0.7)",
     fontSize: 13,
     marginRight: 8,
-    fontFamily: "TT",
+    fontFamily: "TT Medium",
   },
   modalOverlay: {
     flex: 1,
@@ -390,6 +395,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",
+    overflow: "hidden",
   },
   modalCancelText: {
     color: "#fff",
@@ -402,6 +408,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
+    overflow: "hidden",
   },
   modalConfirmText: {
     color: "#fff",
