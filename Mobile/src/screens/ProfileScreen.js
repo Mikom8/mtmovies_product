@@ -178,13 +178,7 @@ const ProfileScreen = ({ navigation }) => {
               meta="Edit profile"
               color="#4dabf7"
               fontFamily="Coolvetica"
-            />
-            <SettingRow
-              icon="shield"
-              title="Security"
-              meta="Password"
-              color="#4dabf7"
-              fontFamily="Coolvetica"
+              onPress={() => navigation.navigate("PersonalInfo")}
             />
             <SettingRow
               icon="bell"
