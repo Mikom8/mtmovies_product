@@ -114,10 +114,24 @@ router.post('/payments/:transactionId/reject', async (req, res) => {
   }
 });
 
-// Send Push Notifications
-const { Expo } = require('expo-server-sdk');
-let expo = new Expo();
+// ── GET /api/admin/stats ──
+router.get('/stats', async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const paidUsers  = await User.countDocuments({ plan: { $ne: 'free' } });
+    const totalTransactions = await Transaction.countDocuments();
 
+    res.json({
+      success: true,
+      stats: { totalUsers, paidUsers, totalTransactions }
+    });
+  } catch (error) {
+    console.error('[Admin] Error fetching stats:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ── POST /api/admin/notifications/send ──
 router.post('/notifications/send', async (req, res) => {
   try {
     const { title, body, imageUrl } = req.body;
@@ -125,9 +139,13 @@ router.post('/notifications/send', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Title and body are required.' });
     }
 
+    // Dynamic import required because expo-server-sdk is an ES Module
+    const { Expo } = await import('expo-server-sdk');
+    const expo = new Expo();
+
     // Find all users who have at least one push token
     const users = await User.find({ pushTokens: { $exists: true, $not: { $size: 0 } } });
-    
+
     let messages = [];
     for (let user of users) {
       for (let pushToken of user.pushTokens) {
@@ -146,14 +164,14 @@ router.post('/notifications/send', async (req, res) => {
       }
     }
 
-    let chunks = expo.chunkPushNotifications(messages);
+    const chunks = expo.chunkPushNotifications(messages);
     let tickets = [];
     for (let chunk of chunks) {
       try {
-        let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+        const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
         tickets.push(...ticketChunk);
-      } catch (error) {
-        console.error('Error sending push notification chunk:', error);
+      } catch (err) {
+        console.error('Error sending push notification chunk:', err);
       }
     }
 
