@@ -114,4 +114,54 @@ router.post('/payments/:transactionId/reject', async (req, res) => {
   }
 });
 
+// Send Push Notifications
+const { Expo } = require('expo-server-sdk');
+let expo = new Expo();
+
+router.post('/notifications/send', async (req, res) => {
+  try {
+    const { title, body, imageUrl } = req.body;
+    if (!title || !body) {
+      return res.status(400).json({ success: false, message: 'Title and body are required.' });
+    }
+
+    // Find all users who have at least one push token
+    const users = await User.find({ pushTokens: { $exists: true, $not: { $size: 0 } } });
+    
+    let messages = [];
+    for (let user of users) {
+      for (let pushToken of user.pushTokens) {
+        if (!Expo.isExpoPushToken(pushToken)) {
+          console.error(`Push token ${pushToken} is not a valid Expo push token`);
+          continue;
+        }
+
+        messages.push({
+          to: pushToken,
+          sound: 'default',
+          title: title,
+          body: body,
+          data: { imageUrl: imageUrl || null },
+        });
+      }
+    }
+
+    let chunks = expo.chunkPushNotifications(messages);
+    let tickets = [];
+    for (let chunk of chunks) {
+      try {
+        let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+        tickets.push(...ticketChunk);
+      } catch (error) {
+        console.error('Error sending push notification chunk:', error);
+      }
+    }
+
+    res.json({ success: true, message: `Notifications sent to ${messages.length} devices.` });
+  } catch (error) {
+    console.error('[Admin] Error sending notifications:', error);
+    res.status(500).json({ success: false, message: 'Failed to send notifications.' });
+  }
+});
+
 module.exports = router;

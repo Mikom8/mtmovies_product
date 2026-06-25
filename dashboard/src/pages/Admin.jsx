@@ -406,6 +406,10 @@ export default function Admin() {
   const [paymentSubTab,   setPaymentSubTab]   = useState('pending');
   const [payLoading,      setPayLoading]      = useState(false);
 
+  // Notifications state
+  const [notifForm, setNotifForm] = useState({ title: '', body: '', imageUrl: '' });
+  const [notifSending, setNotifSending] = useState(false);
+
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
   // ── Load content with pagination ──
@@ -432,16 +436,40 @@ export default function Admin() {
       }
     } catch (err) {
       console.error(err);
+      showToast('❌ Update failed');
+    }
+  };
+
+  const handleSendNotification = async (e) => {
+    e.preventDefault();
+    if (!notifForm.title || !notifForm.body) {
+      showToast('⚠️ Title and Message are required.');
+      return;
+    }
+    setNotifSending(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/notifications/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(notifForm)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to send notifications');
+      showToast(`✅ ${data.message}`);
+      setNotifForm({ title: '', body: '', imageUrl: '' });
+    } catch (err) {
+      console.error(err);
+      showToast(`❌ ${err.message}`);
     } finally {
-      setLoading(false);
+      setNotifSending(false);
     }
   };
 
   useEffect(() => {
-    if (activeTab !== 'payments') {
+    if (activeTab === 'movies' || activeTab === 'series') {
       setPage(1); setSearch(''); setGenreFilter('');
       loadContent(1);
-    } else {
+    } else if (activeTab === 'payments') {
       loadPayments();
     }
   }, [activeTab]);
@@ -549,9 +577,9 @@ export default function Admin() {
       <div className={styles.header}>
         <div className={styles.logo}>🎬 MTMovies Admin</div>
         <div className={styles.tabs}>
-          {['movies','series','payments'].map(t => (
+          {['movies','series','payments','notifications'].map(t => (
             <button key={t} className={activeTab === t ? styles.activeTab : styles.tab} onClick={() => setActiveTab(t)}>
-              {t === 'movies' ? '🎥 Movies' : t === 'series' ? '📺 Series' : '💳 Payments'}
+              {t === 'movies' ? '🎥 Movies' : t === 'series' ? '📺 Series' : t === 'payments' ? '💳 Payments' : '🔔 Notifications'}
             </button>
           ))}
         </div>
@@ -700,6 +728,63 @@ export default function Admin() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Notifications Tab ── */}
+      {activeTab === 'notifications' && (
+        <div className={styles.contentSection}>
+          <div className={styles.notificationsContainer}>
+            <h2 style={{ color: '#fff', marginBottom: '20px' }}>Broadcast Push Notification</h2>
+            <form onSubmit={handleSendNotification} className={styles.notifForm}>
+              <div className={styles.formGroup}>
+                <label>Title *</label>
+                <input
+                  value={notifForm.title}
+                  onChange={e => setNotifForm({ ...notifForm, title: e.target.value })}
+                  placeholder="e.g. New Movie Release!"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Message Body *</label>
+                <textarea
+                  value={notifForm.body}
+                  onChange={e => setNotifForm({ ...notifForm, body: e.target.value })}
+                  placeholder="Check out the latest action blockbuster..."
+                  rows={4}
+                  className={styles.textarea}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Image URL (Optional)</label>
+                <input
+                  value={notifForm.imageUrl}
+                  onChange={e => setNotifForm({ ...notifForm, imageUrl: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+              
+              {notifForm.imageUrl && (
+                <div style={{ marginTop: '10px' }}>
+                  <img 
+                    src={notifForm.imageUrl} 
+                    alt="Preview" 
+                    style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', border: '1px solid #404070' }} 
+                    onError={e => e.target.style.display = 'none'}
+                  />
+                </div>
+              )}
+
+              <button 
+                type="submit" 
+                className={styles.saveBtn} 
+                style={{ marginTop: '20px', padding: '15px', fontSize: '16px' }}
+                disabled={notifSending}
+              >
+                {notifSending ? 'Broadcasting...' : '🚀 Send to All Users'}
+              </button>
+            </form>
+          </div>
         </div>
       )}
     </div>
