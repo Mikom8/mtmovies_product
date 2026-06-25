@@ -436,7 +436,9 @@ export default function Admin() {
       }
     } catch (err) {
       console.error(err);
-      showToast('❌ Update failed');
+      showToast('❌ Failed to load content');
+    } finally {
+      setLoading(false);
     }
   };
 
