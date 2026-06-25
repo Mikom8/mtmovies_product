@@ -139,44 +139,48 @@ router.post('/notifications/send', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Title and body are required.' });
     }
 
-    // Dynamic import required because expo-server-sdk is an ES Module
-    const { Expo } = await import('expo-server-sdk');
-    const expo = new Expo();
-
     // Find all users who have at least one push token
-    // 'pushTokens.0' checks that the first element exists (array is non-empty)
     const users = await User.find({ 'pushTokens.0': { $exists: true } });
 
-    let messages = [];
-    for (let user of users) {
-      for (let pushToken of user.pushTokens) {
-        if (!Expo.isExpoPushToken(pushToken)) {
-          console.error(`Push token ${pushToken} is not a valid Expo push token`);
-          continue;
+    // Build the message list — validate each token manually
+    const messages = [];
+    for (const user of users) {
+      for (const pushToken of (user.pushTokens || [])) {
+        // Expo push tokens look like: ExponentPushToken[xxxxxx]
+        if (typeof pushToken === 'string' && pushToken.startsWith('ExponentPushToken[')) {
+          messages.push({
+            to: pushToken,
+            sound: 'default',
+            title,
+            body,
+            data: { imageUrl: imageUrl || null },
+          });
         }
-
-        messages.push({
-          to: pushToken,
-          sound: 'default',
-          title: title,
-          body: body,
-          data: { imageUrl: imageUrl || null },
-        });
       }
     }
 
-    const chunks = expo.chunkPushNotifications(messages);
-    let tickets = [];
-    for (let chunk of chunks) {
-      try {
-        const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-        tickets.push(...ticketChunk);
-      } catch (err) {
-        console.error('Error sending push notification chunk:', err);
-      }
+    if (messages.length === 0) {
+      return res.json({ success: true, message: 'No registered devices found. 0 notifications sent.' });
     }
 
-    res.json({ success: true, message: `Notifications sent to ${messages.length} devices.` });
+    // Send directly to Expo Push API via HTTP — no SDK needed, avoids ESM issues
+    const response = await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(messages),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      console.error('[Admin] Expo push error:', errData);
+      return res.status(500).json({ success: false, message: 'Expo push API rejected the request.' });
+    }
+
+    res.json({ success: true, message: `Notifications sent to ${messages.length} device(s).` });
   } catch (error) {
     console.error('[Admin] Error sending notifications:', error);
     res.status(500).json({ success: false, message: 'Failed to send notifications.' });
