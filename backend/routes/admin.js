@@ -144,7 +144,8 @@ router.post('/notifications/send', async (req, res) => {
     const expo = new Expo();
 
     // Find all users who have at least one push token
-    const users = await User.find({ pushTokens: { $exists: true, $not: { $size: 0 } } });
+    // 'pushTokens.0' checks that the first element exists (array is non-empty)
+    const users = await User.find({ 'pushTokens.0': { $exists: true } });
 
     let messages = [];
     for (let user of users) {

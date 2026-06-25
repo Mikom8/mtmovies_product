@@ -25,7 +25,8 @@ const protect = async (req, res, next) => {
     req.user = await User.findById(decoded.id);
     if (!req.user) return res.status(401).json({ error: 'User no longer exists.' });
     // Validate token version — mismatch means user logged out all devices
-    if (decoded.tokenVersion !== undefined && decoded.tokenVersion !== req.user.tokenVersion) {
+    // Use ?? 0 so existing users without this field in the DB are not incorrectly rejected
+    if (decoded.tokenVersion !== undefined && decoded.tokenVersion !== (req.user.tokenVersion ?? 0)) {
       return res.status(401).json({ error: 'Session expired. Please log in again.' });
     }
     next();
