@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { AuthProvider } from './src/context/AuthContext';
 import { MovieProvider } from './src/context/MovieContext';
 import { WatchlistProvider } from './src/context/WatchlistContext';
@@ -16,13 +16,39 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
+
 export default function App() {
+  const navigationRef = useNavigationContainerRef();
+
+  useEffect(() => {
+    // 1. Handle notification tap when app is running (foreground or background)
+    const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response.notification.request.content.data;
+      if (data?.id) {
+        navigationRef.current?.navigate('Details', { id: data.id, type: data.type || 'movie' });
+      }
+    });
+
+    // 2. Handle notification tap when app was completely closed (cold start)
+    Notifications.getLastNotificationResponseAsync().then(response => {
+      const data = response?.notification?.request?.content?.data;
+      if (data?.id) {
+        // Small delay to ensure NavigationContainer is fully mounted before navigating
+        setTimeout(() => {
+          navigationRef.current?.navigate('Details', { id: data.id, type: data.type || 'movie' });
+        }, 500);
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
         <WatchlistProvider>
           <MovieProvider>
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
               <StatusBar style="light" />
               <AppNavigator />
             </NavigationContainer>
