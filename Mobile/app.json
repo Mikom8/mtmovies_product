@@ -35,6 +35,10 @@
       "eas": {
         "projectId": "fdadf6fd-60cc-49ca-9408-78d4ca38bede"
       }
+    },
+    "notification": {
+      "icon": "./assets/img/unnamed-removebg-preview.png",
+      "color": "#E50914"
     }
   }
 }
