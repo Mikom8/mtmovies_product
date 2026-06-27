@@ -11,6 +11,8 @@ const MOVIE_FIELDS = [
   { name: 'rating',             label: 'Rating',              placeholder: '8.5' },
   { name: 'poster',             label: 'Poster URL',          placeholder: 'https://...', full: true },
   { name: 'backdrop',           label: 'Backdrop URL',        placeholder: 'https://...', full: true },
+  { name: 'mylist',             label: 'My List Image URL (optional)', placeholder: 'https://...', full: true },
+  { name: 'featurePhone',       label: 'Feature Phone Image URL (optional)', placeholder: 'https://...', full: true },
   { name: 'genres',             label: 'Genres (comma)',      placeholder: 'Action, Drama', full: true },
   { name: 'description',        label: 'Description',         placeholder: 'Brief plot overview…', full: true, textarea: true },
   { name: 'telegram_chatId',    label: 'Telegram Chat ID',    placeholder: '-100xxxxxxxxxx' },
@@ -25,6 +27,8 @@ const SERIES_FIELDS = [
   { name: 'rating',             label: 'Rating',              placeholder: '8.5' },
   { name: 'poster',             label: 'Poster URL',          placeholder: 'https://...', full: true },
   { name: 'backdrop',           label: 'Backdrop URL',        placeholder: 'https://...', full: true },
+  { name: 'mylist',             label: 'My List Image URL (optional)', placeholder: 'https://...', full: true },
+  { name: 'featurePhone',       label: 'Feature Phone Image URL (optional)', placeholder: 'https://...', full: true },
   { name: 'genres',             label: 'Genres (comma)',      placeholder: 'Action, Drama', full: true },
   { name: 'description',        label: 'Description',         placeholder: 'Brief plot overview…', full: true, textarea: true },
   { name: 'telegram_chatId',    label: 'Telegram Chat ID',    placeholder: '-100xxxxxxxxxx' },
@@ -33,7 +37,7 @@ const SERIES_FIELDS = [
 
 const BLANK_FORM = {
   title: '', year: '', duration: '', quality: '', rating: '',
-  poster: '', backdrop: '', genres: '', description: '',
+  poster: '', backdrop: '', mylist: '', featurePhone: '', genres: '', description: '',
   telegram_chatId: '', telegram_messageId: '',
   isFree: false, isFeatured: false, isNew: false, hasAmharicDub: true,
 };
@@ -53,6 +57,8 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
           rating:             item.rating || '',
           poster:             item.poster || '',
           backdrop:           item.backdrop || '',
+          mylist:             item.mylist || '',
+          featurePhone:       item.featurePhone || '',
           genres:             (item.genres || []).join(', '),
           description:        item.description || '',
           telegram_chatId:    item.telegram?.chatId || '',
@@ -114,11 +120,35 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
         </div>
 
         <div className={styles.modalBody}>
-          {/* Poster Preview */}
-          <div className={styles.posterPreview}>
-            {form.poster
-              ? <img src={form.poster} alt="preview" onError={e => { e.target.style.display='none'; }} />
-              : <div className={styles.posterPlaceholder}>Poster Preview</div>}
+          {/* Image Previews Row 1: Poster + Backdrop */}
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+            <div className={styles.posterPreview} style={{ flex: 1 }}>
+              <div style={{ fontSize: '11px', color: '#888', marginBottom: '6px', textAlign: 'center' }}>Poster</div>
+              {form.poster
+                ? <img src={form.poster} alt="poster" onError={e => { e.target.style.display='none'; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <div className={styles.posterPlaceholder}>Poster Preview</div>}
+            </div>
+            <div className={styles.posterPreview} style={{ flex: 1 }}>
+              <div style={{ fontSize: '11px', color: '#888', marginBottom: '6px', textAlign: 'center' }}>Backdrop</div>
+              {form.backdrop
+                ? <img src={form.backdrop} alt="backdrop" onError={e => { e.target.style.display='none'; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <div className={styles.posterPlaceholder}>Backdrop Preview</div>}
+            </div>
+          </div>
+          {/* Image Previews Row 2: My List + Feature Phone */}
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+            <div className={styles.posterPreview} style={{ flex: 1 }}>
+              <div style={{ fontSize: '11px', color: '#888', marginBottom: '6px', textAlign: 'center' }}>My List</div>
+              {form.mylist
+                ? <img src={form.mylist} alt="mylist" onError={e => { e.target.style.display='none'; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <div className={styles.posterPlaceholder}>My List Preview</div>}
+            </div>
+            <div className={styles.posterPreview} style={{ flex: 1 }}>
+              <div style={{ fontSize: '11px', color: '#888', marginBottom: '6px', textAlign: 'center' }}>Feature Phone</div>
+              {form.featurePhone
+                ? <img src={form.featurePhone} alt="featurePhone" onError={e => { e.target.style.display='none'; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <div className={styles.posterPlaceholder}>Feature Phone Preview</div>}
+            </div>
           </div>
 
           <div className={styles.formGrid}>

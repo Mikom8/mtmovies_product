@@ -47,6 +47,12 @@ const movieSchema = new mongoose.Schema({
   backdrop: {
     type: String
   },
+  mylist: {
+    type: String
+  },
+  featurePhone: {
+    type: String
+  },
   trailerEmbedId: {
     type: String
   },
