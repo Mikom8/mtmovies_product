@@ -4,34 +4,34 @@ import styles from './Admin.module.css';
 
 // ─── Shared field definitions ─────────────────────────────────
 const MOVIE_FIELDS = [
-  { name: 'title',              label: 'Title *',             placeholder: 'Movie title',   required: true },
-  { name: 'year',               label: 'Year',                placeholder: '2024' },
-  { name: 'duration',           label: 'Duration',            placeholder: '2h 15m' },
-  { name: 'quality',            label: 'Quality',             placeholder: 'HD / FHD / 4K' },
-  { name: 'rating',             label: 'Rating',              placeholder: '8.5' },
-  { name: 'poster',             label: 'Poster URL',          placeholder: 'https://...', full: true },
-  { name: 'backdrop',           label: 'Backdrop URL',        placeholder: 'https://...', full: true },
-  { name: 'mylist',             label: 'My List Image URL (optional)', placeholder: 'https://...', full: true },
-  { name: 'featurePhone',       label: 'Feature Phone Image URL (optional)', placeholder: 'https://...', full: true },
-  { name: 'genres',             label: 'Genres (comma)',      placeholder: 'Action, Drama', full: true },
-  { name: 'description',        label: 'Description',         placeholder: 'Brief plot overview…', full: true, textarea: true },
-  { name: 'telegram_chatId',    label: 'Telegram Chat ID',    placeholder: '-100xxxxxxxxxx' },
+  { name: 'title', label: 'Title *', placeholder: 'Movie title', required: true },
+  { name: 'year', label: 'Year', placeholder: '2024' },
+  { name: 'duration', label: 'Duration', placeholder: '2h 15m' },
+  { name: 'quality', label: 'Quality', placeholder: 'HD / FHD / 4K' },
+  { name: 'rating', label: 'Rating', placeholder: '8.5' },
+  { name: 'poster', label: 'Poster URL', placeholder: 'https://...', full: true },
+  { name: 'backdrop', label: 'Backdrop URL', placeholder: 'https://...', full: true },
+  { name: 'mylist', label: 'My List Image URL (optional)', placeholder: 'https://...', full: true },
+  { name: 'featurePhone', label: 'Feature Phone Image URL (optional)', placeholder: 'https://...', full: true },
+  { name: 'genres', label: 'Genres (comma)', placeholder: 'Action, Drama', full: true },
+  { name: 'description', label: 'Description', placeholder: 'Brief plot overview…', full: true, textarea: true },
+  { name: 'telegram_chatId', label: 'Telegram Chat ID', placeholder: '-100xxxxxxxxxx' },
   { name: 'telegram_messageId', label: 'Telegram Message ID', placeholder: '12345' },
 ];
 
 const SERIES_FIELDS = [
-  { name: 'title',              label: 'Title *',             placeholder: 'Series title',  required: true },
-  { name: 'year',               label: 'Year',                placeholder: '2024' },
-  { name: 'duration',           label: 'Avg Episode Duration', placeholder: '45m' },
-  { name: 'quality',            label: 'Quality',             placeholder: 'HD / FHD / 4K' },
-  { name: 'rating',             label: 'Rating',              placeholder: '8.5' },
-  { name: 'poster',             label: 'Poster URL',          placeholder: 'https://...', full: true },
-  { name: 'backdrop',           label: 'Backdrop URL',        placeholder: 'https://...', full: true },
-  { name: 'mylist',             label: 'My List Image URL (optional)', placeholder: 'https://...', full: true },
-  { name: 'featurePhone',       label: 'Feature Phone Image URL (optional)', placeholder: 'https://...', full: true },
-  { name: 'genres',             label: 'Genres (comma)',      placeholder: 'Action, Drama', full: true },
-  { name: 'description',        label: 'Description',         placeholder: 'Brief plot overview…', full: true, textarea: true },
-  { name: 'telegram_chatId',    label: 'Telegram Chat ID',    placeholder: '-100xxxxxxxxxx' },
+  { name: 'title', label: 'Title *', placeholder: 'Series title', required: true },
+  { name: 'year', label: 'Year', placeholder: '2024' },
+  { name: 'duration', label: 'Avg Episode Duration', placeholder: '45m' },
+  { name: 'quality', label: 'Quality', placeholder: 'HD / FHD / 4K' },
+  { name: 'rating', label: 'Rating', placeholder: '8.5' },
+  { name: 'poster', label: 'Poster URL', placeholder: 'https://...', full: true },
+  { name: 'backdrop', label: 'Backdrop URL', placeholder: 'https://...', full: true },
+  { name: 'mylist', label: 'My List Image URL (optional)', placeholder: 'https://...', full: true },
+  { name: 'featurePhone', label: 'Feature Phone Image URL (optional)', placeholder: 'https://...', full: true },
+  { name: 'genres', label: 'Genres (comma)', placeholder: 'Action, Drama', full: true },
+  { name: 'description', label: 'Description', placeholder: 'Brief plot overview…', full: true, textarea: true },
+  { name: 'telegram_chatId', label: 'Telegram Chat ID', placeholder: '-100xxxxxxxxxx' },
   { name: 'telegram_messageId', label: 'Telegram Message ID', placeholder: '12345' },
 ];
 
@@ -50,29 +50,29 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
   const [form, setForm] = useState(
     isEdit
       ? {
-          title:              item.title || '',
-          year:               item.year || '',
-          duration:           item.duration || '',
-          quality:            item.quality || '',
-          rating:             item.rating || '',
-          poster:             item.poster || '',
-          backdrop:           item.backdrop || '',
-          mylist:             item.mylist || '',
-          featurePhone:       item.featurePhone || '',
-          genres:             (item.genres || []).join(', '),
-          description:        item.description || '',
-          telegram_chatId:    item.telegram?.chatId || '',
-          telegram_messageId: item.telegram?.messageId || '',
-          isFree:             item.isFree ?? false,
-          isFeatured:         item.isFeatured ?? false,
-          isNew:              item.isNew ?? false,
-          hasAmharicDub:      item.hasAmharicDub ?? true,
-        }
+        title: item.title || '',
+        year: item.year || '',
+        duration: item.duration || '',
+        quality: item.quality || '',
+        rating: item.rating || '',
+        poster: item.poster || '',
+        backdrop: item.backdrop || '',
+        mylist: item.mylist || '',
+        featurePhone: item.featurePhone || '',
+        genres: (item.genres || []).join(', '),
+        description: item.description || '',
+        telegram_chatId: item.telegram?.chatId || '',
+        telegram_messageId: item.telegram?.messageId || '',
+        isFree: item.isFree ?? false,
+        isFeatured: item.isFeatured ?? false,
+        isNew: item.isNew ?? false,
+        hasAmharicDub: item.hasAmharicDub ?? true,
+      }
       : { ...BLANK_FORM }
   );
 
   const [saving, setSaving] = useState(false);
-  const [error,  setError]  = useState('');
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value, type: t, checked } = e.target;
@@ -84,21 +84,21 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
     setSaving(true); setError('');
     try {
       const endpoint = type === 'movie' ? '/movies' : '/series';
-      const payload  = {
+      const payload = {
         ...form,
         genres: form.genres.split(',').map(g => g.trim()).filter(Boolean),
         telegram: {
-          chatId:    form.telegram_chatId    || undefined,
+          chatId: form.telegram_chatId || undefined,
           messageId: form.telegram_messageId || undefined,
         },
       };
       // remove flat keys before sending
       delete payload.telegram_chatId;
       delete payload.telegram_messageId;
-      const url    = isEdit ? `${API_BASE_URL}${endpoint}/${item._id}` : `${API_BASE_URL}${endpoint}`;
+      const url = isEdit ? `${API_BASE_URL}${endpoint}/${item._id}` : `${API_BASE_URL}${endpoint}`;
       const method = isEdit ? 'PUT' : 'POST';
-      const res    = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      const data   = await res.json();
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Save failed');
       onSaved();
       onClose();
@@ -129,7 +129,7 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
                 <div style={{ fontSize: '11px', color: '#888' }}>Poster</div>
                 <div className={styles.posterPreview}>
                   {form.poster
-                    ? <img src={form.poster} alt="poster" onError={e => { e.target.style.display='none'; }} />
+                    ? <img src={form.poster} alt="poster" onError={e => { e.target.style.display = 'none'; }} />
                     : <div className={styles.posterPlaceholder}>Poster</div>}
                 </div>
               </div>
@@ -137,7 +137,7 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
                 <div style={{ fontSize: '11px', color: '#888' }}>Feature Phone</div>
                 <div className={styles.posterPreview}>
                   {form.featurePhone
-                    ? <img src={form.featurePhone} alt="featurePhone" onError={e => { e.target.style.display='none'; }} />
+                    ? <img src={form.featurePhone} alt="featurePhone" onError={e => { e.target.style.display = 'none'; }} />
                     : <div className={styles.posterPlaceholder}>Feature Phone</div>}
                 </div>
               </div>
@@ -148,7 +148,7 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
               <div style={{ fontSize: '11px', color: '#888', marginBottom: '4px' }}>Backdrop</div>
               <div className={styles.backdropPreview}>
                 {form.backdrop
-                  ? <img src={form.backdrop} alt="backdrop" onError={e => { e.target.style.display='none'; }} />
+                  ? <img src={form.backdrop} alt="backdrop" onError={e => { e.target.style.display = 'none'; }} />
                   : <div className={styles.posterPlaceholder}>Backdrop Preview</div>}
               </div>
             </div>
@@ -158,7 +158,7 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
               <div style={{ fontSize: '11px', color: '#888', marginBottom: '4px' }}>My List</div>
               <div className={styles.backdropPreview}>
                 {form.mylist
-                  ? <img src={form.mylist} alt="mylist" onError={e => { e.target.style.display='none'; }} />
+                  ? <img src={form.mylist} alt="mylist" onError={e => { e.target.style.display = 'none'; }} />
                   : <div className={styles.posterPlaceholder}>My List Preview</div>}
               </div>
             </div>
@@ -189,7 +189,7 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
               </div>
             ))}
             <div className={styles.checkboxRow}>
-              {[['isFree','Free to Watch'],['isFeatured','Featured (Hero)'],['isNew','New Release'],['hasAmharicDub','Amharic Dub']].map(([n,l]) => (
+              {[['isFree', 'Free to Watch'], ['isFeatured', 'Featured (Hero)'], ['isNew', 'New Release'], ['hasAmharicDub', 'Amharic Dub']].map(([n, l]) => (
                 <label key={n} className={styles.checkboxLabel}>
                   <input type="checkbox" name={n} checked={form[n]} onChange={handleChange} />
                   {l}
@@ -294,11 +294,11 @@ function EpisodesModal({ series, onClose, onSaved }) {
       alert("Invalid start or end ID");
       return;
     }
-    
+
     const newSeasons = [...seasons];
     const season = newSeasons[bulkAdd.seasonIndex];
     let nextNum = season.episodes.length > 0 ? Math.max(...season.episodes.map(e => e.episodeNumber)) + 1 : 1;
-    
+
     for (let msgId = start; msgId <= end; msgId++) {
       season.episodes.push({
         episodeNumber: nextNum,
@@ -328,26 +328,26 @@ function EpisodesModal({ series, onClose, onSaved }) {
               <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
                   <label>Episode Number</label>
-                  <input type="number" value={editingEp.data.episodeNumber} onChange={e => setEditingEp({...editingEp, data: {...editingEp.data, episodeNumber: parseInt(e.target.value)||''}})} />
+                  <input type="number" value={editingEp.data.episodeNumber} onChange={e => setEditingEp({ ...editingEp, data: { ...editingEp.data, episodeNumber: parseInt(e.target.value) || '' } })} />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Title</label>
-                  <input value={editingEp.data.title} onChange={e => setEditingEp({...editingEp, data: {...editingEp.data, title: e.target.value}})} />
+                  <input value={editingEp.data.title} onChange={e => setEditingEp({ ...editingEp, data: { ...editingEp.data, title: e.target.value } })} />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Duration</label>
-                  <input value={editingEp.data.duration} onChange={e => setEditingEp({...editingEp, data: {...editingEp.data, duration: e.target.value}})} />
+                  <input value={editingEp.data.duration} onChange={e => setEditingEp({ ...editingEp, data: { ...editingEp.data, duration: e.target.value } })} />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Telegram Chat ID</label>
-                  <input value={editingEp.data.telegramChatId} onChange={e => setEditingEp({...editingEp, data: {...editingEp.data, telegramChatId: e.target.value}})} />
+                  <input value={editingEp.data.telegramChatId} onChange={e => setEditingEp({ ...editingEp, data: { ...editingEp.data, telegramChatId: e.target.value } })} />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Telegram Message ID</label>
-                  <input value={editingEp.data.telegramMessageId} onChange={e => setEditingEp({...editingEp, data: {...editingEp.data, telegramMessageId: e.target.value}})} />
+                  <input value={editingEp.data.telegramMessageId} onChange={e => setEditingEp({ ...editingEp, data: { ...editingEp.data, telegramMessageId: e.target.value } })} />
                 </div>
               </div>
-              <div style={{display:'flex', gap:'10px', marginTop:'15px'}}>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
                 <button className={styles.cancelBtn} onClick={() => setEditingEp(null)}>Cancel</button>
                 <button className={styles.saveBtn} onClick={saveEpisodeForm}>Save Episode</button>
               </div>
@@ -358,22 +358,22 @@ function EpisodesModal({ series, onClose, onSaved }) {
               <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
                   <label>Start Message ID</label>
-                  <input type="number" placeholder="e.g. 13051" value={bulkAdd.startId} onChange={e => setBulkAdd({...bulkAdd, startId: e.target.value})} />
+                  <input type="number" placeholder="e.g. 13051" value={bulkAdd.startId} onChange={e => setBulkAdd({ ...bulkAdd, startId: e.target.value })} />
                 </div>
                 <div className={styles.formGroup}>
                   <label>End Message ID</label>
-                  <input type="number" placeholder="e.g. 13058" value={bulkAdd.endId} onChange={e => setBulkAdd({...bulkAdd, endId: e.target.value})} />
+                  <input type="number" placeholder="e.g. 13058" value={bulkAdd.endId} onChange={e => setBulkAdd({ ...bulkAdd, endId: e.target.value })} />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Duration (All)</label>
-                  <input value={bulkAdd.baseDuration} onChange={e => setBulkAdd({...bulkAdd, baseDuration: e.target.value})} />
+                  <input value={bulkAdd.baseDuration} onChange={e => setBulkAdd({ ...bulkAdd, baseDuration: e.target.value })} />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Telegram Chat ID (All)</label>
-                  <input value={bulkAdd.telegramChatId} onChange={e => setBulkAdd({...bulkAdd, telegramChatId: e.target.value})} />
+                  <input value={bulkAdd.telegramChatId} onChange={e => setBulkAdd({ ...bulkAdd, telegramChatId: e.target.value })} />
                 </div>
               </div>
-              <div style={{display:'flex', gap:'10px', marginTop:'15px'}}>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
                 <button className={styles.cancelBtn} onClick={() => setBulkAdd(null)}>Cancel</button>
                 <button className={styles.saveBtn} onClick={saveBulkAdd}>Generate Episodes</button>
               </div>
@@ -386,8 +386,8 @@ function EpisodesModal({ series, onClose, onSaved }) {
                     <h3>Season {season.seasonNumber}</h3>
                     <div>
                       <button className={styles.addBtn} onClick={() => addEpisode(sIdx)}>+ Add Episode</button>
-                      <button className={styles.addBtn} style={{marginLeft:'10px', background: 'rgba(160,160,255,0.15)', color: '#a0a0ff', borderColor: 'rgba(160,160,255,0.3)'}} onClick={() => startBulkAdd(sIdx)}>+ Bulk Add</button>
-                      <button className={styles.deleteBtn} style={{marginLeft:'10px'}} onClick={() => deleteSeason(sIdx)}>🗑️</button>
+                      <button className={styles.addBtn} style={{ marginLeft: '10px', background: 'rgba(160,160,255,0.15)', color: '#a0a0ff', borderColor: 'rgba(160,160,255,0.3)' }} onClick={() => startBulkAdd(sIdx)}>+ Bulk Add</button>
+                      <button className={styles.deleteBtn} style={{ marginLeft: '10px' }} onClick={() => deleteSeason(sIdx)}>🗑️</button>
                     </div>
                   </div>
                   <div className={styles.episodesGrid}>
@@ -395,7 +395,7 @@ function EpisodesModal({ series, onClose, onSaved }) {
                       <div key={eIdx} className={styles.epCard}>
                         <div className={styles.epInfo}>
                           <strong>E{ep.episodeNumber}: {ep.title}</strong>
-                          <span className={styles.epMeta}>{ep.duration || 'N/A'} | Chat: {ep.telegramChatId||'N/A'} | Msg: {ep.telegramMessageId||'N/A'}</span>
+                          <span className={styles.epMeta}>{ep.duration || 'N/A'} | Chat: {ep.telegramChatId || 'N/A'} | Msg: {ep.telegramMessageId || 'N/A'}</span>
                         </div>
                         <div className={styles.epActions}>
                           <button onClick={() => editEpisode(sIdx, eIdx)}>✏️</button>
@@ -407,7 +407,7 @@ function EpisodesModal({ series, onClose, onSaved }) {
                   </div>
                 </div>
               ))}
-              <button className={styles.addBtn} style={{marginTop:'15px', alignSelf:'flex-start'}} onClick={addSeason}>+ Add Season</button>
+              <button className={styles.addBtn} style={{ marginTop: '15px', alignSelf: 'flex-start' }} onClick={addSeason}>+ Add Season</button>
             </div>
           )}
         </div>
@@ -433,22 +433,22 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState('movies');
 
   // Content state
-  const [items,       setItems]       = useState([]);
-  const [totalItems,  setTotalItems]  = useState(0);
-  const [page,        setPage]        = useState(1);
-  const [loading,     setLoading]     = useState(false);
-  const [search,      setSearch]      = useState('');
+  const [items, setItems] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
   const [genreFilter, setGenreFilter] = useState('');
-  const [allGenres,   setAllGenres]   = useState([]);
-  const [modal,       setModal]       = useState(null); // { mode:'edit'|'add', item, type }
+  const [allGenres, setAllGenres] = useState([]);
+  const [modal, setModal] = useState(null); // { mode:'edit'|'add', item, type }
   const [episodesModal, setEpisodesModal] = useState(null); // holds the series item
-  const [toast,       setToast]       = useState('');
+  const [toast, setToast] = useState('');
 
   // Payments state
   const [pendingPayments, setPendingPayments] = useState([]);
-  const [allPayments,     setAllPayments]     = useState([]);
-  const [paymentSubTab,   setPaymentSubTab]   = useState('pending');
-  const [payLoading,      setPayLoading]      = useState(false);
+  const [allPayments, setAllPayments] = useState([]);
+  const [paymentSubTab, setPaymentSubTab] = useState('pending');
+  const [payLoading, setPayLoading] = useState(false);
 
   // Notifications state
   const [notifForm, setNotifForm] = useState({ title: '', body: '', imageUrl: '' });
@@ -460,11 +460,11 @@ export default function Admin() {
   const loadContent = async (pg = 1) => {
     setLoading(true);
     try {
-      const base    = activeTab === 'movies' ? '/movies' : '/series';
-      const params  = new URLSearchParams({ page: pg, limit: PAGE_LIMIT });
-      if (search)      params.set('search', search);
-      if (genreFilter) params.set('genre',  genreFilter);
-      const res  = await fetch(`${API_BASE_URL}${base}?${params}`);
+      const base = activeTab === 'movies' ? '/movies' : '/series';
+      const params = new URLSearchParams({ page: pg, limit: PAGE_LIMIT });
+      if (search) params.set('search', search);
+      if (genreFilter) params.set('genre', genreFilter);
+      const res = await fetch(`${API_BASE_URL}${base}?${params}`);
       const data = await res.json();
       const list = activeTab === 'movies' ? (data.movies || []) : (data.series || []);
       setItems(list);
@@ -473,9 +473,9 @@ export default function Admin() {
 
       // Collect genres from current page for filter dropdown (load all for filter)
       if (pg === 1 && !search && !genreFilter) {
-        const genreRes  = await fetch(`${API_BASE_URL}${base}?limit=500`);
+        const genreRes = await fetch(`${API_BASE_URL}${base}?limit=500`);
         const genreData = await genreRes.json();
-        const allList   = activeTab === 'movies' ? (genreData.movies || []) : (genreData.series || []);
+        const allList = activeTab === 'movies' ? (genreData.movies || []) : (genreData.series || []);
         setAllGenres([...new Set(allList.flatMap(i => i.genres || []))].sort());
       }
     } catch (err) {
@@ -531,9 +531,9 @@ export default function Admin() {
   const loadPayments = async () => {
     setPayLoading(true);
     try {
-      const ep  = paymentSubTab === 'pending' ? '/admin/payments/pending' : '/admin/payments/all';
+      const ep = paymentSubTab === 'pending' ? '/admin/payments/pending' : '/admin/payments/all';
       const res = await fetch(`${API_BASE_URL}${ep}`);
-      const d   = await res.json();
+      const d = await res.json();
       if (d.success) {
         if (paymentSubTab === 'pending') setPendingPayments(d.data);
         else setAllPayments(d.data);
@@ -547,7 +547,7 @@ export default function Admin() {
   const handleApprove = async (tid) => {
     if (!confirm('Approve this payment?')) return;
     const res = await fetch(`${API_BASE_URL}/admin/payments/${tid}/approve`, { method: 'POST' });
-    const d   = await res.json();
+    const d = await res.json();
     d.success ? showToast('✅ Approved!') : showToast('❌ ' + d.message);
     loadPayments();
   };
@@ -555,14 +555,14 @@ export default function Admin() {
   const handleReject = async (tid) => {
     if (!confirm('Reject this payment?')) return;
     const res = await fetch(`${API_BASE_URL}/admin/payments/${tid}/reject`, { method: 'POST' });
-    const d   = await res.json();
+    const d = await res.json();
     d.success ? showToast('Rejected') : showToast('❌ ' + d.message);
     loadPayments();
   };
 
   const handleDelete = async (item) => {
     if (!confirm(`Delete "${item.title}"? This cannot be undone.`)) return;
-    const ep  = activeTab === 'movies' ? '/movies' : '/series';
+    const ep = activeTab === 'movies' ? '/movies' : '/series';
     const res = await fetch(`${API_BASE_URL}${ep}/${item._id}`, { method: 'DELETE' });
     res.ok ? showToast('🗑️ Deleted') : showToast('❌ Delete failed');
     loadContent(page);
@@ -623,7 +623,7 @@ export default function Admin() {
       <div className={styles.header}>
         <div className={styles.logo}>🎬 MTMovies Admin</div>
         <div className={styles.tabs}>
-          {['movies','series','payments','notifications'].map(t => (
+          {['movies', 'series', 'payments', 'notifications'].map(t => (
             <button key={t} className={activeTab === t ? styles.activeTab : styles.tab} onClick={() => setActiveTab(t)}>
               {t === 'movies' ? '🎥 Movies' : t === 'series' ? '📺 Series' : t === 'payments' ? '💳 Payments' : '🔔 Notifications'}
             </button>
@@ -681,15 +681,15 @@ export default function Admin() {
                       ? <img src={item.poster} alt={item.title} loading="lazy" />
                       : <div className={styles.noPoster}>No Poster</div>}
                     <div className={styles.cardBadges}>
-                      {item.isFree     && <span className={styles.badgeFree}>FREE</span>}
+                      {item.isFree && <span className={styles.badgeFree}>FREE</span>}
                       {item.isFeatured && <span className={styles.badgeFeatured}>⭐</span>}
-                      {item.isNew      && <span className={styles.badgeNew}>NEW</span>}
+                      {item.isNew && <span className={styles.badgeNew}>NEW</span>}
                     </div>
                   </div>
                   <div className={styles.cardInfo}>
                     <p className={styles.cardTitle} title={item.title}>{item.title}</p>
                     <p className={styles.cardMeta}>{item.year} • {item.quality || 'HD'} • ⭐ {item.rating || '—'}</p>
-                    <p className={styles.cardGenres}>{(item.genres || []).slice(0,3).join(', ')}</p>
+                    <p className={styles.cardGenres}>{(item.genres || []).slice(0, 3).join(', ')}</p>
                   </div>
                   <div className={styles.cardActions}>
                     <button className={styles.editBtn}
@@ -697,7 +697,7 @@ export default function Admin() {
                       ✏️ Edit
                     </button>
                     {activeTab === 'series' && (
-                      <button className={styles.editBtn} style={{background: '#2b2b40', color: '#a0a0ff', borderColor: '#404070'}}
+                      <button className={styles.editBtn} style={{ background: '#2b2b40', color: '#a0a0ff', borderColor: '#404070' }}
                         onClick={() => handleEpisodesClick(item)}>
                         📺 Episodes
                       </button>
@@ -764,7 +764,7 @@ export default function Admin() {
                         {p.status === 'pending' && (
                           <div className={styles.actions}>
                             <button className={styles.approve} onClick={() => handleApprove(p.transactionId)}>✓ Approve</button>
-                            <button className={styles.reject}  onClick={() => handleReject(p.transactionId)}>✕ Reject</button>
+                            <button className={styles.reject} onClick={() => handleReject(p.transactionId)}>✕ Reject</button>
                           </div>
                         )}
                       </td>
@@ -809,21 +809,21 @@ export default function Admin() {
                   placeholder="https://..."
                 />
               </div>
-              
+
               {notifForm.imageUrl && (
                 <div style={{ marginTop: '10px' }}>
-                  <img 
-                    src={notifForm.imageUrl} 
-                    alt="Preview" 
-                    style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', border: '1px solid #404070' }} 
+                  <img
+                    src={notifForm.imageUrl}
+                    alt="Preview"
+                    style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', border: '1px solid #404070' }}
                     onError={e => e.target.style.display = 'none'}
                   />
                 </div>
               )}
 
-              <button 
-                type="submit" 
-                className={styles.saveBtn} 
+              <button
+                type="submit"
+                className={styles.saveBtn}
                 style={{ marginTop: '20px', padding: '15px', fontSize: '16px' }}
                 disabled={notifSending}
               >
