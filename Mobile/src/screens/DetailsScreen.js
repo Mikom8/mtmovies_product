@@ -178,9 +178,19 @@ function getSeriesContinueInfo(data, watchHistory) {
   if (!data?.seasons?.length || !watchHistory?.length) return null;
 
   const prefix = String(data._id);
-  const latest = watchHistory
-    .filter((h) => h.movieId.startsWith(`${prefix}_S`))
-    .sort((a, b) => new Date(b.watchedAt || 0) - new Date(a.watchedAt || 0))[0];
+  let latest = null;
+  let maxDate = 0;
+
+  for (let i = 0; i < watchHistory.length; i++) {
+    const h = watchHistory[i];
+    if (h.movieId.startsWith(`${prefix}_S`)) {
+      const d = new Date(h.watchedAt || 0).getTime();
+      if (d > maxDate) {
+        maxDate = d;
+        latest = h;
+      }
+    }
+  }
 
   if (!latest) return null;
 
@@ -255,6 +265,23 @@ const DetailsScreen = ({ route, navigation }) => {
     message: "",
     variant: "added",
   });
+
+  const historyMap = React.useMemo(() => {
+    const map = new Map();
+    if (user?.watchHistory) {
+      user.watchHistory.forEach((h) => {
+        map.set(h.movieId, h);
+      });
+    }
+    return map;
+  }, [user?.watchHistory]);
+
+  const isActuallySeries = data ? (resolvedType === "series" && data.seasons?.length > 0) : false;
+
+  const continueInfo = React.useMemo(() => {
+    if (!isActuallySeries || !data) return null;
+    return getSeriesContinueInfo(data, user?.watchHistory);
+  }, [data, user?.watchHistory, isActuallySeries]);
 
   const hideToast = useCallback(() => {
     setToast((prev) => ({ ...prev, visible: false }));
@@ -451,8 +478,6 @@ const DetailsScreen = ({ route, navigation }) => {
   const currentSeason = data.seasons?.[selectedSeason];
   const totalEpisodes =
     data.seasons?.reduce((s, se) => s + (se.episodes?.length || 0), 0) || 0;
-  const isActuallySeries =
-    resolvedType === "series" && data.seasons?.length > 0;
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -555,16 +580,12 @@ const DetailsScreen = ({ route, navigation }) => {
           {/* Action Buttons */}
           <View style={styles.actionRow}>
             {(() => {
-              const isSeriesContent =
-                resolvedType === "series" ||
-                (data.seasons && data.seasons.length > 0);
+              const isSeriesContent = isActuallySeries;
               let watchProgressPct = null;
               let watchLabel = "Watch Now";
 
               if (!isSeriesContent && user?.watchHistory) {
-                const historyItem = user.watchHistory.find(
-                  (h) => h.movieId === String(data._id),
-                );
+                const historyItem = historyMap.get(String(data._id));
                 if (historyItem) {
                   watchProgressPct = getProgressPct(
                     historyItem.progress,
@@ -573,10 +594,6 @@ const DetailsScreen = ({ route, navigation }) => {
                   if (watchProgressPct > 0) watchLabel = "Resume";
                 }
               } else if (isSeriesContent && user?.watchHistory) {
-                const continueInfo = getSeriesContinueInfo(
-                  data,
-                  user.watchHistory,
-                );
                 if (continueInfo?.progressPct > 0) {
                   watchProgressPct = continueInfo.progressPct;
                   watchLabel = "Resume";
@@ -687,9 +704,7 @@ const DetailsScreen = ({ route, navigation }) => {
               {/* Episode List */}
               {currentSeason?.episodes?.map((ep) => {
                 const epMovieId = `${data._id}_S${currentSeason.seasonNumber}_E${ep.episodeNumber}`;
-                const historyItem = user?.watchHistory?.find(
-                  (h) => h.movieId === epMovieId,
-                );
+                const historyItem = historyMap.get(epMovieId);
                 const progressPct = historyItem
                   ? getProgressPct(historyItem.progress, ep.duration)
                   : null;

@@ -21,7 +21,7 @@ import client from "../api/client";
 const PAYMENT_INFO = {
   method: "Telebirr",
   number: "0919516418",
-  name: "BIKILA MELESE",
+  name: "MIKAEL MELESE",
 };
 
 const PLANS = [
