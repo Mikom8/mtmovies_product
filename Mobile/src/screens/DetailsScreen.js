@@ -90,7 +90,9 @@ function scoreItem(target, candidate) {
   score += Math.max(0, 5 - ratingDiff);
 
   // Year proximity (penalize >10 year gap)
-  const yearDiff = Math.abs((target.year || 2020) - (candidate.year || 2020));
+  const targetYear = parseInt(target.year) || 2020;
+  const candidateYear = parseInt(candidate.year) || 2020;
+  const yearDiff = Math.abs(targetYear - candidateYear);
   if (yearDiff <= 3) score += 3;
   else if (yearDiff <= 7) score += 1;
 
