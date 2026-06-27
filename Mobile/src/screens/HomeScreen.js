@@ -177,10 +177,12 @@ const HomeScreen = () => {
             style={[styles.poster, isLandscape && styles.posterLandscape]}
           />
         </View>
-        {item.isNew && !hideNewBadge && (
+        {(item.isNew || item.isNewSeason || item.isNewEpisode) && !hideNewBadge && (
           <View style={styles.cardOverlay}>
             <View style={styles.newBadge}>
-              <Text style={styles.newBadgeText}>NEW</Text>
+              <Text style={styles.newBadgeText}>
+                {item.isNewEpisode ? "NEW EP." : item.isNewSeason ? "NEW S." : "NEW"}
+              </Text>
             </View>
           </View>
         )}
@@ -293,11 +295,17 @@ const HomeScreen = () => {
               <View
                 style={[
                   styles.featuredBadge,
-                  heroItem.isNew && styles.newReleaseBadge,
+                  (heroItem.isNew || heroItem.isNewSeason || heroItem.isNewEpisode) && styles.newReleaseBadge,
                 ]}
               >
                 <Text style={styles.featuredText}>
-                  {heroItem.isNew ? "NEW RELEASE" : " "}
+                  {heroItem.isNewEpisode
+                    ? "NEW EPISODE"
+                    : heroItem.isNewSeason
+                    ? "NEW SEASON"
+                    : heroItem.isNew
+                    ? "NEW RELEASE"
+                    : " "}
                 </Text>
               </View>
               <Text style={styles.heroTitle}>{heroItem.title}</Text>
@@ -455,7 +463,7 @@ const HomeScreen = () => {
             <Section
               title="New Releases"
               data={[...filteredMovies, ...filteredSeries]
-                .filter((item) => item.isNew)
+                .filter((item) => item.isNew || item.isNewSeason || item.isNewEpisode)
                 .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))}
             />
 

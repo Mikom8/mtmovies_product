@@ -31,7 +31,7 @@ export default function SeriesPage() {
   const CRIME = SERIES.filter(s => s.genre && s.genre.includes('Crime'));
   const SCIFI = SERIES.filter(s => s.genre && s.genre.includes('Sci-Fi'));
   const MYSTERY = SERIES.filter(s => s.genre && (s.genre.includes('Mystery') || s.genre.includes('Thriller')));
-  const NEW_SERIES = SERIES.filter(s => s.isNew);
+  const NEW_SERIES = SERIES.filter(s => s.isNew || s.isNewSeason || s.isNewEpisode);
 
   return (
     <div className={styles.app}>

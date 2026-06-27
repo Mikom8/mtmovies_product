@@ -54,7 +54,13 @@ export default function HeroBanner({ movie }) {
         <div className={styles.gradient} />
 
         <div className={styles.content}>
-          {movie.isNew && <span className={styles.newBadge}><FaFire style={{ marginRight: '6px', transform: 'translateY(1px)' }} /> New Release</span>}
+          {movie.isNewEpisode ? (
+            <span className={styles.newBadge}><FaFire style={{ marginRight: '6px', transform: 'translateY(1px)' }} /> New Episode</span>
+          ) : movie.isNewSeason ? (
+            <span className={styles.newBadge}><FaFire style={{ marginRight: '6px', transform: 'translateY(1px)' }} /> New Season</span>
+          ) : movie.isNew ? (
+            <span className={styles.newBadge}><FaFire style={{ marginRight: '6px', transform: 'translateY(1px)' }} /> New Release</span>
+          ) : null}
 
           <h1 className={styles.title}>{movie.title}</h1>
 

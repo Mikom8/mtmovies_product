@@ -68,6 +68,14 @@ const seriesSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isNewSeason: {
+    type: Boolean,
+    default: false
+  },
+  isNewEpisode: {
+    type: Boolean,
+    default: false
+  },
   isFree: {
     type: Boolean,
     default: false

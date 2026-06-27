@@ -28,7 +28,13 @@ function MovieCard({ movie, landscape }) {
           loading="lazy"
         />
 
-        {movie.isNew && <span className={styles.newTag}>NEW</span>}
+        {movie.isNewEpisode ? (
+          <span className={styles.newTag}>NEW EP.</span>
+        ) : movie.isNewSeason ? (
+          <span className={styles.newTag}>NEW S.</span>
+        ) : movie.isNew ? (
+          <span className={styles.newTag}>NEW</span>
+        ) : null}
 
         <div className={`${styles.cardOverlay} ${hovered ? styles.visible : ''}`}>
           <button className={styles.playCircle} aria-label="Play">

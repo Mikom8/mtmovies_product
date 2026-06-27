@@ -39,7 +39,7 @@ const BLANK_FORM = {
   title: '', year: '', duration: '', quality: '', rating: '',
   poster: '', backdrop: '', mylist: '', featurePhone: '', genres: '', description: '',
   telegram_chatId: '', telegram_messageId: '',
-  isFree: false, isFeatured: false, isNew: false, hasAmharicDub: true,
+  isFree: false, isFeatured: false, isNew: false, isNewSeason: false, isNewEpisode: false, hasAmharicDub: true,
 };
 
 // ─── Edit / Add Modal ──────────────────────────────────────────
@@ -66,6 +66,8 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
         isFree: item.isFree ?? false,
         isFeatured: item.isFeatured ?? false,
         isNew: item.isNew ?? false,
+        isNewSeason: item.isNewSeason ?? false,
+        isNewEpisode: item.isNewEpisode ?? false,
         hasAmharicDub: item.hasAmharicDub ?? true,
       }
       : { ...BLANK_FORM }
@@ -189,9 +191,18 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
               </div>
             ))}
             <div className={styles.checkboxRow}>
-              {[['isFree', 'Free to Watch'], ['isFeatured', 'Featured (Hero)'], ['isNew', 'New Release'], ['hasAmharicDub', 'Amharic Dub']].map(([n, l]) => (
+              {[
+                ['isFree', 'Free to Watch'],
+                ['isFeatured', 'Featured (Hero)'],
+                ['isNew', 'New Release'],
+                ...(type === 'series' ? [
+                  ['isNewSeason', 'New Season'],
+                  ['isNewEpisode', 'New Episode']
+                ] : []),
+                ['hasAmharicDub', 'Amharic Dub']
+              ].map(([n, l]) => (
                 <label key={n} className={styles.checkboxLabel}>
-                  <input type="checkbox" name={n} checked={form[n]} onChange={handleChange} />
+                  <input type="checkbox" name={n} checked={form[n] || false} onChange={handleChange} />
                   {l}
                 </label>
               ))}
@@ -683,7 +694,13 @@ export default function Admin() {
                     <div className={styles.cardBadges}>
                       {item.isFree && <span className={styles.badgeFree}>FREE</span>}
                       {item.isFeatured && <span className={styles.badgeFeatured}>⭐</span>}
-                      {item.isNew && <span className={styles.badgeNew}>NEW</span>}
+                      {item.isNewEpisode ? (
+                        <span className={styles.badgeNew}>NEW EP.</span>
+                      ) : item.isNewSeason ? (
+                        <span className={styles.badgeNew}>NEW S.</span>
+                      ) : item.isNew ? (
+                        <span className={styles.badgeNew}>NEW</span>
+                      ) : null}
                     </div>
                   </div>
                   <div className={styles.cardInfo}>

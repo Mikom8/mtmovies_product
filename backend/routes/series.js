@@ -11,7 +11,13 @@ router.get('/', async (req, res) => {
     const filter = {};
     if (genre) filter.genres = genre;
     if (featured === 'true') filter.isFeatured = true;
-    if (newRelease === 'true') filter.isNew = true;
+    if (newRelease === 'true') {
+      filter.$or = [
+        { isNew: true },
+        { isNewSeason: true },
+        { isNewEpisode: true }
+      ];
+    }
     if (search) filter.$text = { $search: search };
 
     const skip = (parseInt(page) - 1) * parseInt(limit);

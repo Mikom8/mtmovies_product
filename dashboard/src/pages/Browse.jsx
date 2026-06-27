@@ -159,7 +159,7 @@ export default function Browse() {
 
   if (loading || !featuredItem) return <PageSkeleton />;
 
-  const NEW = [...MOVIES, ...SERIES].filter(item => item.isNew);
+  const NEW = [...MOVIES, ...SERIES].filter(item => item.isNew || item.isNewSeason || item.isNewEpisode);
   
   const trending = [...MOVIES, ...SERIES]
     .map(item => {
