@@ -419,6 +419,22 @@
   height: 100%;
   object-fit: cover;
 }
+
+/* Landscape preview for Backdrop and My List images */
+.backdropPreview {
+  width: 100%;
+  height: 130px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: #1a1a2e;
+}
+.backdropPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .posterPlaceholder {
   width: 100%;
   height: 100%;

@@ -120,35 +120,49 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
         </div>
 
         <div className={styles.modalBody}>
-          {/* Image Previews Row 1: Poster + Backdrop */}
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-            <div className={styles.posterPreview} style={{ flex: 1 }}>
-              <div style={{ fontSize: '11px', color: '#888', marginBottom: '6px', textAlign: 'center' }}>Poster</div>
-              {form.poster
-                ? <img src={form.poster} alt="poster" onError={e => { e.target.style.display='none'; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <div className={styles.posterPlaceholder}>Poster Preview</div>}
+          {/* Image Previews */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+
+            {/* Row 1: Poster (portrait) + Feature Phone (portrait) */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                <div style={{ fontSize: '11px', color: '#888' }}>Poster</div>
+                <div className={styles.posterPreview}>
+                  {form.poster
+                    ? <img src={form.poster} alt="poster" onError={e => { e.target.style.display='none'; }} />
+                    : <div className={styles.posterPlaceholder}>Poster</div>}
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                <div style={{ fontSize: '11px', color: '#888' }}>Feature Phone</div>
+                <div className={styles.posterPreview}>
+                  {form.featurePhone
+                    ? <img src={form.featurePhone} alt="featurePhone" onError={e => { e.target.style.display='none'; }} />
+                    : <div className={styles.posterPlaceholder}>Feature Phone</div>}
+                </div>
+              </div>
             </div>
-            <div className={styles.posterPreview} style={{ flex: 1 }}>
-              <div style={{ fontSize: '11px', color: '#888', marginBottom: '6px', textAlign: 'center' }}>Backdrop</div>
-              {form.backdrop
-                ? <img src={form.backdrop} alt="backdrop" onError={e => { e.target.style.display='none'; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <div className={styles.posterPlaceholder}>Backdrop Preview</div>}
+
+            {/* Row 2: Backdrop (landscape) */}
+            <div>
+              <div style={{ fontSize: '11px', color: '#888', marginBottom: '4px' }}>Backdrop</div>
+              <div className={styles.backdropPreview}>
+                {form.backdrop
+                  ? <img src={form.backdrop} alt="backdrop" onError={e => { e.target.style.display='none'; }} />
+                  : <div className={styles.posterPlaceholder}>Backdrop Preview</div>}
+              </div>
             </div>
-          </div>
-          {/* Image Previews Row 2: My List + Feature Phone */}
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-            <div className={styles.posterPreview} style={{ flex: 1 }}>
-              <div style={{ fontSize: '11px', color: '#888', marginBottom: '6px', textAlign: 'center' }}>My List</div>
-              {form.mylist
-                ? <img src={form.mylist} alt="mylist" onError={e => { e.target.style.display='none'; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <div className={styles.posterPlaceholder}>My List Preview</div>}
+
+            {/* Row 3: My List (landscape) */}
+            <div>
+              <div style={{ fontSize: '11px', color: '#888', marginBottom: '4px' }}>My List</div>
+              <div className={styles.backdropPreview}>
+                {form.mylist
+                  ? <img src={form.mylist} alt="mylist" onError={e => { e.target.style.display='none'; }} />
+                  : <div className={styles.posterPlaceholder}>My List Preview</div>}
+              </div>
             </div>
-            <div className={styles.posterPreview} style={{ flex: 1 }}>
-              <div style={{ fontSize: '11px', color: '#888', marginBottom: '6px', textAlign: 'center' }}>Feature Phone</div>
-              {form.featurePhone
-                ? <img src={form.featurePhone} alt="featurePhone" onError={e => { e.target.style.display='none'; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <div className={styles.posterPlaceholder}>Feature Phone Preview</div>}
-            </div>
+
           </div>
 
           <div className={styles.formGrid}>
