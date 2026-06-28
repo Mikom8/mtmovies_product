@@ -23,6 +23,7 @@ import client from "../api/client";
 import { useWatchlist } from "../context/WatchlistContext";
 import { useAuth } from "../context/AuthContext";
 import Toast from "../components/Toast";
+import ShareModal from "../components/ShareModal";
 import Svg, { G, Path, Rect, Defs, ClipPath } from "react-native-svg";
 
 const { width: W, height: H } = Dimensions.get("window");
@@ -270,6 +271,7 @@ const DetailsScreen = ({ route, navigation }) => {
     message: "",
     variant: "added",
   });
+  const [shareModalVisible, setShareModalVisible] = useState(false);
 
   const historyMap = React.useMemo(() => {
     const map = new Map();
@@ -718,6 +720,7 @@ const DetailsScreen = ({ route, navigation }) => {
                 styles.iconBtn,
                 pressed && { opacity: 0.7 },
               ]}
+              onPress={() => setShareModalVisible(true)}
             >
               <Feather name="share-2" size={20} color="#fff" />
             </Pressable>
@@ -855,6 +858,13 @@ const DetailsScreen = ({ route, navigation }) => {
         visible={toast.visible}
         variant={toast.variant}
         onHide={hideToast}
+      />
+      <ShareModal
+        visible={shareModalVisible}
+        onClose={() => setShareModalVisible(false)}
+        item={data}
+        type={resolvedType}
+        onShowToast={(msg, variant) => setToast({ visible: true, message: msg, variant: variant || 'info' })}
       />
     </View>
   );

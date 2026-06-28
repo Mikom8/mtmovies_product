@@ -18,6 +18,15 @@ Notifications.setNotificationHandler({
   }),
 });
 
+const linking = {
+  prefixes: ['mtmovies://'],
+  config: {
+    screens: {
+      Details: 'details',
+    },
+  },
+};
+
 export default function App() {
   const navigationRef = useNavigationContainerRef();
 
@@ -50,7 +59,7 @@ export default function App() {
         <WatchlistProvider>
           <NetworkErrorProvider>
             <MovieProvider>
-              <NavigationContainer ref={navigationRef}>
+              <NavigationContainer ref={navigationRef} linking={linking}>
                 <StatusBar style="light" />
                 <AppNavigator />
               </NavigationContainer>
