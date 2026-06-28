@@ -297,8 +297,8 @@ const styles = StyleSheet.create({
     left: 5, // Account for pill padding
   },
   tabLabel: {
-    fontSize: 9,
+    fontSize: 8.2,
     marginTop: 4,
-    fontFamily: 'TT Medium'
+    fontFamily: 'Code'
   }
 });
