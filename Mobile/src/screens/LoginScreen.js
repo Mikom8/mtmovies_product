@@ -195,11 +195,12 @@ const LoginScreen = ({ navigation, route }) => {
       : "Sign In";
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
-      <ScrollView
+    <View style={{ flex: 1, backgroundColor: "#000000ff" }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
+        <ScrollView
         contentContainerStyle={styles.scrollContent}
         scrollEnabled={height < 800}
         showsVerticalScrollIndicator={false}
@@ -471,6 +472,7 @@ const LoginScreen = ({ navigation, route }) => {
         <Text style={styles.footer}>MTMovies © {new Date().getFullYear()}</Text>
       </ScrollView>
     </KeyboardAvoidingView>
+    </View>
   );
 };
 
