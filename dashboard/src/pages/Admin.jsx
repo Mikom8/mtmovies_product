@@ -14,6 +14,7 @@ const MOVIE_FIELDS = [
   { name: 'mylist', label: 'My List Image URL (optional)', placeholder: 'https://...', full: true },
   { name: 'featurePhone', label: 'Feature Phone Image URL (optional)', placeholder: 'https://...', full: true },
   { name: 'genres', label: 'Genres (comma)', placeholder: 'Action, Drama', full: true },
+  { name: 'tags', label: 'Tags (comma)', placeholder: 'trending, best, etc.', full: true },
   { name: 'description', label: 'Description', placeholder: 'Brief plot overview…', full: true, textarea: true },
   { name: 'telegram_chatId', label: 'Telegram Chat ID', placeholder: '-100xxxxxxxxxx' },
   { name: 'telegram_messageId', label: 'Telegram Message ID', placeholder: '12345' },
@@ -30,6 +31,7 @@ const SERIES_FIELDS = [
   { name: 'mylist', label: 'My List Image URL (optional)', placeholder: 'https://...', full: true },
   { name: 'featurePhone', label: 'Feature Phone Image URL (optional)', placeholder: 'https://...', full: true },
   { name: 'genres', label: 'Genres (comma)', placeholder: 'Action, Drama', full: true },
+  { name: 'tags', label: 'Tags (comma)', placeholder: 'trending, best, etc.', full: true },
   { name: 'description', label: 'Description', placeholder: 'Brief plot overview…', full: true, textarea: true },
   { name: 'telegram_chatId', label: 'Telegram Chat ID', placeholder: '-100xxxxxxxxxx' },
   { name: 'telegram_messageId', label: 'Telegram Message ID', placeholder: '12345' },
@@ -37,7 +39,7 @@ const SERIES_FIELDS = [
 
 const BLANK_FORM = {
   title: '', year: '', duration: '', quality: '', rating: '',
-  poster: '', backdrop: '', mylist: '', featurePhone: '', genres: '', description: '',
+  poster: '', backdrop: '', mylist: '', featurePhone: '', genres: '', tags: '', description: '',
   telegram_chatId: '', telegram_messageId: '',
   isFree: false, isFeatured: false, isNew: false, isNewSeason: false, isNewEpisode: false, hasAmharicDub: true,
 };
@@ -60,6 +62,7 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
         mylist: item.mylist || '',
         featurePhone: item.featurePhone || '',
         genres: (item.genres || []).join(', '),
+        tags: (item.tags || []).join(', '),
         description: item.description || '',
         telegram_chatId: item.telegram?.chatId || '',
         telegram_messageId: item.telegram?.messageId || '',
@@ -89,6 +92,7 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
       const payload = {
         ...form,
         genres: form.genres.split(',').map(g => g.trim()).filter(Boolean),
+        tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
         telegram: {
           chatId: form.telegram_chatId || undefined,
           messageId: form.telegram_messageId || undefined,
