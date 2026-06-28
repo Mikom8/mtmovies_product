@@ -307,9 +307,29 @@ const DetailsScreen = ({ route, navigation }) => {
     }
   }, [toggleWatchlist, id, resolvedType]);
 
+  // Track whether we need to refresh on the NEXT focus event (e.g. returning from Player)
+  const hasRefreshedRef = useRef(false);
+  const isMountedRef = useRef(false);
+
   useFocusEffect(
     useCallback(() => {
-      refreshUser();
+      // On first mount: refresh once to get latest watch history
+      if (!isMountedRef.current) {
+        isMountedRef.current = true;
+        refreshUser();
+        return;
+      }
+      // On subsequent focus (returning from Player or any other screen):
+      // only refresh once per departure → return cycle
+      if (!hasRefreshedRef.current) {
+        hasRefreshedRef.current = true;
+        refreshUser();
+      }
+
+      return () => {
+        // When screen loses focus (user navigated away), reset so next return triggers a refresh
+        hasRefreshedRef.current = false;
+      };
     }, [refreshUser]),
   );
 
