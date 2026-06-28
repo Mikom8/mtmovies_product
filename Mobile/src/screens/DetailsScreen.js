@@ -18,6 +18,7 @@ import { useFonts } from "expo-font";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Feather from "@expo/vector-icons/Feather";
 import { useFocusEffect } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import client from "../api/client";
 import { useWatchlist } from "../context/WatchlistContext";
 import { useAuth } from "../context/AuthContext";
@@ -262,6 +263,8 @@ const DetailsScreen = ({ route, navigation }) => {
   const [resolvedType, setResolvedType] = useState(type);
   const [selectedSeason, setSelectedSeason] = useState(0);
   const scrollRef = useRef(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets();
   const [toast, setToast] = useState({
     visible: false,
     message: "",
@@ -501,6 +504,18 @@ const DetailsScreen = ({ route, navigation }) => {
   const totalEpisodes =
     data.seasons?.reduce((s, se) => s + (se.episodes?.length || 0), 0) || 0;
 
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [HERO_H - 120, HERO_H - 60],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  const titleOpacity = scrollY.interpolate({
+    inputRange: [HERO_H - 60, HERO_H - 10],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <View style={styles.root}>
@@ -510,11 +525,42 @@ const DetailsScreen = ({ route, navigation }) => {
         backgroundColor="transparent"
       />
 
-      <ScrollView
+      {/* ── Sticky Header ── */}
+      <Animated.View
+        style={[
+          styles.stickyHeader,
+          {
+            height: insets.top + 60,
+            paddingTop: insets.top,
+            backgroundColor: "rgba(10, 10, 10, 0.95)",
+            opacity: headerOpacity,
+          },
+        ]}
+      >
+        <Animated.Text style={[styles.stickyTitle, { opacity: titleOpacity }]} numberOfLines={1}>
+          {data.title}
+        </Animated.Text>
+      </Animated.View>
+
+      {/* Global Back Button (always visible, outside ScrollView) */}
+      <TouchableOpacity
+        style={[styles.fixedBackBtn, { top: insets.top + 10 }]}
+        onPress={() => navigation.goBack()}
+        activeOpacity={0.7}
+      >
+        <Feather name="chevron-left" size={26} color="#fff" />
+      </TouchableOpacity>
+
+      <Animated.ScrollView
         ref={scrollRef}
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 130 }}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
       >
         {/* ── Hero Backdrop ── */}
         <View style={{ height: HERO_H }}>
@@ -533,15 +579,6 @@ const DetailsScreen = ({ route, navigation }) => {
             colors={["transparent", "#0a0a0a"]}
             style={[StyleSheet.absoluteFill, { top: "50%" }]}
           />
-
-          {/* Back Button */}
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-          >
-            <Feather name="chevron-left" size={26} color="#fff" />
-          </TouchableOpacity>
         </View>
 
         {/* ── Info Section ── */}
@@ -811,7 +848,7 @@ const DetailsScreen = ({ route, navigation }) => {
             </View>
           )}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       <Toast
         message={toast.message}
@@ -823,33 +860,9 @@ const DetailsScreen = ({ route, navigation }) => {
   );
 };
 
-// ── Styles ────────────────────────────────────────────────────────────────────
-const CARD_W = (W - 48) / 3;
+const CARD_W = (W - 40 - 16) / 3;
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#0a0a0a" },
-  scroll: { flex: 1 },
-  centered: {
-    flex: 1,
-    backgroundColor: "#0a0a0a",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  // ── Hero ──
-  backBtn: {
-    position: "absolute",
-    top: 50,
-    left: 16,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "rgba(0,0,0,0.55)",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10,
-  },
-
   // ── Info ──
   infoSection: {
     paddingHorizontal: 16,
