@@ -73,6 +73,7 @@ const PlayerScreen = ({ route, navigation }) => {
   const [polledTime, setPolledTime] = useState(0);
   const [bufferedTime, setBufferedTime] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [showTimeRemaining, setShowTimeRemaining] = useState(false);
   const controlsTimeoutRef = useRef(null);
 
   // ── Pan Gesture States ──────────────────────────────────────────────────
@@ -993,7 +994,19 @@ const PlayerScreen = ({ route, navigation }) => {
 
               {/* Bottom slider and time text */}
               <View style={styles.bottomControls}>
-                <Text style={styles.timeText}>{formatTime(displayTime)}</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowTimeRemaining(prev => !prev);
+                    resetControlsTimeout();
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.timeText}>
+                    {showTimeRemaining && duration > 0
+                      ? `-${formatTime(Math.max(0, duration - displayTime))}`
+                      : formatTime(displayTime)}
+                  </Text>
+                </TouchableOpacity>
 
                 <View style={styles.sliderContainer}>
                   {/* Custom Background Track */}
