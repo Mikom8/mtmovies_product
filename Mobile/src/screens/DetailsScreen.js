@@ -860,9 +860,55 @@ const DetailsScreen = ({ route, navigation }) => {
   );
 };
 
+
+
 const CARD_W = (W - 40 - 16) / 3;
 
 const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#0a0a0a" },
+  scroll: { flex: 1 },
+  centered: {
+    flex: 1,
+    backgroundColor: "#0a0a0a",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  // ── Sticky Header ──
+  stickyHeader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 99,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#937879",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  stickyTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontFamily: "Code",
+    maxWidth: "65%",
+    textAlign: "center",
+  },
+  fixedBackBtn: {
+    position: "absolute",
+    left: 20,
+    zIndex: 100,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
   // ── Info ──
   infoSection: {
     paddingHorizontal: 16,
