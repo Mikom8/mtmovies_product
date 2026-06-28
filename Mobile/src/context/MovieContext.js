@@ -1,5 +1,6 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import client from '../api/client';
+import { useNetworkError } from './NetworkErrorContext';
 
 const MovieContext = createContext();
 
@@ -11,12 +12,9 @@ export const MovieProvider = ({ children }) => {
   const [featuredItems, setFeaturedItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { showNetworkError } = useNetworkError();
 
-  useEffect(() => {
-    fetchContent();
-  }, []);
-
-  const fetchContent = async () => {
+  const fetchContent = useCallback(async () => {
     try {
       setLoading(true);
       const [moviesRes, seriesRes, featuredMoviesRes, featuredSeriesRes] = await Promise.all([
@@ -34,15 +32,21 @@ export const MovieProvider = ({ children }) => {
         ...featuredSeriesRes.data.series
       ];
       setFeaturedItems(featured);
-
       setError(null);
     } catch (err) {
       console.error('Error fetching content', err);
       setError('Failed to load content');
+      // Show the global network error overlay with retry pointing back to this function
+      showNetworkError(fetchContent);
+      throw err; // Re-throw so the overlay retry handler knows it failed
     } finally {
       setLoading(false);
     }
-  };
+  }, [showNetworkError]);
+
+  useEffect(() => {
+    fetchContent();
+  }, []);
 
   return (
     <MovieContext.Provider value={{ movies, series, featuredItems, loading, error, refresh: fetchContent }}>
