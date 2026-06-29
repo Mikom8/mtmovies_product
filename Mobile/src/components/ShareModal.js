@@ -42,8 +42,8 @@ const TelegramIcon = ({ size = 28 }) => (
 const ShareModal = ({ visible, onClose, item, type, onShowToast }) => {
   if (!item) return null;
 
-  // Direct deep link using scheme as requested
-  const shareUrl = `mtmovies://details?id=${item._id}&type=${type || 'movie'}`;
+  // Direct clickable link using Netlify HTTPS domain
+  const shareUrl = `https://mtmoviess.netlify.app/details?id=${item._id}&type=${type || 'movie'}`;
 
   const handleCopyLink = async () => {
     await Clipboard.setStringAsync(shareUrl);

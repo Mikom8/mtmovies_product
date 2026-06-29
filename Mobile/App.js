@@ -19,7 +19,7 @@ Notifications.setNotificationHandler({
 });
 
 const linking = {
-  prefixes: ['mtmovies://'],
+  prefixes: ['mtmovies://', 'https://mtmoviess.netlify.app'],
   config: {
     screens: {
       Details: 'details',
