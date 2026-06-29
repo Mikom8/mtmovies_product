@@ -21,7 +21,24 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/img/ic_launcher.png",
         "backgroundColor": "#000000"
-      }
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "mtmoviess.netlify.app",
+              "pathPrefix": "/details"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/img/ic_launcher.png"

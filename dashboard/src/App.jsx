@@ -15,6 +15,7 @@ import MoviesPage from './pages/MoviesPage';
 import SeriesPage from './pages/SeriesPage';
 import FreePage from './pages/FreePage';
 import Admin from './pages/Admin';
+import DetailsRedirect from './pages/DetailsRedirect';
 
 // Protect the /browse route
 function ProtectedRoute({ children }) {
@@ -26,6 +27,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/details" element={<DetailsRedirect />} />
       <Route path="/login" element={<Login />} />
       <Route
         path="/browse"
