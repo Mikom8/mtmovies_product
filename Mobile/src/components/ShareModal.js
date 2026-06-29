@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import Feather from '@expo/vector-icons/Feather';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Svg, { Path, Circle } from 'react-native-svg';
 
@@ -118,7 +119,7 @@ const ShareModal = ({ visible, onClose, item, type, onShowToast }) => {
                 {/* Telegram */}
                 <TouchableOpacity style={styles.optionItem} onPress={handleTelegram} activeOpacity={0.7}>
                   <View style={[styles.iconBox, { backgroundColor: 'rgba(0, 136, 204, 0.12)' }]}>
-                    <TelegramIcon size={28} />
+                    <FontAwesome6 name="telegram" size={28} color="#0088cc" />
                   </View>
                   <Text style={styles.optionLabel}>Telegram</Text>
                 </TouchableOpacity>
