@@ -280,7 +280,7 @@ const HomeScreen = () => {
       [...allFiltered].sort((a, b) => (b.stats?.views || 0) - (a.stats?.views || 0))
     );
 
-    // 3. Genre rows (shuffled order, each row deduplicated against previous rows)
+    // 3. Genre rows (shuffled order, each row deduplicated and curated)
     const genreRows = shuffledGenres.map((genre) => {
       const genreLower = genre.toLowerCase();
       let candidates;
@@ -297,7 +297,78 @@ const HomeScreen = () => {
           m.genres?.some((g) => g.toLowerCase() === genreLower)
         );
       }
-      return { genre, data: dedup(candidates) };
+
+      // Curate layout logic: 1-5 Hook, 6-11 Deep Cuts, 12-15 Hidden Gems
+      const unseen = candidates.filter((item) => !seen.has(item._id));
+      if (unseen.length === 0) return { genre, data: [] };
+
+      // A. Hook: Score = Views / (AgeDays + 1)
+      const scored = unseen.map((item) => {
+        const views = item.stats?.views || 0;
+        const releaseDate = item.createdAt ? new Date(item.createdAt) : new Date(item.year || 2024, 0, 1);
+        const ageDays = Math.max(1, Math.ceil(Math.abs(new Date() - releaseDate) / (1000 * 60 * 60 * 24)));
+        const score = views / ageDays;
+        return { item, score };
+      });
+
+      const sortedByScore = [...scored].sort((a, b) => b.score - a.score).map((x) => x.item);
+      const hook = sortedByScore.slice(0, 5);
+      hook.forEach((item) => seen.add(item._id));
+
+      const remainingAfterHook = sortedByScore.slice(5);
+
+      // B. Deep Cuts: Highly-rated but older (year < currentYear)
+      const currentYear = new Date().getFullYear();
+      const older = remainingAfterHook.filter((item) => {
+        const itemYear = parseInt(item.year) || currentYear;
+        return currentYear - itemYear >= 1;
+      });
+
+      const deepCutsSorted = older.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      const deepCuts = deepCutsSorted.slice(0, 6);
+      deepCuts.forEach((item) => seen.add(item._id));
+
+      const remainingAfterDeepCuts = remainingAfterHook.filter(
+        (x) => !deepCuts.some((dc) => dc._id === x._id)
+      );
+
+      // C. Hidden Gems: lower-viewed niche + 2 random
+      const nicheSorted = [...remainingAfterDeepCuts].sort(
+        (a, b) => (a.stats?.views || 0) - (b.stats?.views || 0)
+      );
+
+      const hiddenGems = [];
+      const lowestViewed = nicheSorted.slice(0, 2);
+      lowestViewed.forEach((item) => {
+        hiddenGems.push(item);
+        seen.add(item._id);
+      });
+
+      const leftovers = nicheSorted.slice(2);
+      if (leftovers.length > 0) {
+        const randoms = [];
+        const tempLeftovers = [...leftovers];
+        while (randoms.length < 2 && tempLeftovers.length > 0) {
+          const randIdx = Math.floor(Math.random() * tempLeftovers.length);
+          const chosen = tempLeftovers.splice(randIdx, 1)[0];
+          randoms.push(chosen);
+          seen.add(chosen._id);
+        }
+        hiddenGems.push(...randoms);
+      }
+
+      // Combine and pad to 15 if needed
+      const combined = [...hook, ...deepCuts, ...hiddenGems];
+      const combinedSet = new Set(combined.map((x) => x._id));
+      const remainingTotal = unseen.filter((x) => !combinedSet.has(x._id));
+
+      while (combined.length < 15 && remainingTotal.length > 0) {
+        const nextItem = remainingTotal.shift();
+        seen.add(nextItem._id);
+        combined.push(nextItem);
+      }
+
+      return { genre, data: combined.slice(0, 15) };
     });
 
     return { newReleases, trending, genreRows };
