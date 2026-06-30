@@ -384,11 +384,12 @@ const DetailsScreen = ({ route, navigation }) => {
       setResolvedType(currentType);
 
       // Fetch recommendations from the dedicated endpoint — server-side filtering
-      // by tags + genres, no limit of 50, searches ALL items in the DB
+      // by genres + tags + year, no limit of 50, searches ALL items in the DB
       const tags   = (detail.tags   || []).join(',');
       const genres = (detail.genres || []).join(',');
+      const year   = detail.year || '';
       const recRes = await client.get('/recommendations', {
-        params: { tags, genres, excludeId: detail._id, limit: 9 }
+        params: { tags, genres, year, excludeId: detail._id, limit: 9 }
       });
       setRecommendations(recRes.data?.recommendations || []);
     } catch (e) {

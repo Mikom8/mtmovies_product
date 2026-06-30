@@ -11,34 +11,59 @@ const CARD_FIELDS = '_id title poster backdrop rating year genres tags';
  * GET /api/recommendations
  *
  * Query params:
- *   tags     — comma-separated list of tags from the current item
- *   genres   — comma-separated list of genres from the current item
- *   excludeId — the _id of the current item (to exclude it from results)
- *   limit    — how many results to return (default 9, max 20)
+ *   tags      — comma-separated tags from the current item
+ *   genres    — comma-separated genres from the current item
+ *   year      — release year of the current item
+ *   excludeId — _id of current item (excluded from results)
+ *   limit     — how many results (default 9, max 20)
  *
- * Strategy (server-side, no client scoring):
- *   1. Run parallel queries on Movie + Series collections
- *   2. Filter by tags.$in OR genres.$in — MongoDB uses indexes, no full scan
- *   3. Sort by createdAt DESC so newest matching content surfaces first
- *   4. Pick `limit * 2` candidates from each collection, merge, re-score,
- *      then slice to `limit` — keeps payload tiny while getting best matches
+ * Scoring priority: genre > tag > year
+ *   genre match  → +10 per shared genre
+ *   tag match    → +5  per shared tag
+ *   year         → +3 if within 3 years, +1 if within 7 years
+ *
+ * Cross-type results (movies + series) are always mixed:
+ *   We fetch up to `candidateCount` from each collection independently,
+ *   score all, then interleave to guarantee both types appear if available.
  */
+
+function scoreItem(item, tagSet, genreSet, targetYear) {
+  let s = 0;
+
+  // 1. Genre overlap — highest priority (10 pts each)
+  (item.genres || []).forEach(g => { if (genreSet.has(g)) s += 10; });
+
+  // 2. Tag overlap — second priority (5 pts each)
+  (item.tags || []).forEach(t => { if (tagSet.has(t)) s += 5; });
+
+  // 3. Year proximity — lowest priority
+  if (targetYear) {
+    const itemYear = parseInt(item.year) || 0;
+    const diff = Math.abs(targetYear - itemYear);
+    if (diff <= 3) s += 3;
+    else if (diff <= 7) s += 1;
+  }
+
+  return s;
+}
+
 router.get('/', async (req, res) => {
   try {
-    const tags = (req.query.tags || '').split(',').map(t => t.trim()).filter(Boolean);
-    const genres = (req.query.genres || '').split(',').map(g => g.trim()).filter(Boolean);
-    const excludeId = req.query.excludeId;
-    const limit = Math.min(parseInt(req.query.limit) || 9, 20);
+    const tags    = (req.query.tags    || '').split(',').map(t => t.trim()).filter(Boolean);
+    const genres  = (req.query.genres  || '').split(',').map(g => g.trim()).filter(Boolean);
+    const targetYear = parseInt(req.query.year) || 0;
+    const excludeId  = req.query.excludeId;
+    const limit      = Math.min(parseInt(req.query.limit) || 9, 20);
 
     // Need at least one signal to match on
     if (!tags.length && !genres.length) {
       return res.json({ recommendations: [] });
     }
 
-    // Build the $or filter — MongoDB will use the index on tags/genres
+    // Build the $or filter — MongoDB uses indexes on tags/genres
     const orClauses = [];
-    if (tags.length) orClauses.push({ tags: { $in: tags } });
     if (genres.length) orClauses.push({ genres: { $in: genres } });
+    if (tags.length)   orClauses.push({ tags:   { $in: tags   } });
 
     const idFilter = excludeId && mongoose.Types.ObjectId.isValid(excludeId)
       ? { _id: { $ne: new mongoose.Types.ObjectId(excludeId) } }
@@ -46,9 +71,9 @@ router.get('/', async (req, res) => {
 
     const dbFilter = { ...idFilter, $or: orClauses };
 
-    // Fetch candidates from both collections in parallel
-    // We over-fetch (limit * 3) so the merge+re-score can pick the best ones
-    const candidateCount = limit * 3;
+    // Over-fetch candidates from BOTH collections in parallel.
+    // Large candidate pool ensures cross-type results aren't crowded out.
+    const candidateCount = limit * 8;
 
     const [movies, series] = await Promise.all([
       Movie.find(dbFilter)
@@ -63,28 +88,47 @@ router.get('/', async (req, res) => {
         .lean()
     ]);
 
-    // Tag sets for scoring
-    const tagSet = new Set(tags);
+    const tagSet   = new Set(tags);
     const genreSet = new Set(genres);
 
-    const score = (item) => {
-      let s = 0;
-      (item.tags || []).forEach(t => { if (tagSet.has(t)) s += 4; });
-      (item.genres || []).forEach(g => { if (genreSet.has(g)) s += 8; });
-      return s;
-    };
+    // Score and sort each type independently
+    const scoredMovies = movies
+      .map(m => ({ item: { ...m, type: 'movie' },   score: scoreItem(m, tagSet, genreSet, targetYear) }))
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => b.score - a.score);
 
-    // Merge, attach type, sort by score desc
-    const all = [
-      ...movies.map(m => ({ ...m, type: 'movie' })),
-      ...series.map(s => ({ ...s, type: 'series' }))
-    ];
+    const scoredSeries = series
+      .map(s => ({ item: { ...s, type: 'series' },  score: scoreItem(s, tagSet, genreSet, targetYear) }))
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => b.score - a.score);
 
-    all.sort((a, b) => score(b) - score(a));
+    // Interleave movies and series to guarantee cross-type diversity.
+    // Strategy: merge both sorted arrays by score, but ensure at least
+    // min(3, available) slots go to the minority type.
+    const combined = [];
+    let mi = 0, si = 0;
 
-    const recommendations = all.slice(0, limit);
+    while (combined.length < limit) {
+      const hasMovie  = mi < scoredMovies.length;
+      const hasSeries = si < scoredSeries.length;
 
-    res.json({ recommendations });
+      if (!hasMovie && !hasSeries) break;
+
+      if (!hasSeries) {
+        combined.push(scoredMovies[mi++].item);
+      } else if (!hasMovie) {
+        combined.push(scoredSeries[si++].item);
+      } else {
+        // Pick whichever has higher score; tie-break: alternate types
+        if (scoredMovies[mi].score >= scoredSeries[si].score) {
+          combined.push(scoredMovies[mi++].item);
+        } else {
+          combined.push(scoredSeries[si++].item);
+        }
+      }
+    }
+
+    res.json({ recommendations: combined });
   } catch (err) {
     console.error('[Recommendations] Error:', err.message);
     res.status(500).json({ error: 'Failed to fetch recommendations.', message: err.message });
