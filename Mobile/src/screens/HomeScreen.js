@@ -188,6 +188,9 @@ const HomeScreen = () => {
     "Horror",
     "Sci-Fi",
     "Animation",
+    "Romance",
+    "Thriller",
+    "Crime",
   ];
 
   // Shuffle genre rows once per session (changes every time user opens app)
@@ -242,7 +245,7 @@ const HomeScreen = () => {
     const allFiltered = [...filteredMovies, ...filteredSeries];
 
     // Helper: filter out seen items, cap at ROW_LIMIT, then register them
-    const ROW_LIMIT = 10;
+    const ROW_LIMIT = 15;
     const dedup = (items) => {
       const unique = items.filter((item) => !seen.has(item._id)).slice(0, ROW_LIMIT);
       unique.forEach((item) => seen.add(item._id));
@@ -284,14 +287,6 @@ const HomeScreen = () => {
     return { newReleases, trending, genreRows };
   }, [filteredMovies, filteredSeries, shuffledGenres, selectedGenre]);
 
-  if (!fontsLoaded) {
-    return null;
-  }
-
-  if (loading) {
-    return <SkeletonLoader />;
-  }
-
   // Navigate handler — stable reference so ContentCard never re-renders on parent updates
   const handleItemPress = useCallback(
     (item) => {
@@ -302,6 +297,15 @@ const HomeScreen = () => {
     },
     [navigation]
   );
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
+  if (loading) {
+    return <SkeletonLoader />;
+  }
+
 
 
   return (
@@ -388,10 +392,10 @@ const HomeScreen = () => {
                   {heroItem.isNewEpisode
                     ? "NEW EPISODE"
                     : heroItem.isNewSeason
-                    ? "NEW SEASON"
-                    : heroItem.isNew
-                    ? "NEW RELEASE"
-                    : " "}
+                      ? "NEW SEASON"
+                      : heroItem.isNew
+                        ? "NEW RELEASE"
+                        : " "}
                 </Text>
               </View>
               <Text style={styles.heroTitle}>{heroItem.title}</Text>
