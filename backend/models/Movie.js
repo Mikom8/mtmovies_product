@@ -80,5 +80,7 @@ const movieSchema = new mongoose.Schema({
 
 // Index for fast searching
 movieSchema.index({ title: 'text', description: 'text' });
+// Index for fast recommendation queries (tags + genres $in lookups)
+movieSchema.index({ tags: 1, genres: 1 });
 
 module.exports = mongoose.model('Movie', movieSchema);

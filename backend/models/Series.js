@@ -94,5 +94,7 @@ const seriesSchema = new mongoose.Schema({
 
 // Index for fast searching
 seriesSchema.index({ title: 'text', description: 'text' });
+// Index for fast recommendation queries (tags + genres $in lookups)
+seriesSchema.index({ tags: 1, genres: 1 });
 
 module.exports = mongoose.model('Series', seriesSchema);

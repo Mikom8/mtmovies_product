@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import Feather from '@expo/vector-icons/Feather';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Octicons from '@expo/vector-icons/Octicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -106,7 +105,7 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
                   size: 20,
                   focused: isFocused
                 })}
-                <Text 
+                <Text
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   style={[
@@ -301,7 +300,7 @@ const styles = StyleSheet.create({
     left: 5, // Account for pill padding
   },
   tabLabel: {
-    fontSize: 8,
+    fontSize: 8.5,
     marginTop: 4,
     fontFamily: 'Code'
   }

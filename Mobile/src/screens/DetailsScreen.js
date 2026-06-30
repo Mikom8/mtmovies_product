@@ -383,16 +383,14 @@ const DetailsScreen = ({ route, navigation }) => {
       setData(detail);
       setResolvedType(currentType);
 
-      // Fetch recommendations based on the resolved type
-      const listRes = await client.get(
-        currentType === "series" ? "/series" : "/movies",
-      );
-      const allItems =
-        currentType === "series"
-          ? listRes.data.series || listRes.data || []
-          : listRes.data.movies || listRes.data || [];
-
-      setRecommendations(getRecommendations(detail, allItems, 9));
+      // Fetch recommendations from the dedicated endpoint — server-side filtering
+      // by tags + genres, no limit of 50, searches ALL items in the DB
+      const tags   = (detail.tags   || []).join(',');
+      const genres = (detail.genres || []).join(',');
+      const recRes = await client.get('/recommendations', {
+        params: { tags, genres, excludeId: detail._id, limit: 9 }
+      });
+      setRecommendations(recRes.data?.recommendations || []);
     } catch (e) {
       console.error(
         "DetailsScreen fetch error:",
