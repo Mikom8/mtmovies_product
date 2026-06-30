@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -72,6 +72,89 @@ const SkeletonLoader = () => {
     </View>
   );
 };
+
+// ── Memoized card — defined OUTSIDE HomeScreen so it never remounts on parent re-render
+const ContentCard = React.memo(({ item, hideNewBadge, variant, onPress }) => {
+  const isLandscape = variant === "landscape";
+  const imageUri = isLandscape
+    ? item.mylist || item.backdrop || item.poster
+    : item.poster;
+
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.card,
+        isLandscape && styles.cardLandscape,
+        pressed && { opacity: 0.85 },
+      ]}
+      onPress={onPress}
+    >
+      <View style={{ borderRadius: 12, overflow: "hidden" }}>
+        <Image
+          source={{ uri: imageUri }}
+          style={[styles.poster, isLandscape && styles.posterLandscape]}
+        />
+      </View>
+      {(item.isNew || item.isNewSeason || item.isNewEpisode) && !hideNewBadge && (
+        <View style={styles.cardOverlay}>
+          <View style={styles.newBadge}>
+            <Text style={styles.newBadgeText}>
+              {item.isNewEpisode ? "NEW EP." : item.isNewSeason ? "NEW S." : "NEW"}
+            </Text>
+          </View>
+        </View>
+      )}
+      <Text style={styles.title} numberOfLines={1}>
+        {item.title}
+      </Text>
+    </Pressable>
+  );
+});
+
+// ── Memoized section row — defined OUTSIDE HomeScreen
+const Section = React.memo(({ title, data, variant = "portrait", icon, onItemPress }) => {
+  if (!data || data.length === 0) return null;
+  const isNewRelease = title === "New Releases";
+
+  const renderItem = useCallback(
+    ({ item }) => (
+      <ContentCard
+        item={item}
+        hideNewBadge={isNewRelease}
+        variant={variant}
+        onPress={() => onItemPress(item)}
+      />
+    ),
+    [isNewRelease, variant, onItemPress]
+  );
+
+  return (
+    <View style={styles.sectionContainer}>
+      <View style={styles.sectionHeader}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          {icon}
+          <Text style={styles.sectionTitle}>{title}</Text>
+        </View>
+      </View>
+      <FlatList
+        horizontal
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={(item) => item._id}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.list}
+        removeClippedSubviews
+        maxToRenderPerBatch={5}
+        initialNumToRender={5}
+        windowSize={3}
+        getItemLayout={variant === "landscape"
+          ? (_, index) => ({ length: 220, offset: 220 * index, index })
+          : (_, index) => ({ length: 110, offset: 110 * index, index })
+        }
+      />
+    </View>
+  );
+});
 const HomeScreen = () => {
   const [fontsLoaded] = useFonts({
     "Broche-Cut": require("../../assets/fonts/Broche-Cut.ttf"),
@@ -107,6 +190,17 @@ const HomeScreen = () => {
     "Animation",
   ];
 
+  // Shuffle genre rows once per session (changes every time user opens app)
+  // New Releases and Trending are always pinned above these rows
+  const shuffledGenres = useMemo(() => {
+    const arr = [...displayGenres];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, []); // empty deps = computed once per component mount (i.e. per session)
+
   // Pick a random hero item once when featuredItems are loaded
   useMemo(() => {
     if (featuredItems.length > 0 && !heroItem) {
@@ -139,6 +233,57 @@ const HomeScreen = () => {
     return list;
   }, [series, selectedGenre]);
 
+  // ── Page-Level Deduplication ────────────────────────────────────────────────
+  // Builds all section data upfront with a global "seen" Set.
+  // New Releases is seeded first, Trending second, then each genre row
+  // only receives items whose _id hasn't appeared in any earlier row.
+  const deduplicatedSections = useMemo(() => {
+    const seen = new Set();
+    const allFiltered = [...filteredMovies, ...filteredSeries];
+
+    // Helper: filter out seen items, cap at ROW_LIMIT, then register them
+    const ROW_LIMIT = 10;
+    const dedup = (items) => {
+      const unique = items.filter((item) => !seen.has(item._id)).slice(0, ROW_LIMIT);
+      unique.forEach((item) => seen.add(item._id));
+      return unique;
+    };
+
+    // 1. New Releases (always top)
+    const newReleases = dedup(
+      allFiltered
+        .filter((item) => item.isNew || item.isNewSeason || item.isNewEpisode)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    );
+
+    // 2. Trending (always second)
+    const trending = dedup(
+      [...allFiltered].sort((a, b) => (b.stats?.views || 0) - (a.stats?.views || 0))
+    );
+
+    // 3. Genre rows (shuffled order, each row deduplicated against previous rows)
+    const genreRows = shuffledGenres.map((genre) => {
+      const genreLower = genre.toLowerCase();
+      let candidates;
+      if (selectedGenre === "Series") {
+        candidates = filteredSeries.filter((s) =>
+          s.genres?.some((g) => g.toLowerCase() === genreLower)
+        );
+      } else if (selectedGenre === "Free") {
+        candidates = allFiltered.filter((item) =>
+          item.genres?.some((g) => g.toLowerCase() === genreLower)
+        );
+      } else {
+        candidates = filteredMovies.filter((m) =>
+          m.genres?.some((g) => g.toLowerCase() === genreLower)
+        );
+      }
+      return { genre, data: dedup(candidates) };
+    });
+
+    return { newReleases, trending, genreRows };
+  }, [filteredMovies, filteredSeries, shuffledGenres, selectedGenre]);
+
   if (!fontsLoaded) {
     return null;
   }
@@ -147,76 +292,17 @@ const HomeScreen = () => {
     return <SkeletonLoader />;
   }
 
-  const renderContentItem = ({
-    item,
-    hideNewBadge = false,
-    variant = "portrait",
-  }) => {
-    const isLandscape = variant === "landscape";
-    const imageUri = isLandscape
-      ? item.mylist || item.backdrop || item.poster
-      : item.poster;
+  // Navigate handler — stable reference so ContentCard never re-renders on parent updates
+  const handleItemPress = useCallback(
+    (item) => {
+      navigation.navigate("Details", {
+        id: item._id,
+        type: item.seasons ? "series" : "movie",
+      });
+    },
+    [navigation]
+  );
 
-    return (
-      <Pressable
-        style={({ pressed }) => [
-          styles.card,
-          isLandscape && styles.cardLandscape,
-          pressed && { opacity: 0.85 },
-        ]}
-        onPress={() =>
-          navigation.navigate("Details", {
-            id: item._id,
-            type: item.seasons ? "series" : "movie",
-          })
-        }
-      >
-        <View style={{ borderRadius: 12, overflow: "hidden" }}>
-          <Image
-            source={{ uri: imageUri }}
-            style={[styles.poster, isLandscape && styles.posterLandscape]}
-          />
-        </View>
-        {(item.isNew || item.isNewSeason || item.isNewEpisode) && !hideNewBadge && (
-          <View style={styles.cardOverlay}>
-            <View style={styles.newBadge}>
-              <Text style={styles.newBadgeText}>
-                {item.isNewEpisode ? "NEW EP." : item.isNewSeason ? "NEW S." : "NEW"}
-              </Text>
-            </View>
-          </View>
-        )}
-        <Text style={styles.title} numberOfLines={1}>
-          {item.title}
-        </Text>
-      </Pressable>
-    );
-  };
-
-  const Section = ({ title, data, variant = "portrait", icon }) => {
-    if (!data || data.length === 0) return null;
-    const isNewRelease = title === "New Releases";
-    return (
-      <View style={styles.sectionContainer}>
-        <View style={styles.sectionHeader}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            {icon}
-            <Text style={styles.sectionTitle}>{title}</Text>
-          </View>
-        </View>
-        <FlatList
-          horizontal
-          data={data}
-          renderItem={({ item }) =>
-            renderContentItem({ item, hideNewBadge: isNewRelease, variant })
-          }
-          keyExtractor={(item) => item._id}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.list}
-        />
-      </View>
-    );
-  };
 
   return (
     <View style={styles.container}>
@@ -462,9 +548,8 @@ const HomeScreen = () => {
           <>
             <Section
               title="New Releases"
-              data={[...filteredMovies, ...filteredSeries]
-                .filter((item) => item.isNew || item.isNewSeason || item.isNewEpisode)
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))}
+              data={deduplicatedSections.newReleases}
+              onItemPress={handleItemPress}
             />
 
             {/* Consistently show a single Trending row based on the current tab */}
@@ -480,43 +565,25 @@ const HomeScreen = () => {
               icon={
                 <MaterialIcons name="trending-up" size={24} color="#E50914" />
               }
-              data={[...filteredMovies, ...filteredSeries].sort(
-                (a, b) => (b.stats?.views || 0) - (a.stats?.views || 0),
-              )}
+              data={deduplicatedSections.trending}
+              onItemPress={handleItemPress}
             />
 
-            {/* Render Genre Specific Sections */}
-            {displayGenres.map((genre) => (
+            {/* Render Genre Specific Sections — order shuffled each session, no duplicates */}
+            {deduplicatedSections.genreRows.map(({ genre, data }) => (
               <Section
                 key={genre}
                 title={`${genre} ${selectedGenre === "Series" ? "Series" : selectedGenre === "Free" ? "Content" : "Movies"}`}
-                data={
-                  selectedGenre === "Series"
-                    ? filteredSeries.filter((s) =>
-                      s.genres?.some(
-                        (g) => g.toLowerCase() === genre.toLowerCase(),
-                      ),
-                    )
-                    : selectedGenre === "Free"
-                      ? [...filteredMovies, ...filteredSeries].filter((item) =>
-                        item.genres?.some(
-                          (g) => g.toLowerCase() === genre.toLowerCase(),
-                        ),
-                      )
-                      : filteredMovies.filter((m) =>
-                        m.genres?.some(
-                          (g) => g.toLowerCase() === genre.toLowerCase(),
-                        ),
-                      )
-                }
+                data={data}
+                onItemPress={handleItemPress}
               />
             ))}
           </>
         ) : (
           // Single filter mode (Action, Comedy, etc.)
           <>
-            <Section title={`${selectedGenre} Movies`} data={filteredMovies} />
-            <Section title={`${selectedGenre} Series`} data={filteredSeries} />
+            <Section title={`${selectedGenre} Movies`} data={filteredMovies} onItemPress={handleItemPress} />
+            <Section title={`${selectedGenre} Series`} data={filteredSeries} onItemPress={handleItemPress} />
           </>
         )}
 
