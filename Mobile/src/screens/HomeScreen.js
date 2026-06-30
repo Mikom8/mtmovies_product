@@ -298,6 +298,263 @@ const HomeScreen = () => {
     [navigation]
   );
 
+  // Prepare section data for the vertical FlatList
+  const listData = useMemo(() => {
+    let sections = [];
+    if (
+      selectedGenre === "All" ||
+      selectedGenre === "Movies" ||
+      selectedGenre === "Series" ||
+      selectedGenre === "Free"
+    ) {
+      sections.push({
+        id: "new-releases",
+        title: "New Releases",
+        data: deduplicatedSections.newReleases,
+      });
+
+      sections.push({
+        id: "trending",
+        title:
+          selectedGenre === "Movies"
+            ? "Trending Movies This Week"
+            : selectedGenre === "Series"
+            ? "Trending Series This Week"
+            : "Trending This Week",
+        variant: "landscape",
+        icon: <MaterialIcons name="trending-up" size={24} color="#E50914" />,
+        data: deduplicatedSections.trending,
+      });
+
+      deduplicatedSections.genreRows.forEach(({ genre, data }) => {
+        sections.push({
+          id: `genre-${genre}`,
+          title: `${genre} ${
+            selectedGenre === "Series"
+              ? "Series"
+              : selectedGenre === "Free"
+              ? "Content"
+              : "Movies"
+          }`,
+          data: data,
+        });
+      });
+    } else {
+      sections.push({
+        id: "movies-filter",
+        title: `${selectedGenre} Movies`,
+        data: filteredMovies,
+      });
+      sections.push({
+        id: "series-filter",
+        title: `${selectedGenre} Series`,
+        data: filteredSeries,
+      });
+    }
+    return sections;
+  }, [selectedGenre, deduplicatedSections, filteredMovies, filteredSeries]);
+
+  const renderListHeader = useCallback(() => (
+    <>
+      {heroItem && (
+        <View style={styles.hero}>
+          <Image
+            source={{
+              uri:
+                heroItem.featurePhone || heroItem.backdrop || heroItem.poster,
+            }}
+            style={styles.heroImage}
+          />
+          {/* Top Navigation Bar */}
+          <View style={styles.topHeader}>
+            <View style={styles.headerLeft}>
+              <Image
+                source={require("../../assets/img/unnamed-removebg-preview.png")}
+                style={styles.logoImage}
+              />
+            </View>
+          </View>
+
+          {/* Cinematic Gradient Shadows */}
+          <View style={StyleSheet.absoluteFill}>
+            <Svg height="100%" width="100%">
+              <Defs>
+                {/* Bottom Shadow */}
+                <SvgGradient id="gradBottom" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0" stopColor="transparent" stopOpacity="0.5" />
+                  <Stop offset="0.5" stopColor="black" stopOpacity="0.2" />
+                  <Stop offset="1" stopColor="black" stopOpacity="1" />
+                </SvgGradient>
+                {/* Top Shadow */}
+                <SvgGradient id="gradTop" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0" stopColor="black" stopOpacity="0.7" />
+                  <Stop offset="0.3" stopColor="transparent" stopOpacity="0" />
+                </SvgGradient>
+              </Defs>
+              {/* Apply Gradients */}
+              <Rect x="0" y="0" width="100%" height="100%" fill="url(#gradTop)" />
+              <Rect x="0" y="0" width="100%" height="100%" fill="url(#gradBottom)" />
+            </Svg>
+          </View>
+
+          <View style={styles.heroOverlay}>
+            <View
+              style={[
+                styles.featuredBadge,
+                (heroItem.isNew || heroItem.isNewSeason || heroItem.isNewEpisode) &&
+                  styles.newReleaseBadge,
+              ]}
+            >
+              <Text style={styles.featuredText}>
+                {heroItem.isNewEpisode
+                  ? "NEW EPISODE"
+                  : heroItem.isNewSeason
+                  ? "NEW SEASON"
+                  : heroItem.isNew
+                  ? "NEW RELEASE"
+                  : " "}
+              </Text>
+            </View>
+            <Text style={styles.heroTitle}>{heroItem.title}</Text>
+
+            <View style={styles.heroMetaRow}>
+              <Text style={styles.heroMetaText}>{heroItem.year || "2024"}</Text>
+              <View style={styles.metaDivider} />
+              <View style={styles.qualityBadge}>
+                <Text style={styles.qualityText}>{heroItem.quality || "HD"}</Text>
+              </View>
+              <View style={styles.metaDivider} />
+              <View style={styles.heroRating}>
+                <MaterialIcons name="star" size={14} color="#FFD700" />
+                <Text style={styles.heroMetaText}>{heroItem.rating || "8.5"}</Text>
+              </View>
+              <View style={styles.metaDivider} />
+              <Text style={styles.heroMetaTergum}>{"በትርጉም"}</Text>
+            </View>
+
+            <Text style={styles.heroSubtitle}>
+              {heroItem.genres?.join(" • ")}
+            </Text>
+            <View style={styles.heroActions}>
+              <Pressable
+                onPress={async () => {
+                  try {
+                    if (!heroItem.isFree && (!user || user.plan === "free")) {
+                      navigation.navigate("Plan");
+                      return;
+                    }
+
+                    let currentType = heroItem.seasons ? "series" : "movie";
+                    let endpoint =
+                      currentType === "series"
+                        ? `/series/${heroItem._id}`
+                        : `/movies/${heroItem._id}`;
+                    let res;
+                    try {
+                      res = await client.get(endpoint);
+                    } catch (err) {
+                      if (err.response?.status === 404) {
+                        currentType =
+                          currentType === "series" ? "movie" : "series";
+                        endpoint =
+                          currentType === "series"
+                            ? `/series/${heroItem._id}`
+                            : `/movies/${heroItem._id}`;
+                        res = await client.get(endpoint);
+                      } else {
+                        throw err;
+                      }
+                    }
+
+                    const data =
+                      currentType === "series" ? res.data.series : res.data.movie;
+                    if (currentType === "movie" || !data.seasons) {
+                      navigation.navigate("Player", {
+                        title: data.title,
+                        chatId: data.telegram?.chatId,
+                        messageId: data.telegram?.messageId,
+                        movieId: String(data._id),
+                      });
+                    } else {
+                      const ep = data.seasons?.[0]?.episodes?.[0];
+                      if (ep) {
+                        navigation.navigate("Player", {
+                          title: `${data.title} · S${data.seasons[0].seasonNumber}E${ep.episodeNumber}`,
+                          chatId: ep.telegramChatId,
+                          messageId: ep.telegramMessageId,
+                          seriesData: data,
+                          seasonIndex: 0,
+                          episodeIndex: 0,
+                          movieId: `${data._id}_S${data.seasons[0].seasonNumber}_E${ep.episodeNumber}`,
+                        });
+                      }
+                    }
+                  } catch (e) {
+                    console.error("Error fetching watch data", e);
+                  }
+                }}
+                style={({ pressed }) => [
+                  styles.playBtn,
+                  pressed && { backgroundColor: "#B20710" },
+                ]}
+              >
+                <MaterialIcons name="play-arrow" size={20} color="#fff" />
+                <Text style={styles.playBtnText}>
+                  {!heroItem.isFree && (!user || user.plan === "free")
+                    ? "Upgrade to Watch"
+                    : "Watch Now"}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() =>
+                  navigation.navigate("Details", {
+                    id: heroItem._id,
+                    type: heroItem.seasons ? "series" : "movie",
+                  })
+                }
+                style={({ pressed }) => [
+                  styles.listBtn,
+                  pressed && { backgroundColor: "rgba(255,255,255,0.4)" },
+                ]}
+              >
+                <EvilIcons name="exclamation" size={20} color="#fff" />
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Genre Selector */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.genreScroll}
+        contentContainerStyle={styles.genreContent}
+      >
+        {filterGenres.map((genre) => (
+          <Pressable
+            key={genre}
+            onPress={() => setSelectedGenre(genre)}
+            style={({ pressed }) => [
+              styles.genreChip,
+              selectedGenre === genre && styles.genreChipActive,
+              pressed && { backgroundColor: "rgba(255,255,255,0.2)" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.genreText,
+                selectedGenre === genre && styles.genreTextActive,
+              ]}
+            >
+              {genre}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </>
+  ), [heroItem, filterGenres, selectedGenre, user, navigation]);
+
   if (!fontsLoaded) {
     return null;
   }
@@ -315,284 +572,27 @@ const HomeScreen = () => {
         translucent
         backgroundColor="transparent"
       />
-      <ScrollView
+      <FlatList
+        data={listData}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <Section
+            title={item.title}
+            data={item.data}
+            variant={item.variant || "portrait"}
+            icon={item.icon}
+            onItemPress={handleItemPress}
+          />
+        )}
+        ListHeaderComponent={renderListHeader}
+        ListFooterComponent={<View style={{ height: 40 }} />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
-      >
-        {/* Hero Section */}
-        {heroItem && (
-          <View style={styles.hero}>
-            <Image
-              source={{
-                uri:
-                  heroItem.featurePhone || heroItem.backdrop || heroItem.poster,
-              }}
-              style={styles.heroImage}
-            />
-            {/* Top Navigation Bar */}
-            <View style={styles.topHeader}>
-              <View style={styles.headerLeft}>
-                <Image
-                  source={require("../../assets/img/unnamed-removebg-preview.png")}
-                  style={styles.logoImage}
-                />
-              </View>
-            </View>
-
-            {/* Cinematic Gradient Shadows */}
-            <View style={StyleSheet.absoluteFill}>
-              <Svg height="100%" width="100%">
-                <Defs>
-                  {/* Bottom Shadow */}
-                  <SvgGradient id="gradBottom" x1="0" y1="0" x2="0" y2="1">
-                    <Stop
-                      offset="0"
-                      stopColor="transparent"
-                      stopOpacity="0.5"
-                    />
-                    <Stop offset="0.5" stopColor="black" stopOpacity="0.2" />
-                    <Stop offset="1" stopColor="black" stopOpacity="1" />
-                  </SvgGradient>
-                  {/* Top Shadow */}
-                  <SvgGradient id="gradTop" x1="0" y1="0" x2="0" y2="1">
-                    <Stop offset="0" stopColor="black" stopOpacity="0.7" />
-                    <Stop
-                      offset="0.3"
-                      stopColor="transparent"
-                      stopOpacity="0"
-                    />
-                  </SvgGradient>
-                </Defs>
-                {/* Apply Gradients */}
-                <Rect
-                  x="0"
-                  y="0"
-                  width="100%"
-                  height="100%"
-                  fill="url(#gradTop)"
-                />
-                <Rect
-                  x="0"
-                  y="0"
-                  width="100%"
-                  height="100%"
-                  fill="url(#gradBottom)"
-                />
-              </Svg>
-            </View>
-
-            <View style={styles.heroOverlay}>
-              <View
-                style={[
-                  styles.featuredBadge,
-                  (heroItem.isNew || heroItem.isNewSeason || heroItem.isNewEpisode) && styles.newReleaseBadge,
-                ]}
-              >
-                <Text style={styles.featuredText}>
-                  {heroItem.isNewEpisode
-                    ? "NEW EPISODE"
-                    : heroItem.isNewSeason
-                      ? "NEW SEASON"
-                      : heroItem.isNew
-                        ? "NEW RELEASE"
-                        : " "}
-                </Text>
-              </View>
-              <Text style={styles.heroTitle}>{heroItem.title}</Text>
-
-              <View style={styles.heroMetaRow}>
-                <Text style={styles.heroMetaText}>
-                  {heroItem.year || "2024"}
-                </Text>
-                <View style={styles.metaDivider} />
-                <View style={styles.qualityBadge}>
-                  <Text style={styles.qualityText}>
-                    {heroItem.quality || "HD"}
-                  </Text>
-                </View>
-                <View style={styles.metaDivider} />
-                <View style={styles.heroRating}>
-                  <MaterialIcons name="star" size={14} color="#FFD700" />
-                  <Text style={styles.heroMetaText}>
-                    {heroItem.rating || "8.5"}
-                  </Text>
-                </View>
-                <View style={styles.metaDivider} />
-                <Text style={styles.heroMetaTergum}>{"በትርጉም"}</Text>
-              </View>
-
-              <Text style={styles.heroSubtitle}>
-                {heroItem.genres?.join(" • ")}
-              </Text>
-              <View style={styles.heroActions}>
-                <Pressable
-                  onPress={async () => {
-                    try {
-                      if (!heroItem.isFree && (!user || user.plan === "free")) {
-                        navigation.navigate("Plan");
-                        return;
-                      }
-
-                      let currentType = heroItem.seasons ? "series" : "movie";
-                      let endpoint =
-                        currentType === "series"
-                          ? `/series/${heroItem._id}`
-                          : `/movies/${heroItem._id}`;
-                      let res;
-                      try {
-                        res = await client.get(endpoint);
-                      } catch (err) {
-                        if (err.response?.status === 404) {
-                          currentType =
-                            currentType === "series" ? "movie" : "series";
-                          endpoint =
-                            currentType === "series"
-                              ? `/series/${heroItem._id}`
-                              : `/movies/${heroItem._id}`;
-                          res = await client.get(endpoint);
-                        } else {
-                          throw err;
-                        }
-                      }
-
-                      const data =
-                        currentType === "series"
-                          ? res.data.series
-                          : res.data.movie;
-                      if (currentType === "movie" || !data.seasons) {
-                        navigation.navigate("Player", {
-                          title: data.title,
-                          chatId: data.telegram?.chatId,
-                          messageId: data.telegram?.messageId,
-                          movieId: String(data._id),
-                        });
-                      } else {
-                        const ep = data.seasons?.[0]?.episodes?.[0];
-                        if (ep) {
-                          navigation.navigate("Player", {
-                            title: `${data.title} · S${data.seasons[0].seasonNumber}E${ep.episodeNumber}`,
-                            chatId: ep.telegramChatId,
-                            messageId: ep.telegramMessageId,
-                            seriesData: data,
-                            seasonIndex: 0,
-                            episodeIndex: 0,
-                            movieId: `${data._id}_S${data.seasons[0].seasonNumber}_E${ep.episodeNumber}`,
-                          });
-                        }
-                      }
-                    } catch (e) {
-                      console.error("Error fetching watch data", e);
-                    }
-                  }}
-                  style={({ pressed }) => [
-                    styles.playBtn,
-                    pressed && { backgroundColor: "#B20710" }, // Darker red on press
-                  ]}
-                >
-                  <MaterialIcons name="play-arrow" size={20} color="#fff" />
-                  <Text style={styles.playBtnText}>
-                    {!heroItem.isFree && (!user || user.plan === "free")
-                      ? "Upgrade to Watch"
-                      : "Watch Now"}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() =>
-                    navigation.navigate("Details", {
-                      id: heroItem._id,
-                      type: heroItem.seasons ? "series" : "movie",
-                    })
-                  }
-                  style={({ pressed }) => [
-                    styles.listBtn,
-                    pressed && { backgroundColor: "rgba(255,255,255,0.4)" },
-                  ]}
-                >
-                  <EvilIcons name="exclamation" size={20} color="#fff" />
-                </Pressable>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Genre Selector */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.genreScroll}
-          contentContainerStyle={styles.genreContent}
-        >
-          {filterGenres.map((genre) => (
-            <Pressable
-              key={genre}
-              onPress={() => setSelectedGenre(genre)}
-              style={({ pressed }) => [
-                styles.genreChip,
-                selectedGenre === genre && styles.genreChipActive,
-                pressed && { backgroundColor: "rgba(255,255,255,0.2)" },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.genreText,
-                  selectedGenre === genre && styles.genreTextActive,
-                ]}
-              >
-                {genre}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-
-        {/* Dynamic Genre Sections when 'Movies' or 'Series' or 'All' is selected */}
-        {selectedGenre === "All" ||
-          selectedGenre === "Movies" ||
-          selectedGenre === "Series" ||
-          selectedGenre === "Free" ? (
-          <>
-            <Section
-              title="New Releases"
-              data={deduplicatedSections.newReleases}
-              onItemPress={handleItemPress}
-            />
-
-            {/* Consistently show a single Trending row based on the current tab */}
-            <Section
-              title={
-                selectedGenre === "Movies"
-                  ? "Trending Movies This Week"
-                  : selectedGenre === "Series"
-                    ? "Trending Series This Week"
-                    : "Trending This Week"
-              }
-              variant="landscape"
-              icon={
-                <MaterialIcons name="trending-up" size={24} color="#E50914" />
-              }
-              data={deduplicatedSections.trending}
-              onItemPress={handleItemPress}
-            />
-
-            {/* Render Genre Specific Sections — order shuffled each session, no duplicates */}
-            {deduplicatedSections.genreRows.map(({ genre, data }) => (
-              <Section
-                key={genre}
-                title={`${genre} ${selectedGenre === "Series" ? "Series" : selectedGenre === "Free" ? "Content" : "Movies"}`}
-                data={data}
-                onItemPress={handleItemPress}
-              />
-            ))}
-          </>
-        ) : (
-          // Single filter mode (Action, Comedy, etc.)
-          <>
-            <Section title={`${selectedGenre} Movies`} data={filteredMovies} onItemPress={handleItemPress} />
-            <Section title={`${selectedGenre} Series`} data={filteredSeries} onItemPress={handleItemPress} />
-          </>
-        )}
-
-        <View style={{ height: 40 }} />
-      </ScrollView>
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={3}
+        initialNumToRender={3}
+        windowSize={5}
+      />
     </View>
   );
 };

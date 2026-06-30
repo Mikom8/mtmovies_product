@@ -134,10 +134,10 @@ const GenreChip = ({ label }) => (
   </View>
 );
 
-const RecommendCard = ({ item, type, onPress }) => (
+const RecommendCard = React.memo(({ item, type, onPress }) => (
   <TouchableOpacity
     style={styles.recCard}
-    onPress={onPress}
+    onPress={() => onPress(item)}
     activeOpacity={0.8}
   >
     <Image
@@ -159,7 +159,7 @@ const RecommendCard = ({ item, type, onPress }) => (
       </View>
     </View>
   </TouchableOpacity>
-);
+));
 
 function parseDuration(str) {
   if (!str) return 0;
@@ -843,7 +843,7 @@ const DetailsScreen = ({ route, navigation }) => {
                     key={item._id}
                     item={item}
                     type={resolvedType}
-                    onPress={() => handleRecPress(item)}
+                    onPress={handleRecPress}
                   />
                 ))}
               </View>
