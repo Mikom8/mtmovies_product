@@ -73,6 +73,17 @@ const SkeletonLoader = () => {
   );
 };
 
+function parseDuration(str) {
+  if (!str) return 0;
+  let h = 0,
+    m = 0;
+  const hMatch = str.match(/(\d+)h/);
+  const mMatch = str.match(/(\d+)m/);
+  if (hMatch) h = parseInt(hMatch[1], 10);
+  if (mMatch) m = parseInt(mMatch[1], 10);
+  return h * 3600 + m * 60;
+}
+
 // ── Memoized card — defined OUTSIDE HomeScreen so it never remounts on parent re-render
 const ContentCard = React.memo(({ item, hideNewBadge, variant, onPress }) => {
   const isLandscape = variant === "landscape";
@@ -94,6 +105,11 @@ const ContentCard = React.memo(({ item, hideNewBadge, variant, onPress }) => {
           source={{ uri: imageUri }}
           style={[styles.poster, isLandscape && styles.posterLandscape]}
         />
+        {item.progressPct !== undefined && item.progressPct !== null && (
+          <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, backgroundColor: "rgba(255,255,255,0.3)" }}>
+            <View style={{ height: "100%", width: `${item.progressPct}%`, backgroundColor: "#E50914" }} />
+          </View>
+        )}
       </View>
       {(item.isNew || item.isNewSeason || item.isNewEpisode) && !hideNewBadge && (
         <View style={styles.cardOverlay}>
@@ -105,7 +121,7 @@ const ContentCard = React.memo(({ item, hideNewBadge, variant, onPress }) => {
         </View>
       )}
       <Text style={styles.title} numberOfLines={1}>
-        {item.title}
+        {item.historyTitle || item.title}
       </Text>
     </Pressable>
   );
@@ -140,7 +156,7 @@ const Section = React.memo(({ title, data, variant = "portrait", icon, onItemPre
         horizontal
         data={data}
         renderItem={renderItem}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item.historyMovieId || item._id}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.list}
         removeClippedSubviews
@@ -298,9 +314,85 @@ const HomeScreen = () => {
     [navigation]
   );
 
+  const continueWatchingData = useMemo(() => {
+    if (!user || !user.watchHistory || user.watchHistory.length === 0) return [];
+    
+    // Sort history newest first
+    const historyItems = [...user.watchHistory].sort(
+      (a, b) => new Date(b.watchedAt) - new Date(a.watchedAt)
+    );
+
+    const itemsMap = new Map();
+    // Build map of all items to quickly find them
+    const allFiltered = [...filteredMovies, ...filteredSeries];
+    allFiltered.forEach((item) => itemsMap.set(String(item._id), item));
+
+    const cwItems = [];
+    const seenIds = new Set();
+
+    for (const h of historyItems) {
+      if (cwItems.length >= 10) break; // Limit row to 10 items
+      
+      let targetId = h.movieId;
+      const isSeries = targetId.includes("_S");
+      if (isSeries) {
+        targetId = targetId.split("_S")[0]; // extract series ID
+      }
+      
+      if (!seenIds.has(targetId)) {
+        seenIds.add(targetId);
+        const item = itemsMap.get(targetId);
+        if (item) {
+          const cwItem = { ...item, historyMovieId: h.movieId };
+          
+          let progressPct = null;
+          let historyTitle = item.title;
+
+          if (isSeries && cwItem.seasons) {
+            const parts = h.movieId.split("_");
+            if (parts.length >= 3) {
+              const sNum = parts[1].replace("S", "");
+              const eNum = parts[2].replace("E", "");
+              const season = cwItem.seasons?.find((s) => String(s.seasonNumber) === sNum);
+              const ep = season?.episodes?.find((e) => String(e.episodeNumber) === eNum);
+              if (ep) {
+                historyTitle = `${item.title} S${sNum}E${eNum}`;
+                const durSec = parseDuration(ep.duration);
+                if (durSec > 0) {
+                  progressPct = Math.min(100, Math.max(0, (h.progress / durSec) * 100));
+                }
+              }
+            }
+          } else {
+            const durSec = parseDuration(item.duration);
+            if (durSec > 0) {
+              progressPct = Math.min(100, Math.max(0, (h.progress / durSec) * 100));
+            }
+          }
+
+          cwItem.historyTitle = historyTitle;
+          cwItem.progressPct = progressPct;
+
+          cwItems.push(cwItem);
+        }
+      }
+    }
+    return cwItems;
+  }, [user?.watchHistory, filteredMovies, filteredSeries]);
+
   // Prepare section data for the vertical FlatList
   const listData = useMemo(() => {
     let sections = [];
+
+    if (selectedGenre === "All" && continueWatchingData.length > 0) {
+      sections.push({
+        id: "continue-watching",
+        title: "Continue Watching",
+        data: continueWatchingData,
+        icon: <MaterialIcons name="history" size={24} color="#E50914" />,
+      });
+    }
+
     if (
       selectedGenre === "All" ||
       selectedGenre === "Movies" ||
