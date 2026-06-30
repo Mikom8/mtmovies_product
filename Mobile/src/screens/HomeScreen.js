@@ -7,7 +7,6 @@ import {
   Image,
   Pressable,
   FlatList,
-  ActivityIndicator,
   Dimensions,
   StatusBar,
   Platform,
@@ -17,9 +16,7 @@ import { useFonts } from "expo-font";
 import { useMovies } from "../context/MovieContext";
 import { useAuth } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
-import Feather from "@expo/vector-icons/Feather";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import Svg, {
   Defs,
@@ -128,7 +125,7 @@ const ContentCard = React.memo(({ item, hideNewBadge, variant, onPress }) => {
 });
 
 // ── Memoized section row — defined OUTSIDE HomeScreen
-const Section = React.memo(({ title, data, variant = "portrait", icon, onItemPress }) => {
+const Section = React.memo(({ title, data, variant = "portrait", iconName, onItemPress }) => {
   if (!data || data.length === 0) return null;
   const isNewRelease = title === "New Releases";
 
@@ -148,7 +145,9 @@ const Section = React.memo(({ title, data, variant = "portrait", icon, onItemPre
     <View style={styles.sectionContainer}>
       <View style={styles.sectionHeader}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          {icon}
+          {iconName ? (
+            <MaterialIcons name={iconName} size={24} color="#E50914" />
+          ) : null}
           <Text style={styles.sectionTitle}>{title}</Text>
         </View>
       </View>
@@ -163,6 +162,7 @@ const Section = React.memo(({ title, data, variant = "portrait", icon, onItemPre
         maxToRenderPerBatch={5}
         initialNumToRender={5}
         windowSize={3}
+        decelerationRate="fast"
         getItemLayout={variant === "landscape"
           ? (_, index) => ({ length: 220, offset: 220 * index, index })
           : (_, index) => ({ length: 110, offset: 110 * index, index })
@@ -288,13 +288,10 @@ const HomeScreen = () => {
         candidates = filteredSeries.filter((s) =>
           s.genres?.some((g) => g.toLowerCase() === genreLower)
         );
-      } else if (selectedGenre === "Free") {
+      } else {
+        // "All", "Movies", "Free" — always mix both movies and series together
         candidates = allFiltered.filter((item) =>
           item.genres?.some((g) => g.toLowerCase() === genreLower)
-        );
-      } else {
-        candidates = filteredMovies.filter((m) =>
-          m.genres?.some((g) => g.toLowerCase() === genreLower)
         );
       }
 
@@ -460,7 +457,7 @@ const HomeScreen = () => {
         id: "continue-watching",
         title: "Continue Watching",
         data: continueWatchingData,
-        icon: <MaterialIcons name="history" size={24} color="#E50914" />,
+        iconName: "history",
       });
     }
 
@@ -485,20 +482,30 @@ const HomeScreen = () => {
             ? "Trending Series This Week"
             : "Trending This Week",
         variant: "landscape",
-        icon: <MaterialIcons name="trending-up" size={24} color="#E50914" />,
+        iconName: "trending-up",
         data: deduplicatedSections.trending,
       });
+
+      const modernGenreTitles = {
+        "Action": "Action & Adventure",
+        "Comedy": "Comedy Hits",
+        "Drama": "Compelling Dramas",
+        "Horror": "Chilling Horror",
+        "Sci-Fi": "Sci-Fi & Fantasy",
+        "Animation": "Animated Magic",
+        "Romance": "Modern Romance",
+        "Thriller": "Gripping Thrillers",
+        "Crime": "Crime & Mystery",
+      };
 
       deduplicatedSections.genreRows.forEach(({ genre, data }) => {
         sections.push({
           id: `genre-${genre}`,
-          title: `${genre} ${
-            selectedGenre === "Series"
-              ? "Series"
-              : selectedGenre === "Free"
-              ? "Content"
-              : "Movies"
-          }`,
+          title: selectedGenre === "Series"
+            ? `${genre} Series`
+            : selectedGenre === "Movies"
+            ? `${genre} Movies`
+            : (modernGenreTitles[genre] || `${genre} Picks`),
           data: data,
         });
       });
@@ -718,6 +725,20 @@ const HomeScreen = () => {
     </>
   ), [heroItem, filterGenres, selectedGenre, user, navigation]);
 
+  // Stable renderItem for the outer vertical FlatList — defined once via useCallback
+  const renderSectionRow = useCallback(
+    ({ item }) => (
+      <Section
+        title={item.title}
+        data={item.data}
+        variant={item.variant || "portrait"}
+        iconName={item.iconName}
+        onItemPress={handleItemPress}
+      />
+    ),
+    [handleItemPress]
+  );
+
   if (!fontsLoaded) {
     return null;
   }
@@ -738,15 +759,7 @@ const HomeScreen = () => {
       <FlatList
         data={listData}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <Section
-            title={item.title}
-            data={item.data}
-            variant={item.variant || "portrait"}
-            icon={item.icon}
-            onItemPress={handleItemPress}
-          />
-        )}
+        renderItem={renderSectionRow}
         ListHeaderComponent={renderListHeader}
         ListFooterComponent={<View style={{ height: 40 }} />}
         showsVerticalScrollIndicator={false}
