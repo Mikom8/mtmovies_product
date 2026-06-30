@@ -19,7 +19,7 @@ import SubscriptionDetailsScreen from "../screens/SubscriptionDetailsScreen";
 import PersonalInfoScreen from "../screens/PersonalInfoScreen";
 import { useAuth } from "../context/AuthContext";
 import { useFonts } from "expo-font";
-import { View, ActivityIndicator, StyleSheet, Pressable, Text, Dimensions, Animated } from "react-native";
+import { View, ActivityIndicator, StyleSheet, Pressable, Text, Dimensions, Animated, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { G, Path, Defs, LinearGradient as SvgGradient, Rect, Stop, ClipPath } from 'react-native-svg';
 
@@ -29,6 +29,7 @@ const { width } = Dimensions.get('window');
 
 const CustomTabBar = ({ state, descriptors, navigation }) => {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const tabWidth = (width * 0.94 - 20) / state.routes.length; // Calculate based on pill width and padding
   const translateX = useRef(new Animated.Value(0)).current;
 
@@ -61,7 +62,7 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
       </View>
 
       <View style={[styles.tabBarContainer, { bottom: insets.bottom + 10 }]}>
-        <View style={styles.tabBarPill}>
+        <View style={[styles.tabBarPill, { width: width * 0.94 }]}>
           {/* Sliding Indicator */}
           <Animated.View
             style={[
@@ -105,10 +106,14 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
                   size: 20,
                   focused: isFocused
                 })}
-                <Text style={[
-                  styles.tabLabel,
-                  { color: isFocused ? "#fff" : "rgba(255,255,255,0.5)" }
-                ]}>
+                <Text 
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  style={[
+                    styles.tabLabel,
+                    { color: isFocused ? "#fff" : "rgba(255,255,255,0.5)" }
+                  ]}
+                >
                   {label}
                 </Text>
               </Pressable>
@@ -268,7 +273,6 @@ const styles = StyleSheet.create({
   tabBarPill: {
     flexDirection: 'row',
     backgroundColor: 'rgba(20, 20, 20, 0.92)',
-    width: width * 0.94,
     height: 58,
     borderRadius: 32,
     alignItems: 'center',
@@ -297,7 +301,7 @@ const styles = StyleSheet.create({
     left: 5, // Account for pill padding
   },
   tabLabel: {
-    fontSize: 7.5,
+    fontSize: 8,
     marginTop: 4,
     fontFamily: 'Code'
   }
