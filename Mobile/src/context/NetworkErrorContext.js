@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions } from '
 import Feather from '@expo/vector-icons/Feather';
 
 const { width } = Dimensions.get('window');
-const NetworkErrorContext = createContext({ showNetworkError: () => {}, hideNetworkError: () => {} });
+const NetworkErrorContext = createContext({ showNetworkError: () => { }, hideNetworkError: () => { } });
 export const useNetworkError = () => useContext(NetworkErrorContext);
 
 export const NetworkErrorProvider = ({ children }) => {

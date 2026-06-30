@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import client from '../api/client';
 import { registerForPushNotificationsAsync } from '../utils/notifications';
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
       const { token, user } = response.data;
       await SecureStore.setItemAsync('token', token);
       setUser(user);
-      
+
       // Setup push notifications
       try {
         const pushToken = await registerForPushNotificationsAsync();
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     try {
       const token = await SecureStore.getItemAsync('token');
       if (!token) return;
@@ -120,7 +120,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Failed to refresh user', error);
     }
-  };
+  }, []);
 
   const updateToken = async (newToken) => {
     await SecureStore.setItemAsync('token', newToken);
