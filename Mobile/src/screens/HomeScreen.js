@@ -459,6 +459,7 @@ const HomeScreen = () => {
       sections.push({
         id: "continue-watching",
         title: "Continue Watching",
+        variant: "landscape",
         data: continueWatchingData,
         iconName: "history",
       });
@@ -484,7 +485,6 @@ const HomeScreen = () => {
             : selectedGenre === "Series"
               ? "Trending Series This Week"
               : "Trending This Week",
-        variant: "landscape",
         iconName: "trending-up",
         data: deduplicatedSections.trending,
       });
@@ -979,9 +979,9 @@ const styles = StyleSheet.create({
 
   // Card Styles
   card: { width: 110, marginRight: 8 },
-  cardLandscape: { width: 240 },
+  cardLandscape: { width: 175 },
   poster: { width: 110, height: 175, borderRadius: 7 },
-  posterLandscape: { width: 240, height: 135 },
+  posterLandscape: { width: 175, height: 110 },
   cardOverlay: {
     position: "absolute",
     top: 0,
