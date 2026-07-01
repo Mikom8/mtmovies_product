@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
+import { VolumeManager } from "react-native-volume-manager";
 import { VideoView, useVideoPlayer } from "expo-video";
 import * as ScreenOrientation from "expo-screen-orientation";
 import * as Brightness from "expo-brightness";
@@ -147,8 +148,11 @@ const PlayerScreen = ({ route, navigation }) => {
         const savedV = await AsyncStorage.getItem("user_volume");
         if (savedV !== null) {
           const v = parseFloat(savedV);
-          player.volume = v;
+          VolumeManager.setVolume(v).catch(() => { });
           setIsMuted(v === 0);
+        } else {
+          const { volume } = await VolumeManager.getVolume();
+          setIsMuted(volume === 0);
         }
       } catch (e) { }
     })();
@@ -199,9 +203,13 @@ const PlayerScreen = ({ route, navigation }) => {
             } else {
               panActionRef.current = "volume";
               setPanAction("volume");
-              const vol = panHandlersRef.current.player?.volume ?? 1;
-              gestureStartValueRef.current = vol + gestureState.dy / 220;
-              setPanValue(vol);
+              VolumeManager.getVolume().then(({ volume }) => {
+                gestureStartValueRef.current = volume + gestureState.dy / 220;
+                setPanValue(volume);
+              }).catch(() => {
+                gestureStartValueRef.current = 0.5 + gestureState.dy / 220;
+                setPanValue(0.5);
+              });
             }
           }
         } else {
@@ -220,14 +228,13 @@ const PlayerScreen = ({ route, navigation }) => {
               Brightness.setBrightnessAsync(newValue);
             } catch (e) { }
           } else if (panActionRef.current === "volume") {
-            const p = panHandlersRef.current.player;
-            if (p) {
-              p.volume = newValue;
-              if (newValue === 0 && !panHandlersRef.current.isMuted)
-                panHandlersRef.current.setIsMuted(true);
-              if (newValue > 0 && panHandlersRef.current.isMuted)
-                panHandlersRef.current.setIsMuted(false);
-            }
+            try {
+              VolumeManager.setVolume(newValue).catch(() => { });
+            } catch (e) { }
+            if (newValue === 0 && !panHandlersRef.current.isMuted)
+              panHandlersRef.current.setIsMuted(true);
+            if (newValue > 0 && panHandlersRef.current.isMuted)
+              panHandlersRef.current.setIsMuted(false);
           }
         }
       },
@@ -619,14 +626,21 @@ const PlayerScreen = ({ route, navigation }) => {
     }
   }, [showControls, resetControlsTimeout]);
 
-  const toggleMute = useCallback(() => {
+  const toggleMute = useCallback(async () => {
     if (!player) return;
     const next = !isMuted;
-    player.volume = next ? 0 : 1;
+    try {
+      if (next) {
+        await VolumeManager.setVolume(0);
+        AsyncStorage.setItem("user_volume", "0").catch(() => { });
+      } else {
+        const savedV = await AsyncStorage.getItem("user_volume");
+        const nextVol = savedV && parseFloat(savedV) > 0 ? parseFloat(savedV) : 0.5;
+        await VolumeManager.setVolume(nextVol);
+        AsyncStorage.setItem("user_volume", nextVol.toString()).catch(() => { });
+      }
+    } catch (e) { }
     setIsMuted(next);
-    AsyncStorage.setItem("user_volume", player.volume.toString()).catch(
-      () => { },
-    );
     resetControlsTimeout();
   }, [player, isMuted, resetControlsTimeout]);
 
