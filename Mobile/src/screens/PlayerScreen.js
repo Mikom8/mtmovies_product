@@ -103,8 +103,8 @@ const PlayerScreen = ({ route, navigation }) => {
           };
           const watchHistory = existing
             ? user.watchHistory.map((h) =>
-                h.movieId === movieIdStr ? { ...h, ...entry } : h,
-              )
+              h.movieId === movieIdStr ? { ...h, ...entry } : h,
+            )
             : [...(user.watchHistory || []), entry];
           updateUser({ ...user, watchHistory });
         }
@@ -122,20 +122,19 @@ const PlayerScreen = ({ route, navigation }) => {
 
       (async () => {
         try {
-          await Brightness.requestPermissionsAsync();
           originalBrightness = await Brightness.getBrightnessAsync();
 
           const savedB = await AsyncStorage.getItem("user_brightness");
           if (savedB !== null && isMounted) {
             Brightness.setBrightnessAsync(parseFloat(savedB));
           }
-        } catch (e) {}
+        } catch (e) { }
       })();
 
       return () => {
         isMounted = false;
         if (originalBrightness !== null) {
-          Brightness.setBrightnessAsync(originalBrightness).catch(() => {});
+          Brightness.setBrightnessAsync(originalBrightness).catch(() => { });
         }
       };
     }, []),
@@ -151,7 +150,7 @@ const PlayerScreen = ({ route, navigation }) => {
           player.volume = v;
           setIsMuted(v === 0);
         }
-      } catch (e) {}
+      } catch (e) { }
     })();
   }, [player]);
 
@@ -219,7 +218,7 @@ const PlayerScreen = ({ route, navigation }) => {
           if (panActionRef.current === "brightness") {
             try {
               Brightness.setBrightnessAsync(newValue);
-            } catch (e) {}
+            } catch (e) { }
           } else if (panActionRef.current === "volume") {
             const p = panHandlersRef.current.player;
             if (p) {
@@ -268,10 +267,10 @@ const PlayerScreen = ({ route, navigation }) => {
               AsyncStorage.setItem(
                 "user_brightness",
                 finalVal.toString(),
-              ).catch(() => {});
+              ).catch(() => { });
             } else if (panActionRef.current === "volume") {
               AsyncStorage.setItem("user_volume", finalVal.toString()).catch(
-                () => {},
+                () => { },
               );
             }
             lastGestureValueRef.current = null;
@@ -446,7 +445,7 @@ const PlayerScreen = ({ route, navigation }) => {
     if (nextEp && isSeries) {
       try {
         player?.pause();
-      } catch (_) {}
+      } catch (_) { }
       navigation.setParams({
         title: `${seriesData.title} · S${seriesData.seasons[nextSIndex].seasonNumber}E${nextEp.episodeNumber} – ${nextEp.title}`,
         chatId: nextEp.telegramChatId,
@@ -470,7 +469,7 @@ const PlayerScreen = ({ route, navigation }) => {
     if (prevEp && isSeries) {
       try {
         player?.pause();
-      } catch (_) {}
+      } catch (_) { }
       navigation.setParams({
         title: `${seriesData.title} · S${seriesData.seasons[prevSIndex].seasonNumber}E${prevEp.episodeNumber} – ${prevEp.title}`,
         chatId: prevEp.telegramChatId,
@@ -575,7 +574,7 @@ const PlayerScreen = ({ route, navigation }) => {
         player.pause();
         await saveWatchProgress(player.currentTime, true);
       }
-    } catch (_) {}
+    } catch (_) { }
     navigation.goBack();
   }, [navigation, player, saveWatchProgress]);
 
@@ -592,7 +591,7 @@ const PlayerScreen = ({ route, navigation }) => {
         player.replaceAsync({ uri: retryUrl });
         player.play();
       }
-    } catch (_) {}
+    } catch (_) { }
   }, [player, streamUrl]);
 
   // ── Custom Controls Handlers ──────────────────────────────────────────────
@@ -626,7 +625,7 @@ const PlayerScreen = ({ route, navigation }) => {
     player.volume = next ? 0 : 1;
     setIsMuted(next);
     AsyncStorage.setItem("user_volume", player.volume.toString()).catch(
-      () => {},
+      () => { },
     );
     resetControlsTimeout();
   }, [player, isMuted, resetControlsTimeout]);
