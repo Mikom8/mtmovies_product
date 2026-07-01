@@ -107,7 +107,6 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
                 })}
                 <Text
                   numberOfLines={1}
-                  adjustsFontSizeToFit
                   style={[
                     styles.tabLabel,
                     { color: isFocused ? "#fff" : "rgba(255,255,255,0.5)" }
@@ -300,7 +299,7 @@ const styles = StyleSheet.create({
     left: 5, // Account for pill padding
   },
   tabLabel: {
-    fontSize: 8.5,
+    fontSize: 8.3,
     marginTop: 4,
     fontFamily: 'Code'
   }
