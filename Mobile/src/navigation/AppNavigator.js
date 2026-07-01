@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import Feather from '@expo/vector-icons/Feather';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Octicons from '@expo/vector-icons/Octicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -18,7 +19,7 @@ import SubscriptionDetailsScreen from "../screens/SubscriptionDetailsScreen";
 import PersonalInfoScreen from "../screens/PersonalInfoScreen";
 import { useAuth } from "../context/AuthContext";
 import { useFonts } from "expo-font";
-import { View, ActivityIndicator, StyleSheet, Pressable, Text, Dimensions, Animated, useWindowDimensions } from "react-native";
+import { View, ActivityIndicator, StyleSheet, Pressable, Text, Dimensions, Animated } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { G, Path, Defs, LinearGradient as SvgGradient, Rect, Stop, ClipPath } from 'react-native-svg';
 
@@ -28,12 +29,12 @@ const { width } = Dimensions.get('window');
 
 const CustomTabBar = ({ state, descriptors, navigation }) => {
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
   const tabWidth = (width * 0.94 - 20) / state.routes.length; // Calculate based on pill width and padding
   const translateX = useRef(new Animated.Value(0)).current;
 
   const [fontsLoaded] = useFonts({
-    "TT Medium": require("../../assets/fonts/TT-Chocolates-Trial-Medium.otf")
+    "TT Medium": require("../../assets/fonts/TT-Chocolates-Trial-Medium.otf"),
+    Code: require("../../assets/fonts/CODE-Bold.otf"),
   });
 
   useEffect(() => {
@@ -61,7 +62,7 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
       </View>
 
       <View style={[styles.tabBarContainer, { bottom: insets.bottom + 10 }]}>
-        <View style={[styles.tabBarPill, { width: width * 0.94 }]}>
+        <View style={styles.tabBarPill}>
           {/* Sliding Indicator */}
           <Animated.View
             style={[
@@ -105,13 +106,10 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
                   size: 20,
                   focused: isFocused
                 })}
-                <Text
-                  numberOfLines={1}
-                  style={[
-                    styles.tabLabel,
-                    { color: isFocused ? "#fff" : "rgba(255,255,255,0.5)" }
-                  ]}
-                >
+                <Text style={[
+                  styles.tabLabel,
+                  { color: isFocused ? "#fff" : "rgba(255,255,255,0.5)" }
+                ]}>
                   {label}
                 </Text>
               </Pressable>
@@ -271,6 +269,7 @@ const styles = StyleSheet.create({
   tabBarPill: {
     flexDirection: 'row',
     backgroundColor: 'rgba(20, 20, 20, 0.92)',
+    width: width * 0.94,
     height: 58,
     borderRadius: 32,
     alignItems: 'center',
@@ -299,8 +298,8 @@ const styles = StyleSheet.create({
     left: 5, // Account for pill padding
   },
   tabLabel: {
-    fontSize: 9,
+    fontSize: 7.6,
     marginTop: 4,
-    fontWeight: '600',
+    fontFamily: 'Code'
   }
 });
