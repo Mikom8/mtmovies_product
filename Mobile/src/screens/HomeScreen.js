@@ -207,6 +207,7 @@ const HomeScreen = () => {
     "Romance",
     "Thriller",
     "Crime",
+    "Korean Drama",
   ];
 
   // Shuffle genre rows once per session (changes every time user opens app)
@@ -261,7 +262,7 @@ const HomeScreen = () => {
     const allFiltered = [...filteredMovies, ...filteredSeries];
 
     // Helper: filter out seen items, cap at ROW_LIMIT, then register them
-    const ROW_LIMIT = 15;
+    const ROW_LIMIT = 20;
     const dedup = (items) => {
       const unique = items.filter((item) => !seen.has(item._id)).slice(0, ROW_LIMIT);
       unique.forEach((item) => seen.add(item._id));
@@ -384,7 +385,7 @@ const HomeScreen = () => {
 
   const continueWatchingData = useMemo(() => {
     if (!user || !user.watchHistory || user.watchHistory.length === 0) return [];
-    
+
     // Sort history newest first
     const historyItems = [...user.watchHistory].sort(
       (a, b) => new Date(b.watchedAt) - new Date(a.watchedAt)
@@ -400,19 +401,19 @@ const HomeScreen = () => {
 
     for (const h of historyItems) {
       if (cwItems.length >= 10) break; // Limit row to 10 items
-      
+
       let targetId = h.movieId;
       const isSeries = targetId.includes("_S");
       if (isSeries) {
         targetId = targetId.split("_S")[0]; // extract series ID
       }
-      
+
       if (!seenIds.has(targetId)) {
         seenIds.add(targetId);
         const item = itemsMap.get(targetId);
         if (item) {
           const cwItem = { ...item, historyMovieId: h.movieId };
-          
+
           let progressPct = null;
           let historyTitle = item.title;
 
@@ -479,8 +480,8 @@ const HomeScreen = () => {
           selectedGenre === "Movies"
             ? "Trending Movies This Week"
             : selectedGenre === "Series"
-            ? "Trending Series This Week"
-            : "Trending This Week",
+              ? "Trending Series This Week"
+              : "Trending This Week",
         variant: "landscape",
         iconName: "trending-up",
         data: deduplicatedSections.trending,
@@ -496,6 +497,8 @@ const HomeScreen = () => {
         "Romance": "Modern Romance",
         "Thriller": "Gripping Thrillers",
         "Crime": "Crime & Mystery",
+        "Crime": "Crime & Mystery",
+        "Korean Drama": "Korean Drama",
       };
 
       deduplicatedSections.genreRows.forEach(({ genre, data }) => {
@@ -504,8 +507,8 @@ const HomeScreen = () => {
           title: selectedGenre === "Series"
             ? `${genre} Series`
             : selectedGenre === "Movies"
-            ? `${genre} Movies`
-            : (modernGenreTitles[genre] || `${genre} Picks`),
+              ? `${genre} Movies`
+              : (modernGenreTitles[genre] || `${genre} Picks`),
           data: data,
         });
       });
@@ -572,17 +575,17 @@ const HomeScreen = () => {
               style={[
                 styles.featuredBadge,
                 (heroItem.isNew || heroItem.isNewSeason || heroItem.isNewEpisode) &&
-                  styles.newReleaseBadge,
+                styles.newReleaseBadge,
               ]}
             >
               <Text style={styles.featuredText}>
                 {heroItem.isNewEpisode
                   ? "NEW EPISODE"
                   : heroItem.isNewSeason
-                  ? "NEW SEASON"
-                  : heroItem.isNew
-                  ? "NEW RELEASE"
-                  : " "}
+                    ? "NEW SEASON"
+                    : heroItem.isNew
+                      ? "NEW RELEASE"
+                      : " "}
               </Text>
             </View>
             <Text style={styles.heroTitle}>{heroItem.title}</Text>
