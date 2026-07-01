@@ -97,7 +97,12 @@ const ContentCard = React.memo(({ item, hideNewBadge, variant, onPress }) => {
       ]}
       onPress={onPress}
     >
-      <View style={{ borderRadius: 7, overflow: "hidden" }}>
+      <View style={{ borderRadius: 7, overflow: "hidden", backgroundColor: "#1c1c1c", justifyContent: "center", alignItems: "center" }}>
+        <Image
+          source={require("../../assets/img/unnamed-removebg-preview.png")}
+          style={{ position: "absolute", width: "40%", height: "40%", opacity: 0.2 }}
+          resizeMode="contain"
+        />
         <Image
           source={{ uri: imageUri }}
           style={[styles.poster, isLandscape && styles.posterLandscape]}
@@ -486,16 +491,15 @@ const HomeScreen = () => {
 
       const modernGenreTitles = {
         "Action": "Action & Adventure",
-        "Comedy": "Comedy Hits",
-        "Drama": "Compelling Dramas",
-        "Horror": "Chilling Horror",
+        "Comedy": "Comedies",
+        "Drama": "Dramas",
+        "Horror": "Horror",
         "Sci-Fi": "Sci-Fi & Fantasy",
-        "Animation": "Animated Magic",
-        "Romance": "Modern Romance",
-        "Thriller": "Gripping Thrillers",
+        "Animation": "Anime & Animation",
+        "Romance": "Romance",
+        "Thriller": "Thrillers",
         "Crime": "Crime & Mystery",
-        "Crime": "Crime & Mystery",
-        "Korean Drama": "Korean Drama",
+        "Korean Drama": "K-Dramas"
       };
 
       deduplicatedSections.genreRows.forEach(({ genre, data }) => {

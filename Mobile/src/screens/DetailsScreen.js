@@ -140,6 +140,13 @@ const RecommendCard = React.memo(({ item, type, onPress }) => (
     onPress={() => onPress(item)}
     activeOpacity={0.8}
   >
+    <View style={{ ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" }}>
+      <Image
+        source={require("../../assets/img/unnamed-removebg-preview.png")}
+        style={{ width: "40%", height: "40%", opacity: 0.2 }}
+        resizeMode="contain"
+      />
+    </View>
     <Image
       source={{ uri: item.poster || item.backdrop }}
       style={styles.recPoster}
