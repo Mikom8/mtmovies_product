@@ -635,10 +635,10 @@ const DetailsScreen = ({ route, navigation }) => {
                 label={`${data.seasons?.length || 0} Season${data.seasons?.length !== 1 ? "s" : ""} · ${totalEpisodes} Ep`}
               />
             )}
-            {data.hasAmharicDub && (
+            {(
               <View style={[styles.metaBadge, { borderColor: "#E50914" }]}>
                 <Text style={[styles.metaBadgeText, { color: "#E50914" }]}>
-                  በትርጉም
+                  {data.hasAmharicDub ? "በትርጉም" : "HD"}
                 </Text>
               </View>
             )}

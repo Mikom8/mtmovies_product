@@ -289,12 +289,12 @@ const HomeScreen = () => {
       let candidates;
       if (selectedGenre === "Series") {
         candidates = filteredSeries.filter((s) =>
-          s.genres?.some((g) => g.toLowerCase() === genreLower)
+          s.genres && s.genres.length > 0 && s.genres[0].toLowerCase() === genreLower
         );
       } else {
         // "All", "Movies", "Free" — always mix both movies and series together
         candidates = allFiltered.filter((item) =>
-          item.genres?.some((g) => g.toLowerCase() === genreLower)
+          item.genres && item.genres.length > 0 && item.genres[0].toLowerCase() === genreLower
         );
       }
 
