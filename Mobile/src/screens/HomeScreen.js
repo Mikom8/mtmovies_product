@@ -981,7 +981,7 @@ const styles = StyleSheet.create({
   card: { width: 110, marginRight: 8 },
   cardLandscape: { width: 175 },
   poster: { width: 110, height: 175, borderRadius: 7 },
-  posterLandscape: { width: 175, height: 110 },
+  posterLandscape: { width: 175, height: 100 },
   cardOverlay: {
     position: "absolute",
     top: 0,
