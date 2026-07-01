@@ -841,7 +841,7 @@ const DetailsScreen = ({ route, navigation }) => {
           {recommendations.length > 0 && (
             <View style={styles.recSection}>
               <View style={styles.recHeaderRow}>
-                <Text style={styles.sectionHeader}>More Like This</Text>
+                <Text style={styles.sectionHeader}>You May Like</Text>
               </View>
 
               <View style={styles.recGrid}>
@@ -1113,7 +1113,7 @@ const styles = StyleSheet.create({
   recCard: {
     width: CARD_W,
     height: CARD_W * 1.5,
-    borderRadius: 10,
+    borderRadius: 7,
     overflow: "hidden",
     backgroundColor: "#1a1a1a",
   },
