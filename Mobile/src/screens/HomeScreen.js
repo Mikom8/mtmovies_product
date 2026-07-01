@@ -97,7 +97,7 @@ const ContentCard = React.memo(({ item, hideNewBadge, variant, onPress }) => {
       ]}
       onPress={onPress}
     >
-      <View style={{ borderRadius: 12, overflow: "hidden" }}>
+      <View style={{ borderRadius: 7, overflow: "hidden" }}>
         <Image
           source={{ uri: imageUri }}
           style={[styles.poster, isLandscape && styles.posterLandscape]}
@@ -162,10 +162,12 @@ const Section = React.memo(({ title, data, variant = "portrait", iconName, onIte
         maxToRenderPerBatch={5}
         initialNumToRender={5}
         windowSize={3}
-        decelerationRate="fast"
+        snapToInterval={variant === "landscape" ? 252 : 142}
+        snapToAlignment="start"
+        decelerationRate="normal"
         getItemLayout={variant === "landscape"
-          ? (_, index) => ({ length: 220, offset: 220 * index, index })
-          : (_, index) => ({ length: 110, offset: 110 * index, index })
+          ? (_, index) => ({ length: 252, offset: 252 * index, index })
+          : (_, index) => ({ length: 142, offset: 142 * index, index })
         }
       />
     </View>
@@ -976,9 +978,9 @@ const styles = StyleSheet.create({
   list: { paddingLeft: 15 },
 
   // Card Styles
-  card: { width: 130, marginRight: 12 },
+  card: { width: 110, marginRight: 8 },
   cardLandscape: { width: 240 },
-  poster: { width: 130, height: 190, borderRadius: 12 },
+  poster: { width: 110, height: 175, borderRadius: 7 },
   posterLandscape: { width: 240, height: 135 },
   cardOverlay: {
     position: "absolute",

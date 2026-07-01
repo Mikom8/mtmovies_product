@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     left: 5, // Account for pill padding
   },
   tabLabel: {
-    fontSize: 8.3,
+    fontSize: 8,
     marginTop: 4,
     fontFamily: 'Code'
   }
