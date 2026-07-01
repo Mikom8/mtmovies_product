@@ -392,9 +392,9 @@ const DetailsScreen = ({ route, navigation }) => {
 
       // Fetch recommendations from the dedicated endpoint — server-side filtering
       // by genres + tags + year, no limit of 50, searches ALL items in the DB
-      const tags   = (detail.tags   || []).join(',');
+      const tags = (detail.tags || []).join(',');
       const genres = (detail.genres || []).join(',');
-      const year   = detail.year || '';
+      const year = detail.year || '';
       const recRes = await client.get('/recommendations', {
         params: { tags, genres, year, excludeId: detail._id, limit: 9 }
       });
@@ -841,7 +841,7 @@ const DetailsScreen = ({ route, navigation }) => {
           {recommendations.length > 0 && (
             <View style={styles.recSection}>
               <View style={styles.recHeaderRow}>
-                <Text style={styles.sectionHeader}>You May Like</Text>
+                <Text style={styles.sectionHeader}>You May Also Like</Text>
               </View>
 
               <View style={styles.recGrid}>
