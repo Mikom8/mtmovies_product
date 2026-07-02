@@ -81,8 +81,7 @@ function parseDuration(str) {
   return h * 3600 + m * 60;
 }
 
-// ── Memoized card — defined OUTSIDE HomeScreen so it never remounts on parent re-render
-const ContentCard = React.memo(({ item, hideNewBadge, variant, onPress }) => {
+const ContentCard = React.memo(({ item, sectionTitle, variant, onPress }) => {
   const isLandscape = variant === "landscape";
   const imageUri = isLandscape
     ? item.mylist || item.backdrop || item.poster
@@ -113,15 +112,25 @@ const ContentCard = React.memo(({ item, hideNewBadge, variant, onPress }) => {
           </View>
         )}
       </View>
-      {(item.isNew || item.isNewSeason || item.isNewEpisode) && !hideNewBadge && (
-        <View style={styles.cardOverlay}>
-          <View style={styles.newBadge}>
-            <Text style={styles.newBadgeText}>
-              {item.isNewEpisode ? "NEW EP." : item.isNewSeason ? "NEW S." : "NEW"}
-            </Text>
-          </View>
-        </View>
-      )}
+      {(() => {
+        if (sectionTitle === "Continue Watching") return null;
+
+        let badgeText = null;
+        if (item.isNewEpisode) badgeText = "NEW EP.";
+        else if (item.isNewSeason) badgeText = "NEW S.";
+        else if (item.isNew && sectionTitle !== "New Releases") badgeText = "NEW";
+
+        if (badgeText) {
+          return (
+            <View style={styles.cardOverlay}>
+              <View style={styles.newBadge}>
+                <Text style={styles.newBadgeText}>{badgeText}</Text>
+              </View>
+            </View>
+          );
+        }
+        return null;
+      })()}
       <Text style={styles.title} numberOfLines={1}>
         {item.historyTitle || item.title}
       </Text>
@@ -138,12 +147,12 @@ const Section = React.memo(({ title, data, variant = "portrait", iconName, onIte
     ({ item }) => (
       <ContentCard
         item={item}
-        hideNewBadge={isNewRelease}
+        sectionTitle={title}
         variant={variant}
         onPress={() => onItemPress(item)}
       />
     ),
-    [isNewRelease, variant, onItemPress]
+    [title, variant, onItemPress]
   );
 
   return (
@@ -468,8 +477,7 @@ const HomeScreen = () => {
     if (
       selectedGenre === "All" ||
       selectedGenre === "Movies" ||
-      selectedGenre === "Series" ||
-      selectedGenre === "Free"
+      selectedGenre === "Series"
     ) {
       sections.push({
         id: "new-releases",
@@ -483,7 +491,7 @@ const HomeScreen = () => {
           selectedGenre === "Movies"
             ? "Trending Movies This Week"
             : selectedGenre === "Series"
-              ? "Trending Series This Week"
+              ? "Trending Tv Shows This Week"
               : "Trending This Week",
         iconName: "trending-up",
         data: deduplicatedSections.trending,
@@ -506,7 +514,7 @@ const HomeScreen = () => {
         sections.push({
           id: `genre-${genre}`,
           title: selectedGenre === "Series"
-            ? `${genre} Series`
+            ? `${genre} Tv Shows`
             : selectedGenre === "Movies"
               ? `${genre} Movies`
               : (modernGenreTitles[genre] || `${genre} Picks`),
@@ -607,7 +615,7 @@ const HomeScreen = () => {
             </View>
 
             <Text style={styles.heroSubtitle}>
-              {heroItem.genres?.join(" • ")}
+              {heroItem.genres?.slice(0, 2).join(" • ")}
             </Text>
             <View style={styles.heroActions}>
               <Pressable
