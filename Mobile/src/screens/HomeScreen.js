@@ -172,8 +172,10 @@ const Section = React.memo(({ title, data, variant = "portrait", iconName, onIte
         keyExtractor={(item) => item.historyMovieId || item._id}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.list}
-        initialNumToRender={10}
+        initialNumToRender={4}
+        maxToRenderPerBatch={4}
         windowSize={5}
+        removeClippedSubviews={true}
         getItemLayout={variant === "landscape"
           ? (_, index) => ({ length: 183, offset: 183 * index, index })
           : (_, index) => ({ length: 118, offset: 118 * index, index })
