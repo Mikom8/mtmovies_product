@@ -12,6 +12,7 @@ import {
   Platform,
   Animated,
 } from "react-native";
+import { StartIoBannerAd } from "react-native-start-io-sdk";
 import { useFonts } from "expo-font";
 import { useMovies } from "../context/MovieContext";
 import { useAuth } from "../context/AuthContext";
@@ -512,6 +513,7 @@ const HomeScreen = () => {
         "Korean Drama": "K-Dramas"
       };
 
+      let genreCount = 0;
       deduplicatedSections.genreRows.forEach(({ genre, data }) => {
         sections.push({
           id: `genre-${genre}`,
@@ -522,6 +524,15 @@ const HomeScreen = () => {
               : (modernGenreTitles[genre] || `${genre} Picks`),
           data: data,
         });
+
+        genreCount++;
+        // Insert a banner ad after the second genre row
+        if (genreCount === 2) {
+          sections.push({
+            id: `startio-ad-banner`,
+            isAd: true,
+          });
+        }
       });
     } else {
       sections.push({
@@ -741,15 +752,24 @@ const HomeScreen = () => {
 
   // Stable renderItem for the outer vertical FlatList — defined once via useCallback
   const renderSectionRow = useCallback(
-    ({ item }) => (
-      <Section
-        title={item.title}
-        data={item.data}
-        variant={item.variant || "portrait"}
-        iconName={item.iconName}
-        onItemPress={handleItemPress}
-      />
-    ),
+    ({ item }) => {
+      if (item.isAd) {
+        return (
+          <View style={{ alignItems: "center", marginVertical: 20 }}>
+            <StartIoBannerAd adTag="home_banner" />
+          </View>
+        );
+      }
+      return (
+        <Section
+          title={item.title}
+          data={item.data}
+          variant={item.variant || "portrait"}
+          iconName={item.iconName}
+          onItemPress={handleItemPress}
+        />
+      );
+    },
     [handleItemPress]
   );
 

@@ -9,6 +9,17 @@ import { NetworkErrorProvider } from './src/context/NetworkErrorContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
+import { initializeStartIoSdk } from 'react-native-start-io-sdk';
+
+// Initialize Start.io SDK
+try {
+  initializeStartIoSdk({
+    androidAppId: "206404632",
+    testAd: true, // Turn off testAd in production
+  });
+} catch (e) {
+  console.log("Start.io SDK init error", e);
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
