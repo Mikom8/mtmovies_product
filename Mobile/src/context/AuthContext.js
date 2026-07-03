@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import client from '../api/client';
 import { registerForPushNotificationsAsync } from '../utils/notifications';
 
@@ -20,7 +21,7 @@ export const AuthProvider = ({ children }) => {
       const token = await SecureStore.getItemAsync('token');
       if (token) {
         // Try to load cached user first for immediate offline support
-        const cachedUser = await SecureStore.getItemAsync('user_cache');
+        const cachedUser = await AsyncStorage.getItem('user_cache');
         if (cachedUser) {
           setUser(JSON.parse(cachedUser));
         }
@@ -28,13 +29,13 @@ export const AuthProvider = ({ children }) => {
         try {
           const response = await client.get('/auth/me');
           setUser(response.data.user);
-          await SecureStore.setItemAsync('user_cache', JSON.stringify(response.data.user));
+          await AsyncStorage.setItem('user_cache', JSON.stringify(response.data.user));
         } catch (error) {
           console.error('Failed to fetch user from server', error);
           if (error.response && (error.response.status === 401 || error.response.status === 403)) {
             // Only sign out if the token is actually invalid
             await SecureStore.deleteItemAsync('token');
-            await SecureStore.deleteItemAsync('user_cache');
+            await AsyncStorage.removeItem('user_cache');
             setUser(null);
           } else if (!cachedUser) {
             // Network error but no cached user, just create a fallback user so they don't get stuck on login
@@ -54,7 +55,7 @@ export const AuthProvider = ({ children }) => {
       const response = await client.post('/auth/login', { email, password });
       const { token, user } = response.data;
       await SecureStore.setItemAsync('token', token);
-      await SecureStore.setItemAsync('user_cache', JSON.stringify(user));
+      await AsyncStorage.setItem('user_cache', JSON.stringify(user));
       setUser(user);
 
       // Setup push notifications
@@ -81,7 +82,7 @@ export const AuthProvider = ({ children }) => {
       const response = await client.post('/auth/google', { access_token: accessToken });
       const { token, user, isNewUser } = response.data;
       await SecureStore.setItemAsync('token', token);
-      await SecureStore.setItemAsync('user_cache', JSON.stringify(user));
+      await AsyncStorage.setItem('user_cache', JSON.stringify(user));
       setUser(user);
 
       // Setup push notifications
@@ -107,7 +108,7 @@ export const AuthProvider = ({ children }) => {
       const response = await client.post('/auth/register', { name, email, password });
       const { token, user } = response.data;
       await SecureStore.setItemAsync('token', token);
-      await SecureStore.setItemAsync('user_cache', JSON.stringify(user));
+      await AsyncStorage.setItem('user_cache', JSON.stringify(user));
       setUser(user);
 
       // Setup push notifications
@@ -130,7 +131,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     await SecureStore.deleteItemAsync('token');
-    await SecureStore.deleteItemAsync('user_cache');
+    await AsyncStorage.removeItem('user_cache');
     setUser(null);
   };
 
@@ -140,7 +141,7 @@ export const AuthProvider = ({ children }) => {
       if (!token) return;
       const response = await client.get('/auth/me');
       setUser(response.data.user);
-      await SecureStore.setItemAsync('user_cache', JSON.stringify(response.data.user));
+      await AsyncStorage.setItem('user_cache', JSON.stringify(response.data.user));
     } catch (error) {
       console.error('Failed to refresh user', error);
     }

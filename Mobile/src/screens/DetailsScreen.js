@@ -25,6 +25,7 @@ import { useAuth } from "../context/AuthContext";
 import Toast from "../components/Toast";
 import ShareModal from "../components/ShareModal";
 import Svg, { G, Path, Rect, Defs, ClipPath } from "react-native-svg";
+import * as WebBrowser from "expo-web-browser";
 
 const { width: W, height: H } = Dimensions.get("window");
 const HERO_H = H * 0.32;
@@ -417,13 +418,30 @@ const DetailsScreen = ({ route, navigation }) => {
     return true;
   }, [data, user, navigation]);
 
+  const handleAdAndPlay = async (params) => {
+    // Check if user has an active premium plan
+    const isPremiumUser = user && user.plan && user.plan !== "free";
+
+    if (!isPremiumUser) {
+      try {
+        // Only show the Monetag ad to free/unsubscribed users
+        await WebBrowser.openBrowserAsync('https://omg10.com/4/11234522');
+      } catch (e) {
+        console.log("Error opening ad link:", e);
+      }
+    }
+    
+    // Navigate to the player (immediately for premium, or after ad for free users)
+    navigation.navigate("Player", params);
+  };
+
   const handleWatch = useCallback(() => {
     if (!checkAccess()) return;
     const isSeriesContent =
       resolvedType === "series" || (data.seasons && data.seasons.length > 0);
 
     if (!isSeriesContent || !data.seasons) {
-      navigation.navigate("Player", {
+      handleAdAndPlay({
         title: data.title,
         chatId: data.telegram?.chatId,
         messageId: data.telegram?.messageId,
@@ -445,7 +463,7 @@ const DetailsScreen = ({ route, navigation }) => {
       const eIndex = continueInfo.season.episodes.findIndex(
         (e) => e._id === continueInfo.ep._id,
       );
-      navigation.navigate("Player", {
+      handleAdAndPlay({
         title: `${data.title} · S${continueInfo.sNum}E${continueInfo.eNum} – ${continueInfo.ep.title || ""}`,
         chatId: continueInfo.ep.telegramChatId,
         messageId: continueInfo.ep.telegramMessageId,
@@ -459,7 +477,7 @@ const DetailsScreen = ({ route, navigation }) => {
 
     const ep = data.seasons?.[selectedSeason]?.episodes?.[0];
     if (ep) {
-      navigation.navigate("Player", {
+      handleAdAndPlay({
         title: `${data.title} · S${data.seasons[selectedSeason].seasonNumber}E${ep.episodeNumber}`,
         chatId: ep.telegramChatId,
         messageId: ep.telegramMessageId,
@@ -483,7 +501,7 @@ const DetailsScreen = ({ route, navigation }) => {
       if (!checkAccess()) return;
       const sIndex = data.seasons.findIndex((s) => s._id === season._id);
       const eIndex = season.episodes.findIndex((e) => e._id === ep._id);
-      navigation.navigate("Player", {
+      handleAdAndPlay({
         title: `${data.title} · S${season.seasonNumber}E${ep.episodeNumber} – ${ep.title}`,
         chatId: ep.telegramChatId,
         messageId: ep.telegramMessageId,

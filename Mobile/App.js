@@ -16,6 +16,7 @@ try {
   initializeStartIoSdk({
     androidAppId: "206404632",
     testAd: true, // Turn off testAd in production
+    returnAd: false, // Prevent ads from showing when returning to the app
   });
 } catch (e) {
   console.log("Start.io SDK init error", e);
