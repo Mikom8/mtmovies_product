@@ -8,7 +8,8 @@ const MOVIE_FIELDS = [
   { name: 'year', label: 'Year', placeholder: '2024' },
   { name: 'duration', label: 'Duration', placeholder: '2h 15m' },
   { name: 'quality', label: 'Quality', placeholder: 'HD / FHD / 4K' },
-  { name: 'rating', label: 'Rating', placeholder: '8.5' },
+  { name: 'rating', label: 'Rating (manual)', placeholder: '8.5' },
+  { name: 'trailerEmbedId', label: 'Trailer YouTube ID', placeholder: 'dQw4w9WgXcQ' },
   { name: 'poster', label: 'Poster URL', placeholder: 'https://...', full: true },
   { name: 'backdrop', label: 'Backdrop URL', placeholder: 'https://...', full: true },
   { name: 'mylist', label: 'My List Image URL (optional)', placeholder: 'https://...', full: true },
@@ -26,7 +27,8 @@ const SERIES_FIELDS = [
   { name: 'year', label: 'Year', placeholder: '2024' },
   { name: 'duration', label: 'Avg Episode Duration', placeholder: '45m' },
   { name: 'quality', label: 'Quality', placeholder: 'HD / FHD / 4K' },
-  { name: 'rating', label: 'Rating', placeholder: '8.5' },
+  { name: 'rating', label: 'Rating (manual)', placeholder: '8.5' },
+  { name: 'trailerEmbedId', label: 'Trailer YouTube ID', placeholder: 'dQw4w9WgXcQ' },
   { name: 'poster', label: 'Poster URL', placeholder: 'https://...', full: true },
   { name: 'backdrop', label: 'Backdrop URL', placeholder: 'https://...', full: true },
   { name: 'mylist', label: 'My List Image URL (optional)', placeholder: 'https://...', full: true },
@@ -40,7 +42,7 @@ const SERIES_FIELDS = [
 ];
 
 const BLANK_FORM = {
-  title: '', year: '', duration: '', quality: '', rating: '',
+  title: '', year: '', duration: '', quality: '', rating: '', trailerEmbedId: '',
   poster: '', backdrop: '', mylist: '', featurePhone: '', genres: '', tags: '', description: '', cast: '[]',
   telegram_chatId: '', telegram_messageId: '',
   isFree: false, isFeatured: false, isNew: false, isNewSeason: false, isNewEpisode: false, hasAmharicDub: true,
@@ -67,6 +69,7 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
         tags: (item.tags || []).join(', '),
         description: item.description || '',
         cast: item.cast && item.cast.length > 0 ? JSON.stringify(item.cast, null, 2) : '[]',
+        trailerEmbedId: item.trailerEmbedId || '',
         telegram_chatId: item.telegram?.chatId || '',
         telegram_messageId: item.telegram?.messageId || '',
         isFree: item.isFree ?? false,
