@@ -196,7 +196,7 @@ router.get('/tmdb/:type/:id', async (req, res) => {
     }
 
     const tmdbType = type === 'movie' ? 'movie' : 'tv';
-    const response = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${id}?append_to_response=credits`, {
+    const response = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${id}?append_to_response=credits,images&include_image_language=en,null`, {
       headers: {
         'Authorization': `Bearer ${process.env.TMDB_TOKEN}`,
         'accept': 'application/json'
@@ -235,6 +235,20 @@ router.get('/tmdb/:type/:id', async (req, res) => {
     const dateStr = type === 'movie' ? data.release_date : data.first_air_date;
     if (dateStr) year = dateStr.split('-')[0];
 
+    // Priority: English backdrop, then null (no language), then default backdrop_path
+    let backdropPath = data.backdrop_path;
+    if (data.images && data.images.backdrops && data.images.backdrops.length > 0) {
+      const enBackdrop = data.images.backdrops.find(b => b.iso_639_1 === 'en');
+      if (enBackdrop) {
+        backdropPath = enBackdrop.file_path;
+      } else {
+        const nullBackdrop = data.images.backdrops.find(b => b.iso_639_1 === null);
+        if (nullBackdrop) {
+          backdropPath = nullBackdrop.file_path;
+        }
+      }
+    }
+
     const result = {
       title: data.title || data.name || '',
       description: data.overview || '',
@@ -243,7 +257,7 @@ router.get('/tmdb/:type/:id', async (req, res) => {
       year: year,
       duration: duration,
       poster: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : '',
-      backdrop: data.backdrop_path ? `https://image.tmdb.org/t/p/w780${data.backdrop_path}` : '',
+      backdrop: backdropPath ? `https://image.tmdb.org/t/p/w780${backdropPath}` : '',
     };
 
     res.json({ success: true, data: result });
