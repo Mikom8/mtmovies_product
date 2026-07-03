@@ -242,8 +242,8 @@ router.get('/tmdb/:type/:id', async (req, res) => {
       cast: cast,
       year: year,
       duration: duration,
-      poster: data.poster_path ? `https://image.tmdb.org/t/p/original${data.poster_path}` : '',
-      backdrop: data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : '',
+      poster: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : '',
+      backdrop: data.backdrop_path ? `https://image.tmdb.org/t/p/w780${data.backdrop_path}` : '',
     };
 
     res.json({ success: true, data: result });
