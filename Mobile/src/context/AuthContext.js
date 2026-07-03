@@ -19,12 +19,31 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = await SecureStore.getItemAsync('token');
       if (token) {
-        const response = await client.get('/auth/me');
-        setUser(response.data.user);
+        // Try to load cached user first for immediate offline support
+        const cachedUser = await SecureStore.getItemAsync('user_cache');
+        if (cachedUser) {
+          setUser(JSON.parse(cachedUser));
+        }
+
+        try {
+          const response = await client.get('/auth/me');
+          setUser(response.data.user);
+          await SecureStore.setItemAsync('user_cache', JSON.stringify(response.data.user));
+        } catch (error) {
+          console.error('Failed to fetch user from server', error);
+          if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+            // Only sign out if the token is actually invalid
+            await SecureStore.deleteItemAsync('token');
+            await SecureStore.deleteItemAsync('user_cache');
+            setUser(null);
+          } else if (!cachedUser) {
+            // Network error but no cached user, just create a fallback user so they don't get stuck on login
+            setUser({ id: 'offline', name: 'Offline User', plan: 'free' });
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to check login status', error);
-      await SecureStore.deleteItemAsync('token');
     } finally {
       setLoading(false);
     }
@@ -35,6 +54,7 @@ export const AuthProvider = ({ children }) => {
       const response = await client.post('/auth/login', { email, password });
       const { token, user } = response.data;
       await SecureStore.setItemAsync('token', token);
+      await SecureStore.setItemAsync('user_cache', JSON.stringify(user));
       setUser(user);
 
       // Setup push notifications
@@ -61,6 +81,7 @@ export const AuthProvider = ({ children }) => {
       const response = await client.post('/auth/google', { access_token: accessToken });
       const { token, user, isNewUser } = response.data;
       await SecureStore.setItemAsync('token', token);
+      await SecureStore.setItemAsync('user_cache', JSON.stringify(user));
       setUser(user);
 
       // Setup push notifications
@@ -86,6 +107,7 @@ export const AuthProvider = ({ children }) => {
       const response = await client.post('/auth/register', { name, email, password });
       const { token, user } = response.data;
       await SecureStore.setItemAsync('token', token);
+      await SecureStore.setItemAsync('user_cache', JSON.stringify(user));
       setUser(user);
 
       // Setup push notifications
@@ -108,6 +130,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     await SecureStore.deleteItemAsync('token');
+    await SecureStore.deleteItemAsync('user_cache');
     setUser(null);
   };
 
@@ -117,6 +140,7 @@ export const AuthProvider = ({ children }) => {
       if (!token) return;
       const response = await client.get('/auth/me');
       setUser(response.data.user);
+      await SecureStore.setItemAsync('user_cache', JSON.stringify(response.data.user));
     } catch (error) {
       console.error('Failed to refresh user', error);
     }
