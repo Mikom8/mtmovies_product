@@ -605,6 +605,19 @@ const DetailsScreen = ({ route, navigation }) => {
             colors={["transparent", "#0a0a0a"]}
             style={[StyleSheet.absoluteFill, { top: "50%" }]}
           />
+          {/* Trailer Button */}
+          {data.trailerEmbedId ? (
+            <TouchableOpacity
+              style={styles.trailerBtn}
+              activeOpacity={0.8}
+              onPress={() => WebBrowser.openBrowserAsync(`https://www.youtube.com/watch?v=${data.trailerEmbedId}`)}
+            >
+              <View style={styles.trailerPlayCircle}>
+                <MaterialIcons name="play-arrow" size={26} color="#fff" />
+              </View>
+              <Text style={styles.trailerLabel}>Trailer</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {/* ── Info Section ── */}
@@ -1048,6 +1061,34 @@ const styles = StyleSheet.create({
   iconBtnActive: {
     borderColor: "rgba(229,9,20,0.5)",
     backgroundColor: "rgba(229,9,20,0.1)",
+  },
+
+  // ── Trailer Button ──
+  trailerBtn: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  trailerPlayCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.8)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trailerLabel: {
+    color: '#fff',
+    fontSize: 13,
+    fontFamily: 'TT Medium',
+    letterSpacing: 1,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
 
   // ── Description ──
