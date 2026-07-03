@@ -753,6 +753,37 @@ const DetailsScreen = ({ route, navigation }) => {
           {/* Description */}
           <Text style={styles.description}>{data.description}</Text>
 
+          {/* ── Cast ── */}
+          {data.cast && data.cast.length > 0 && (
+            <View style={styles.castSection}>
+              <Text style={styles.sectionHeader}>Cast</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.castScroll}
+              >
+                {data.cast.map((actor, i) => (
+                  <View key={i} style={styles.castCard}>
+                    {actor.image ? (
+                      <Image
+                        source={{ uri: actor.image }}
+                        style={styles.castAvatar}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={[styles.castAvatar, styles.castAvatarPlaceholder]}>
+                        <MaterialIcons name="person" size={28} color="#555" />
+                      </View>
+                    )}
+                    <Text style={styles.castName} numberOfLines={2}>
+                      {actor.name}
+                    </Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
           {/* ── Series: Season Tabs + Episodes ── */}
           {isActuallySeries && data.seasons?.length > 0 && (
             <View style={styles.seasonsSection}>
@@ -1026,6 +1057,37 @@ const styles = StyleSheet.create({
     fontFamily: "TT Medium",
     lineHeight: 22,
     marginBottom: 20,
+  },
+
+  // ── Cast ──
+  castSection: {
+    marginBottom: 24,
+  },
+  castScroll: {
+    gap: 12,
+    paddingRight: 4,
+  },
+  castCard: {
+    alignItems: 'center',
+    width: 72,
+  },
+  castAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginBottom: 6,
+    backgroundColor: '#1e1e1e',
+  },
+  castAvatarPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  castName: {
+    color: '#ccc',
+    fontSize: 11,
+    fontFamily: 'TT',
+    textAlign: 'center',
+    lineHeight: 15,
   },
 
   // ── Genres ──

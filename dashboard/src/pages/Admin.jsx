@@ -109,6 +109,7 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
         backdrop: tmdbData.backdrop || f.backdrop,
         year: tmdbData.year || f.year,
         duration: tmdbData.duration || f.duration,
+        trailerEmbedId: tmdbData.trailerEmbedId || f.trailerEmbedId,
       }));
     } catch (err) {
       alert(err.message);

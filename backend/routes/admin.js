@@ -196,7 +196,7 @@ router.get('/tmdb/:type/:id', async (req, res) => {
     }
 
     const tmdbType = type === 'movie' ? 'movie' : 'tv';
-    const response = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${id}?append_to_response=credits,images&include_image_language=en,null`, {
+    const response = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${id}?append_to_response=credits,images,videos&include_image_language=en,null`, {
       headers: {
         'Authorization': `Bearer ${process.env.TMDB_TOKEN}`,
         'accept': 'application/json'
@@ -249,6 +249,21 @@ router.get('/tmdb/:type/:id', async (req, res) => {
       }
     }
 
+    // Parse trailer — prefer official YouTube trailer, else first YouTube teaser
+    let trailerEmbedId = '';
+    const videos = data.videos?.results || [];
+    const officialTrailer = videos.find(
+      v => v.site === 'YouTube' && v.type === 'Trailer' && v.official === true
+    );
+    const anyTrailer = videos.find(
+      v => v.site === 'YouTube' && v.type === 'Trailer'
+    );
+    const anyTeaser = videos.find(
+      v => v.site === 'YouTube' && v.type === 'Teaser'
+    );
+    const pickedVideo = officialTrailer || anyTrailer || anyTeaser;
+    if (pickedVideo) trailerEmbedId = pickedVideo.key;
+
     const result = {
       title: data.title || data.name || '',
       description: data.overview || '',
@@ -256,8 +271,9 @@ router.get('/tmdb/:type/:id', async (req, res) => {
       cast: cast,
       year: year,
       duration: duration,
+      trailerEmbedId: trailerEmbedId,
       poster: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : '',
-      backdrop: backdropPath ? `https://image.tmdb.org/t/p/w780${backdropPath}` : '',
+      backdrop: backdropPath ? `https://image.tmdb.org/t/p/w500${backdropPath}` : '',
     };
 
     res.json({ success: true, data: result });
