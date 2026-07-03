@@ -56,6 +56,14 @@
     "notification": {
       "icon": "./assets/img/unnamed-removebg-preview.png",
       "color": "#E50914"
-    }
+    },
+    "plugins": [
+      [
+        "expo-av",
+        {
+          "microphonePermission": false
+        }
+      ]
+    ]
   }
 }

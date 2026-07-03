@@ -20,6 +20,10 @@ const seriesSchema = new mongoose.Schema({
   tags: [{
     type: String
   }],
+  cast: [{
+    name: String,
+    image: String
+  }],
   year: {
     type: String
   },

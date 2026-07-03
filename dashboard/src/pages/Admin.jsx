@@ -16,6 +16,7 @@ const MOVIE_FIELDS = [
   { name: 'genres', label: 'Genres (comma)', placeholder: 'Action, Drama', full: true },
   { name: 'tags', label: 'Tags (comma)', placeholder: 'trending, best, etc.', full: true },
   { name: 'description', label: 'Description', placeholder: 'Brief plot overview…', full: true, textarea: true },
+  { name: 'cast', label: 'Cast (JSON)', placeholder: '[\n  { "name": "Actor", "image": "url" }\n]', full: true, textarea: true },
   { name: 'telegram_chatId', label: 'Telegram Chat ID', placeholder: '-100xxxxxxxxxx' },
   { name: 'telegram_messageId', label: 'Telegram Message ID', placeholder: '12345' },
 ];
@@ -33,13 +34,14 @@ const SERIES_FIELDS = [
   { name: 'genres', label: 'Genres (comma)', placeholder: 'Action, Drama', full: true },
   { name: 'tags', label: 'Tags (comma)', placeholder: 'trending, best, etc.', full: true },
   { name: 'description', label: 'Description', placeholder: 'Brief plot overview…', full: true, textarea: true },
+  { name: 'cast', label: 'Cast (JSON)', placeholder: '[\n  { "name": "Actor", "image": "url" }\n]', full: true, textarea: true },
   { name: 'telegram_chatId', label: 'Telegram Chat ID', placeholder: '-100xxxxxxxxxx' },
   { name: 'telegram_messageId', label: 'Telegram Message ID', placeholder: '12345' },
 ];
 
 const BLANK_FORM = {
   title: '', year: '', duration: '', quality: '', rating: '',
-  poster: '', backdrop: '', mylist: '', featurePhone: '', genres: '', tags: '', description: '',
+  poster: '', backdrop: '', mylist: '', featurePhone: '', genres: '', tags: '', description: '', cast: '[]',
   telegram_chatId: '', telegram_messageId: '',
   isFree: false, isFeatured: false, isNew: false, isNewSeason: false, isNewEpisode: false, hasAmharicDub: true,
 };
@@ -64,6 +66,7 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
         genres: (item.genres || []).join(', '),
         tags: (item.tags || []).join(', '),
         description: item.description || '',
+        cast: item.cast && item.cast.length > 0 ? JSON.stringify(item.cast, null, 2) : '[]',
         telegram_chatId: item.telegram?.chatId || '',
         telegram_messageId: item.telegram?.messageId || '',
         isFree: item.isFree ?? false,
@@ -84,15 +87,54 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
     setForm(f => ({ ...f, [name]: t === 'checkbox' ? checked : value }));
   };
 
+  const [tmdbId, setTmdbId] = useState('');
+  const [tmdbLoading, setTmdbLoading] = useState(false);
+
+  const fetchTMDB = async () => {
+    if (!tmdbId) { alert('Enter TMDB ID first'); return; }
+    setTmdbLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/tmdb/${type}/${tmdbId}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to fetch TMDB');
+      
+      const tmdbData = data.data;
+      setForm(f => ({
+        ...f,
+        title: tmdbData.title || f.title,
+        description: tmdbData.description || f.description,
+        genres: tmdbData.genres || f.genres,
+        cast: tmdbData.cast ? JSON.stringify(tmdbData.cast, null, 2) : f.cast,
+        poster: tmdbData.poster || f.poster,
+        backdrop: tmdbData.backdrop || f.backdrop,
+        year: tmdbData.year || f.year,
+        duration: tmdbData.duration || f.duration,
+      }));
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setTmdbLoading(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!form.title.trim()) { setError('Title is required.'); return; }
     setSaving(true); setError('');
     try {
       const endpoint = type === 'movie' ? '/movies' : '/series';
+      
+      let parsedCast = [];
+      try {
+        parsedCast = JSON.parse(form.cast || '[]');
+      } catch (e) {
+        throw new Error('Cast must be valid JSON format');
+      }
+
       const payload = {
         ...form,
         genres: form.genres.split(',').map(g => g.trim()).filter(Boolean),
         tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+        cast: parsedCast,
         telegram: {
           chatId: form.telegram_chatId || undefined,
           messageId: form.telegram_messageId || undefined,
@@ -126,6 +168,22 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
         </div>
 
         <div className={styles.modalBody}>
+          {/* TMDB Fetch Section */}
+          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '8px', marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+            <div className={styles.formGroup} style={{ flex: 1, margin: 0 }}>
+              <label>Auto-fill from TMDB (ID)</label>
+              <input value={tmdbId} onChange={e => setTmdbId(e.target.value)} placeholder="e.g. 533535" />
+            </div>
+            <button 
+              type="button" 
+              onClick={fetchTMDB} 
+              disabled={tmdbLoading}
+              style={{ padding: '12px 16px', background: '#E50914', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              {tmdbLoading ? 'Fetching...' : '🔍 Fetch'}
+            </button>
+          </div>
+
           {/* Image Previews */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
 
