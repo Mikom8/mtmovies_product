@@ -944,9 +944,9 @@ const DetailsScreen = ({ route, navigation }) => {
       <ShareModal
         visible={shareModalVisible}
         onClose={() => setShareModalVisible(false)}
-        title={data.title}
-        itemId={id}
+        item={data}
         type={resolvedType}
+        onShowToast={(msg, variant) => setToast({ visible: true, message: msg, variant: variant || 'info' })}
       />
 
       {/* ── Trailer Modal ── */}
