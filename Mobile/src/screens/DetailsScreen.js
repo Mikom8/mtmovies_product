@@ -982,29 +982,46 @@ const DetailsScreen = ({ route, navigation }) => {
             </View>
             <View style={styles.trailerModalContent}>
               {trailerModalVisible && data.trailerEmbedId && (
-                <View style={{ width: '100%', height: W * (9/16), backgroundColor: '#000' }}>
+                <View style={{ width: '100%', height: W * (9 / 16), backgroundColor: '#000' }}>
+                  {/* Backdrop with spinner shown until player is ready */}
                   {!trailerReady && (
-                    <Image
-                      source={{ uri: data.backdrop || data.poster }}
-                      style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 1, opacity: 0.5 }}
-                      resizeMode="cover"
-                    />
+                    <View style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 2 }}>
+                      <Image
+                        source={{ uri: data.backdrop || data.poster }}
+                        style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0.4 }}
+                        resizeMode="cover"
+                      />
+                      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <ActivityIndicator size="large" color="#E50914" />
+                      </View>
+                    </View>
                   )}
                   <YoutubePlayer
-                    height={W * (9/16)}
+                    height={W * (9 / 16)}
                     width={W}
                     play={trailerPlaying}
                     onReady={() => {
-                      setTrailerPlaying(true);
                       setTrailerReady(true);
+                      setTrailerPlaying(true);
                     }}
                     onFullScreenChange={onFullScreenChange}
                     forceAndroidAutoplay={true}
-                    initialPlayerParams={{ autoplay: 1 }}
+                    initialPlayerParams={{ autoplay: 1, controls: 1 }}
                     videoId={data.trailerEmbedId}
                     webViewStyle={{ opacity: 0.99 }}
                     webViewProps={{
                       androidLayerType: "hardware",
+                      injectedJavaScript: `
+                        (function() {
+                          setTimeout(function() {
+                            var video = document.querySelector('video');
+                            if (video) { video.play(); }
+                            var btn = document.querySelector('.ytp-large-play-button');
+                            if (btn) { btn.click(); }
+                          }, 1500);
+                        })();
+                        true;
+                      `,
                     }}
                   />
                 </View>
@@ -1148,7 +1165,8 @@ const styles = StyleSheet.create({
     top: 0, left: 0, right: 0, bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 3,
+    paddingTop: 50,
   },
   trailerPlayCircle: {
     width: 56,
