@@ -28,6 +28,7 @@ import Toast from "../components/Toast";
 import ShareModal from "../components/ShareModal";
 import Svg, { G, Path, Rect, Defs, ClipPath } from "react-native-svg";
 import * as WebBrowser from "expo-web-browser";
+import * as ScreenOrientation from "expo-screen-orientation";
 
 const { width: W, height: H } = Dimensions.get("window");
 const HERO_H = H * 0.32;
@@ -283,6 +284,16 @@ const DetailsScreen = ({ route, navigation }) => {
   });
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [trailerModalVisible, setTrailerModalVisible] = useState(false);
+  const [trailerPlaying, setTrailerPlaying] = useState(false);
+  const [trailerReady, setTrailerReady] = useState(false);
+
+  const onFullScreenChange = useCallback((isFullScreen) => {
+    if (isFullScreen) {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    } else {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+    }
+  }, []);
 
   const historyMap = React.useMemo(() => {
     const map = new Map();
@@ -950,23 +961,46 @@ const DetailsScreen = ({ route, navigation }) => {
           <TouchableOpacity
             style={styles.trailerModalCloseArea}
             activeOpacity={1}
-            onPress={() => setTrailerModalVisible(false)}
+            onPress={() => {
+              setTrailerModalVisible(false);
+              setTrailerPlaying(false);
+              setTrailerReady(false);
+              ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+            }}
           />
           <View style={styles.trailerModalContainer}>
             <View style={styles.trailerModalHeader}>
               <Text style={styles.trailerModalTitle}>Trailer: {data.title}</Text>
-              <TouchableOpacity onPress={() => setTrailerModalVisible(false)} style={styles.trailerModalCloseBtn}>
+              <TouchableOpacity onPress={() => {
+                setTrailerModalVisible(false);
+                setTrailerPlaying(false);
+                setTrailerReady(false);
+                ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+              }} style={styles.trailerModalCloseBtn}>
                 <MaterialIcons name="close" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
             <View style={styles.trailerModalContent}>
               {trailerModalVisible && data.trailerEmbedId && (
                 <View style={{ width: '100%', height: W * (9/16), backgroundColor: '#000' }}>
+                  {!trailerReady && (
+                    <Image
+                      source={{ uri: data.backdrop || data.poster }}
+                      style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 1, opacity: 0.5 }}
+                      resizeMode="cover"
+                    />
+                  )}
                   <YoutubePlayer
                     height={W * (9/16)}
                     width={W}
-                    play={true}
+                    play={trailerPlaying}
+                    onReady={() => {
+                      setTrailerPlaying(true);
+                      setTrailerReady(true);
+                    }}
+                    onFullScreenChange={onFullScreenChange}
                     forceAndroidAutoplay={true}
+                    initialPlayerParams={{ autoplay: 1 }}
                     videoId={data.trailerEmbedId}
                     webViewStyle={{ opacity: 0.99 }}
                     webViewProps={{
