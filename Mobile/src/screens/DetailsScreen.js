@@ -530,7 +530,7 @@ const DetailsScreen = ({ route, navigation }) => {
 
   const handleRecPress = useCallback(
     (item) => {
-      navigation.push("Details", { id: item._id, type });
+      navigation.replace("Details", { id: item._id, type });
     },
     [navigation, type],
   );
