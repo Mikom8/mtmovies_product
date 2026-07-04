@@ -12,7 +12,9 @@ import {
   StatusBar,
   FlatList,
   Animated,
+  Modal,
 } from "react-native";
+import { WebView } from "react-native-webview";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFonts } from "expo-font";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -280,6 +282,7 @@ const DetailsScreen = ({ route, navigation }) => {
     variant: "added",
   });
   const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [trailerModalVisible, setTrailerModalVisible] = useState(false);
 
   const historyMap = React.useMemo(() => {
     const map = new Map();
@@ -430,7 +433,7 @@ const DetailsScreen = ({ route, navigation }) => {
         console.log("Error opening ad link:", e);
       }
     }
-    
+
     // Navigate to the player (immediately for premium, or after ad for free users)
     navigation.navigate("Player", params);
   };
@@ -610,7 +613,7 @@ const DetailsScreen = ({ route, navigation }) => {
             <TouchableOpacity
               style={styles.trailerBtn}
               activeOpacity={0.8}
-              onPress={() => WebBrowser.openBrowserAsync(`https://www.youtube.com/watch?v=${data.trailerEmbedId}`)}
+              onPress={() => setTrailerModalVisible(true)}
             >
               <View style={styles.trailerPlayCircle}>
                 <MaterialIcons name="play-arrow" size={26} color="#fff" />
@@ -930,10 +933,46 @@ const DetailsScreen = ({ route, navigation }) => {
       <ShareModal
         visible={shareModalVisible}
         onClose={() => setShareModalVisible(false)}
-        item={data}
+        title={data.title}
+        itemId={id}
         type={resolvedType}
-        onShowToast={(msg, variant) => setToast({ visible: true, message: msg, variant: variant || 'info' })}
       />
+
+      {/* ── Trailer Modal ── */}
+      <Modal
+        visible={trailerModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setTrailerModalVisible(false)}
+        supportedOrientations={['portrait', 'landscape']}
+      >
+        <View style={styles.trailerModalOverlay}>
+          <TouchableOpacity
+            style={styles.trailerModalCloseArea}
+            activeOpacity={1}
+            onPress={() => setTrailerModalVisible(false)}
+          />
+          <View style={styles.trailerModalContainer}>
+            <View style={styles.trailerModalHeader}>
+              <Text style={styles.trailerModalTitle}>Trailer: {data.title}</Text>
+              <TouchableOpacity onPress={() => setTrailerModalVisible(false)} style={styles.trailerModalCloseBtn}>
+                <MaterialIcons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.trailerModalContent}>
+              {trailerModalVisible && data.trailerEmbedId && (
+                <WebView
+                  source={{ uri: `https://www.youtube.com/embed/${data.trailerEmbedId}?autoplay=1&rel=0` }}
+                  style={{ flex: 1, backgroundColor: '#000' }}
+                  allowsFullscreenVideo={true}
+                  javaScriptEnabled={true}
+                  domStorageEnabled={true}
+                />
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
