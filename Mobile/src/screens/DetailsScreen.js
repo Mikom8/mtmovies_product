@@ -961,13 +961,22 @@ const DetailsScreen = ({ route, navigation }) => {
             </View>
             <View style={styles.trailerModalContent}>
               {trailerModalVisible && data.trailerEmbedId && (
-                <WebView
-                  source={{ uri: `https://www.youtube.com/embed/${data.trailerEmbedId}?autoplay=1&rel=0` }}
-                  style={{ flex: 1, backgroundColor: '#000' }}
-                  allowsFullscreenVideo={true}
-                  javaScriptEnabled={true}
-                  domStorageEnabled={true}
-                />
+                <View style={{ flex: 1, width: '100%', height: '100%' }}>
+                  <WebView
+                    source={{ uri: `https://www.youtube.com/embed/${data.trailerEmbedId}?autoplay=1&controls=1&rel=0&modestbranding=1` }}
+                    style={{ flex: 1, backgroundColor: '#000', width: '100%', height: '100%' }}
+                    allowsFullscreenVideo={true}
+                    javaScriptEnabled={true}
+                    domStorageEnabled={true}
+                    mediaPlaybackRequiresUserAction={false}
+                    startInLoadingState={true}
+                    renderLoading={() => (
+                      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+                        <ActivityIndicator size="large" color="#E50914" />
+                      </View>
+                    )}
+                  />
+                </View>
               )}
             </View>
           </View>
