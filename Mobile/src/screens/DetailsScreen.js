@@ -14,7 +14,7 @@ import {
   Animated,
   Modal,
 } from "react-native";
-import { WebView } from "react-native-webview";
+import YoutubePlayer from "react-native-youtube-iframe";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFonts } from "expo-font";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -961,20 +961,17 @@ const DetailsScreen = ({ route, navigation }) => {
             </View>
             <View style={styles.trailerModalContent}>
               {trailerModalVisible && data.trailerEmbedId && (
-                <View style={{ flex: 1, width: '100%', height: '100%' }}>
-                  <WebView
-                    source={{ uri: `https://www.youtube.com/embed/${data.trailerEmbedId}?autoplay=1&controls=1&rel=0&modestbranding=1` }}
-                    style={{ flex: 1, backgroundColor: '#000', width: '100%', height: '100%' }}
-                    allowsFullscreenVideo={true}
-                    javaScriptEnabled={true}
-                    domStorageEnabled={true}
-                    mediaPlaybackRequiresUserAction={false}
-                    startInLoadingState={true}
-                    renderLoading={() => (
-                      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
-                        <ActivityIndicator size="large" color="#E50914" />
-                      </View>
-                    )}
+                <View style={{ width: '100%', height: W * (9/16), backgroundColor: '#000' }}>
+                  <YoutubePlayer
+                    height={W * (9/16)}
+                    width={W}
+                    play={true}
+                    forceAndroidAutoplay={true}
+                    videoId={data.trailerEmbedId}
+                    webViewStyle={{ opacity: 0.99 }}
+                    webViewProps={{
+                      androidLayerType: "hardware",
+                    }}
                   />
                 </View>
               )}
@@ -1137,6 +1134,42 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
+  },
+  trailerModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+  },
+  trailerModalCloseArea: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  trailerModalContainer: {
+    width: '100%',
+    backgroundColor: '#000',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+  },
+  trailerModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#111',
+  },
+  trailerModalTitle: {
+    color: '#fff',
+    fontFamily: 'TT Medium',
+    fontSize: 14,
+  },
+  trailerModalCloseBtn: {
+    padding: 4,
+  },
+  trailerModalContent: {
+    width: '100%',
+    backgroundColor: '#000',
   },
 
   // ── Description ──
