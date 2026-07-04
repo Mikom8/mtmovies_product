@@ -1006,11 +1006,18 @@ const DetailsScreen = ({ route, navigation }) => {
                     }}
                     onFullScreenChange={onFullScreenChange}
                     forceAndroidAutoplay={true}
-                    initialPlayerParams={{ autoplay: 1, controls: 1 }}
+                    initialPlayerParams={{
+                      autoplay: 1,
+                      controls: 1,
+                      rel: 0,
+                      showinfo: 0,
+                    }}
                     videoId={data.trailerEmbedId}
-                    webViewStyle={{ opacity: 0.99 }}
+                    webViewStyle={{ opacity: 1 }}
                     webViewProps={{
                       androidLayerType: "hardware",
+                      domStorageEnabled: true,
+    javaScriptEnabled: true,
                       injectedJavaScript: `
                         (function() {
                           setTimeout(function() {
@@ -1022,6 +1029,7 @@ const DetailsScreen = ({ route, navigation }) => {
                         })();
                         true;
                       `,
+                      mediaPlaybackRequiresUserAction: false
                     }}
                   />
                 </View>
@@ -1189,7 +1197,7 @@ const styles = StyleSheet.create({
   },
   trailerModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.9)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
   },
   trailerModalCloseArea: {
