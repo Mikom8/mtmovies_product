@@ -144,31 +144,21 @@ const RecommendCard = React.memo(({ item, type, onPress }) => (
     onPress={() => onPress(item)}
     activeOpacity={0.8}
   >
-    <View style={{ ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" }}>
+    <View style={styles.recPosterContainer}>
       <Image
         source={require("../../assets/img/unnamed-removebg-preview.png")}
-        style={{ width: "40%", height: "40%", opacity: 0.2 }}
+        style={{ position: "absolute", width: "40%", height: "40%", opacity: 0.2 }}
         resizeMode="contain"
       />
+      <Image
+        source={{ uri: item.poster || item.backdrop }}
+        style={styles.recPoster}
+        resizeMode="cover"
+      />
     </View>
-    <Image
-      source={{ uri: item.poster || item.backdrop }}
-      style={styles.recPoster}
-      resizeMode="cover"
-    />
-    <LinearGradient
-      colors={["transparent", "rgba(0,0,0,0.85)"]}
-      style={StyleSheet.absoluteFill}
-    />
-    <View style={styles.recMeta}>
-      <Text style={styles.recTitle} numberOfLines={2}>
-        {item.title}
-      </Text>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-        <MaterialIcons name="star" size={10} color="#FFD700" />
-        <Text style={styles.recRating}>{item.rating || "—"}</Text>
-      </View>
-    </View>
+    <Text style={styles.recTitle} numberOfLines={1}>
+      {item.title}
+    </Text>
   </TouchableOpacity>
 ));
 
@@ -1017,7 +1007,7 @@ const DetailsScreen = ({ route, navigation }) => {
                     webViewProps={{
                       androidLayerType: "hardware",
                       domStorageEnabled: true,
-    javaScriptEnabled: true,
+                      javaScriptEnabled: true,
                       injectedJavaScript: `
                         (function() {
                           setTimeout(function() {
@@ -1370,33 +1360,34 @@ const styles = StyleSheet.create({
   recGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
+    justifyContent: "center",
     gap: 8,
   },
   recCard: {
     width: CARD_W,
+    marginBottom: 7,
+  },
+  recPosterContainer: {
+    width: CARD_W,
     height: CARD_W * 1.5,
     borderRadius: 7,
     overflow: "hidden",
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#1c1c1c",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 6,
   },
   recPoster: {
     ...StyleSheet.absoluteFillObject,
-  },
-  recMeta: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 6,
+    width: "100%",
+    height: "100%",
   },
   recTitle: {
     color: "#fff",
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: "TT Medium",
-    marginBottom: 2,
-    lineHeight: 14,
+    textAlign: "left",
   },
-  recRating: { color: "#FFD700", fontSize: 10, fontFamily: "TT" },
   recSeriesBadge: {
     position: "absolute",
     top: 6,
