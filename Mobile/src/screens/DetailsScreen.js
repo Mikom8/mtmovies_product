@@ -23,6 +23,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import client from "../api/client";
 import { useWatchlist } from "../context/WatchlistContext";
+import { StartIoBannerAd } from "react-native-start-io-sdk";
 import { useAuth } from "../context/AuthContext";
 import Toast from "../components/Toast";
 import ShareModal from "../components/ShareModal";
@@ -919,6 +920,10 @@ const DetailsScreen = ({ route, navigation }) => {
                     onPress={handleRecPress}
                   />
                 ))}
+              </View>
+
+              <View style={{ marginTop: 24, alignItems: 'center' }}>
+                <StartIoBannerAd adTag="details_banner" />
               </View>
             </View>
           )}
