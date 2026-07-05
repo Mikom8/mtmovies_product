@@ -611,10 +611,10 @@ const HomeScreen = () => {
               </Text>
             </View>
             {heroItem.featureLogo ? (
-              <Image 
-                source={{ uri: heroItem.featureLogo }} 
-                style={styles.heroLogo} 
-                resizeMode="contain" 
+              <Image
+                source={{ uri: heroItem.featureLogo }}
+                style={styles.heroLogo}
+                resizeMode="contain"
               />
             ) : (
               <Text style={styles.heroTitle}>{heroItem.title}</Text>
@@ -622,10 +622,10 @@ const HomeScreen = () => {
 
             <View style={styles.heroMetaRow}>
               <Text style={styles.heroMetaText}>{heroItem.year || "2024"}</Text>
-              <View style={styles.metaDivider} />
+              {/* <View style={styles.metaDivider} />
               <View style={styles.qualityBadge}>
                 <Text style={styles.qualityText}>{heroItem.quality || "HD"}</Text>
-              </View>
+              </View> */}
               <View style={styles.metaDivider} />
               <View style={styles.heroRating}>
                 <MaterialIcons name="star" size={14} color="#FFD700" />
@@ -891,7 +891,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 6,
     alignSelf: "flex-start",
-    marginBottom: 12,
+    marginBottom: 5,
     borderWidth: 0,
     borderColor: "rgba(255,255,255,0)",
   },
@@ -915,7 +915,7 @@ const styles = StyleSheet.create({
   heroLogo: {
     width: "70%",
     height: 80,
-    marginBottom: 12,
+    marginBottom: 5,
   },
   heroMetaRow: {
     flexDirection: "row",
