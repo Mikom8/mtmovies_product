@@ -57,6 +57,9 @@ const movieSchema = new mongoose.Schema({
   featurePhone: {
     type: String
   },
+  featureLogo: {
+    type: String
+  },
   trailerEmbedId: {
     type: String
   },

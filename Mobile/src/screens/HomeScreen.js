@@ -610,7 +610,15 @@ const HomeScreen = () => {
                       : " "}
               </Text>
             </View>
-            <Text style={styles.heroTitle}>{heroItem.title}</Text>
+            {heroItem.featureLogo ? (
+              <Image 
+                source={{ uri: heroItem.featureLogo }} 
+                style={styles.heroLogo} 
+                resizeMode="contain" 
+              />
+            ) : (
+              <Text style={styles.heroTitle}>{heroItem.title}</Text>
+            )}
 
             <View style={styles.heroMetaRow}>
               <Text style={styles.heroMetaText}>{heroItem.year || "2024"}</Text>
@@ -903,6 +911,11 @@ const styles = StyleSheet.create({
     fontFamily: "Code",
     letterSpacing: 1,
     marginBottom: 8,
+  },
+  heroLogo: {
+    width: "70%",
+    height: 80,
+    marginBottom: 12,
   },
   heroMetaRow: {
     flexDirection: "row",

@@ -14,6 +14,7 @@ const MOVIE_FIELDS = [
   { name: 'backdrop', label: 'Backdrop URL', placeholder: 'https://...', full: true },
   { name: 'mylist', label: 'My List Image URL (optional)', placeholder: 'https://...', full: true },
   { name: 'featurePhone', label: 'Feature Phone Image URL (optional)', placeholder: 'https://...', full: true },
+  { name: 'featureLogo', label: 'Feature Logo Image URL (optional)', placeholder: 'https://...', full: true },
   { name: 'genres', label: 'Genres (comma)', placeholder: 'Action, Drama', full: true },
   { name: 'tags', label: 'Tags (comma)', placeholder: 'trending, best, etc.', full: true },
   { name: 'description', label: 'Description', placeholder: 'Brief plot overview…', full: true, textarea: true },
@@ -33,6 +34,7 @@ const SERIES_FIELDS = [
   { name: 'backdrop', label: 'Backdrop URL', placeholder: 'https://...', full: true },
   { name: 'mylist', label: 'My List Image URL (optional)', placeholder: 'https://...', full: true },
   { name: 'featurePhone', label: 'Feature Phone Image URL (optional)', placeholder: 'https://...', full: true },
+  { name: 'featureLogo', label: 'Feature Logo Image URL (optional)', placeholder: 'https://...', full: true },
   { name: 'genres', label: 'Genres (comma)', placeholder: 'Action, Drama', full: true },
   { name: 'tags', label: 'Tags (comma)', placeholder: 'trending, best, etc.', full: true },
   { name: 'description', label: 'Description', placeholder: 'Brief plot overview…', full: true, textarea: true },
@@ -43,7 +45,7 @@ const SERIES_FIELDS = [
 
 const BLANK_FORM = {
   title: '', year: '', duration: '', quality: '', rating: '', trailerEmbedId: '',
-  poster: '', backdrop: '', mylist: '', featurePhone: '', genres: '', tags: '', description: '', cast: '[]',
+  poster: '', backdrop: '', mylist: '', featurePhone: '', featureLogo: '', genres: '', tags: '', description: '', cast: '[]',
   telegram_chatId: '', telegram_messageId: '',
   isFree: false, isFeatured: false, isNew: false, isNewSeason: false, isNewEpisode: false, hasAmharicDub: true,
 };
@@ -65,6 +67,7 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
         backdrop: item.backdrop || '',
         mylist: item.mylist || '',
         featurePhone: item.featurePhone || '',
+        featureLogo: item.featureLogo || '',
         genres: (item.genres || []).join(', '),
         tags: (item.tags || []).join(', '),
         description: item.description || '',
@@ -207,6 +210,14 @@ function ItemModal({ item, type, mode, onClose, onSaved }) {
                   {form.featurePhone
                     ? <img src={form.featurePhone} alt="featurePhone" onError={e => { e.target.style.display = 'none'; }} />
                     : <div className={styles.posterPlaceholder}>Feature Phone</div>}
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                <div style={{ fontSize: '11px', color: '#888' }}>Feature Logo</div>
+                <div className={styles.posterPreview}>
+                  {form.featureLogo
+                    ? <img src={form.featureLogo} alt="featureLogo" onError={e => { e.target.style.display = 'none'; }} />
+                    : <div className={styles.posterPlaceholder}>Feature Logo</div>}
                 </div>
               </div>
             </div>
