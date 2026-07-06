@@ -15,7 +15,7 @@ import { initializeStartIoSdk } from 'react-native-start-io-sdk';
 try {
   initializeStartIoSdk({
     androidAppId: "206404632",
-    testAd: true, // Turn off testAd in production
+    testAd: false, // Turn off testAd in production
     returnAd: false, // Prevent ads from showing when returning to the app
   });
 } catch (e) {

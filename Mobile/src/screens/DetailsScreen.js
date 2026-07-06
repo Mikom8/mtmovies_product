@@ -23,7 +23,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import client from "../api/client";
 import { useWatchlist } from "../context/WatchlistContext";
-import { StartIoBannerAd } from "react-native-start-io-sdk";
+import { StartIoBannerAd, loadAd, showAd, AdType } from "react-native-start-io-sdk";
 import { useAuth } from "../context/AuthContext";
 import Toast from "../components/Toast";
 import ShareModal from "../components/ShareModal";
@@ -429,14 +429,17 @@ const DetailsScreen = ({ route, navigation }) => {
 
     if (!isPremiumUser) {
       try {
-        // Only show the Monetag ad to free/unsubscribed users
-        await WebBrowser.openBrowserAsync('https://omg10.com/4/11234522');
+        await loadAd(AdType.VIDEO);
+        showAd(() => {
+          navigation.navigate("Player", params);
+        });
+        return; // Navigate happens inside the showAd callback
       } catch (e) {
-        console.log("Error opening ad link:", e);
+        console.log("Error loading/showing ad:", e);
       }
     }
 
-    // Navigate to the player (immediately for premium, or after ad for free users)
+    // Navigate to the player (immediately for premium, or if ad fails)
     navigation.navigate("Player", params);
   };
 
