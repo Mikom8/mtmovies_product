@@ -561,6 +561,7 @@ const DetailsScreen = ({ route, navigation }) => {
 
       {/* ── Sticky Header ── */}
       <Animated.View
+        pointerEvents="box-none"
         style={[
           styles.stickyHeader,
           {
