@@ -112,66 +112,65 @@ router.get('/:chatId/:messageId/metadata', async (req, res) => {
       }
     }
 
-    if (isAvi || isNonNative) {
-      const result = {
-        mimeType,
-        needsTranscode: true,
-        isAvi,
-        codec: 'unknown',
-        size: fileSize,
-        duration: telegramDuration
-      };
-      codecCache.set(cacheKey, result);
-      return res.json(result);
-    }
-
-    // For MP4/WebM: probe codec via HTTP stream so ffprobe can automatically seek to moov atom
-    const internalStreamUrl = `http://127.0.0.1:${process.env.PORT || 5000}/api/stream/${chatId}/${messageId}`;
-    console.log(`[Probe] ${cacheKey}: Probing via HTTP stream...`);
-
+    let duration = telegramDuration;
     let codec = 'unknown';
     let pixFmt = 'unknown';
-    let duration = 0;
+    let needsTranscode = isAvi || isNonNative;
 
-    try {
-      const probeData = await new Promise((resolve) => {
-        ffmpeg.ffprobe(internalStreamUrl, (err, metadata) => {
-          if (err || !metadata) {
-            console.error(`[Probe] ${cacheKey} error:`, err?.message);
-            return resolve({ codec: 'unknown', pixFmt: 'unknown' });
-          }
-          const videoStream = (metadata.streams || []).find(s => s.codec_type === 'video');
-          resolve({
-            codec: videoStream?.codec_name || 'unknown',
-            pixFmt: videoStream?.pix_fmt || 'unknown',
-            duration: metadata.format?.duration ? Number(metadata.format.duration) : telegramDuration,
+    // We probe if:
+    // 1. It is a native format (to check if it needs transcode due to codec/pixFmt)
+    // 2. OR we don't have a valid duration yet (duration === 0)
+    if (!isNonNative || duration === 0) {
+      const internalStreamUrl = `http://127.0.0.1:${process.env.PORT || 5000}/api/stream/${chatId}/${messageId}`;
+      console.log(`[Probe] ${cacheKey}: Probing via HTTP stream...`);
+
+      try {
+        const probeData = await new Promise((resolve) => {
+          const timeoutId = setTimeout(() => {
+            console.log(`[Probe] ${cacheKey}: ffprobe timed out`);
+            resolve({ codec: 'unknown', pixFmt: 'unknown', duration });
+          }, 6000);
+
+          ffmpeg.ffprobe(internalStreamUrl, (err, metadata) => {
+            clearTimeout(timeoutId);
+            if (err || !metadata) {
+              console.error(`[Probe] ${cacheKey} error:`, err?.message);
+              return resolve({ codec: 'unknown', pixFmt: 'unknown', duration });
+            }
+            const videoStream = (metadata.streams || []).find(s => s.codec_type === 'video');
+            resolve({
+              codec: videoStream?.codec_name || 'unknown',
+              pixFmt: videoStream?.pix_fmt || 'unknown',
+              duration: metadata.format?.duration ? Number(metadata.format.duration) : duration,
+            });
           });
         });
-      });
-      codec = probeData.codec;
-      pixFmt = probeData.pixFmt;
-      duration = probeData.duration;
-    } catch (e) {
-      console.error(`[Probe] ${cacheKey} failed:`, e);
+
+        codec = probeData.codec;
+        pixFmt = probeData.pixFmt;
+        if (probeData.duration > 0) {
+          duration = probeData.duration;
+        }
+      } catch (e) {
+        console.error(`[Probe] ${cacheKey} failed:`, e);
+      }
     }
 
-    console.log(`[Probe] ${cacheKey}: codec=${codec} pix_fmt=${pixFmt}`);
-
-    const isUnknownCodec = codec === 'unknown';
-    // Do not force transcode just because ffprobe is missing (unknown). Assume native MP4 is compatible.
-    const isIncompatibleCodec = !isUnknownCodec && INCOMPATIBLE_CODECS.has(codec.toLowerCase());
-    const isIncompatiblePixFmt = pixFmt !== 'unknown' && INCOMPATIBLE_PIX_FMTS.includes(pixFmt);
-    const needsTranscode = isIncompatibleCodec || isIncompatiblePixFmt;
+    // If it's a native format, check if we actually need transcoding due to incompatible codecs/pixel formats
+    if (!needsTranscode) {
+      const isUnknownCodec = codec === 'unknown';
+      const isIncompatibleCodec = !isUnknownCodec && INCOMPATIBLE_CODECS.has(codec.toLowerCase());
+      const isIncompatiblePixFmt = pixFmt !== 'unknown' && INCOMPATIBLE_PIX_FMTS.includes(pixFmt);
+      needsTranscode = isIncompatibleCodec || isIncompatiblePixFmt;
+    }
 
     const result = {
       mimeType,
       needsTranscode,
-      isAvi: false,
+      isAvi,
       codec,
       pixFmt,
       duration,
-      incompatibleCodec: isIncompatibleCodec,
-      incompatiblePixFmt: isIncompatiblePixFmt,
       size: fileSize
     };
     codecCache.set(cacheKey, result);
