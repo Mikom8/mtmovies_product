@@ -35,7 +35,7 @@ const MIME_TO_FFMPEG = {
 // Cache codec probe results so we only probe each file once per server run
 const codecCache = new Map();
 
-// Probe the actual video codec and duration from a small buffer chunk using FFprobe
+// Probe the actual video codec from a small buffer chunk using FFprobe (for native formats)
 function probeMetadataFromBuffer(buffer) {
   return new Promise((resolve) => {
     const tmpFile = path.join(HLS_DIR, `probe_${Date.now()}.tmp`);
@@ -53,6 +53,43 @@ function probeMetadataFromBuffer(buffer) {
       });
     });
   });
+}
+
+// Parse AVI duration from RIFF header bytes.
+// AVI always stores dwMicroSecPerFrame + dwTotalFrames in the 'avih' chunk
+// which is in the first ~256 bytes — no need to read the whole file.
+function parseAviDurationFromBuffer(buf) {
+  try {
+    // Scan for the 'avih' FourCC in the buffer
+    for (let i = 0; i < buf.length - 32; i++) {
+      if (
+        buf[i] === 0x61 && buf[i + 1] === 0x76 &&
+        buf[i + 2] === 0x69 && buf[i + 3] === 0x68
+      ) {
+        // Found 'avih' at offset i
+        // avih layout (after the 8-byte chunk header):
+        //   +0  dwMicroSecPerFrame  (uint32 LE)
+        //   +4  dwMaxBytesPerSec
+        //   +8  dwPaddingGranularity
+        //   +12 dwFlags
+        //   +16 dwTotalFrames       (uint32 LE)
+        const avihData = i + 8; // skip 'avih' FourCC (4) + chunk size (4)
+        if (avihData + 20 > buf.length) break;
+        const microSecPerFrame = buf.readUInt32LE(avihData);     // µs per frame
+        const totalFrames      = buf.readUInt32LE(avihData + 16); // total frames
+        if (microSecPerFrame > 0 && totalFrames > 0) {
+          const durationSec = (microSecPerFrame * totalFrames) / 1_000_000;
+          if (durationSec > 1) {
+            console.log(`[AVI Header] microSecPerFrame=${microSecPerFrame} totalFrames=${totalFrames} → ${Math.round(durationSec)}s`);
+            return Math.round(durationSec);
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[AVI Header Parse Error]', e.message);
+  }
+  return 0;
 }
 
 // Browser-incompatible video codecs (require transcode)
@@ -124,7 +161,7 @@ router.get('/:chatId/:messageId/metadata', async (req, res) => {
     // 1. It is a native format (to check if it needs transcode due to codec/pixFmt)
     // 2. OR we don't have a valid duration yet (duration === 0)
     if (!isNonNative || duration === 0) {
-      console.log(`[Probe] ${cacheKey}: Downloading chunk to probe metadata...`);
+      console.log(`[Probe] ${cacheKey}: Downloading header chunk to probe metadata...`);
       try {
         const fileLocation = new Api.InputDocumentFileLocation({
           id: document.id,
@@ -133,15 +170,29 @@ router.get('/:chatId/:messageId/metadata', async (req, res) => {
           thumbSize: ''
         });
 
-        // Download first 2MB chunk to probe duration and codec info
-        const chunk = await downloadChunk(fileLocation, 0, 2 * 1024 * 1024);
-        if (chunk && chunk.length > 0) {
-          const probeData = await probeMetadataFromBuffer(chunk);
-          codec = probeData.codec;
-          pixFmt = probeData.pixFmt;
-          if (probeData.duration > 0) {
-            duration = Math.round(probeData.duration);
-            console.log(`[Probe] ${cacheKey}: Probed actual duration = ${duration}s`);
+        if (isAvi && duration === 0) {
+          // AVI: parse duration from RIFF 'avih' header — always in first 512 bytes.
+          // Do NOT use ffprobe on a truncated AVI — it measures actual frame data,
+          // not the total declared duration, giving wrong results (e.g. only 25s).
+          const headerChunk = await downloadChunk(fileLocation, 0, 512);
+          if (headerChunk && headerChunk.length > 0) {
+            const aviDur = parseAviDurationFromBuffer(headerChunk);
+            if (aviDur > 0) {
+              duration = aviDur;
+              console.log(`[AVI Header] ${cacheKey}: Parsed actual duration = ${duration}s`);
+            }
+          }
+        } else if (!isNonNative) {
+          // Native MP4/WebM: download 2MB and ffprobe to check codec + duration
+          const chunk = await downloadChunk(fileLocation, 0, 2 * 1024 * 1024);
+          if (chunk && chunk.length > 0) {
+            const probeData = await probeMetadataFromBuffer(chunk);
+            codec = probeData.codec;
+            pixFmt = probeData.pixFmt;
+            if (probeData.duration > 0) {
+              duration = Math.round(probeData.duration);
+              console.log(`[Probe] ${cacheKey}: Probed actual duration = ${duration}s`);
+            }
           }
         }
       } catch (e) {
