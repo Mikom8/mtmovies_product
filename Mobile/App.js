@@ -1,6 +1,8 @@
 import 'react-native-gesture-handler';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Image, Text, Animated, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useFonts } from "expo-font";
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { AuthProvider } from './src/context/AuthContext';
 import { MovieProvider } from './src/context/MovieContext';
@@ -39,8 +41,56 @@ const linking = {
   },
 };
 
+function SplashScreen({ onDone }) {
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    // Hold for 1.6s then fade out over 0.5s
+    const timer = setTimeout(() => {
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }).start(() => onDone());
+    }, 1600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <Animated.View style={[StyleSheet.absoluteFill, splashStyles.container, { opacity }]} pointerEvents="none">
+      <Image
+        source={require('./assets/img/unnamed-removebg-preview.png')}
+        style={splashStyles.logo}
+        resizeMode="contain"
+      />
+      <Text style={splashStyles.title}><Text style={{ color: "red" }}>MT</Text>Movies</Text>
+    </Animated.View>
+  );
+}
+
+const splashStyles = StyleSheet.create({
+  container: {
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+  },
+  logo: {
+    width: 140,
+    height: 140,
+    marginBottom: 20,
+  },
+  title: {
+    color: '#fff',
+    fontSize: 20,
+    fontFamily: "Broche-Cut",
+    letterSpacing: 1,
+  },
+});
+
 export default function App() {
   const navigationRef = useNavigationContainerRef();
+  const [splashDone, setSplashDone] = useState(false);
 
   useEffect(() => {
     // 1. Handle notification tap when app is running (foreground or background)
@@ -79,6 +129,7 @@ export default function App() {
           </NetworkErrorProvider>
         </WatchlistProvider>
       </AuthProvider>
+      {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
     </GestureHandlerRootView>
   );
 }
