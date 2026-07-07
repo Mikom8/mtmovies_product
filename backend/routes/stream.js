@@ -35,18 +35,21 @@ const MIME_TO_FFMPEG = {
 // Cache codec probe results so we only probe each file once per server run
 const codecCache = new Map();
 
-// Probe the actual video codec from a small chunk using FFprobe
-function probeCodec(buffer) {
+// Probe the actual video codec and duration from a small buffer chunk using FFprobe
+function probeMetadataFromBuffer(buffer) {
   return new Promise((resolve) => {
-    const tmpFile = path.join(HLS_DIR, `probe_${Date.now()}.mp4`);
+    const tmpFile = path.join(HLS_DIR, `probe_${Date.now()}.tmp`);
     fs.writeFileSync(tmpFile, buffer);
     ffmpeg.ffprobe(tmpFile, (err, metadata) => {
       fs.unlink(tmpFile, () => { }); // clean up temp probe file
-      if (err || !metadata) return resolve({ codec: 'unknown', pixFmt: 'unknown' });
+      if (err || !metadata) {
+        return resolve({ codec: 'unknown', pixFmt: 'unknown', duration: 0 });
+      }
       const videoStream = (metadata.streams || []).find(s => s.codec_type === 'video');
       resolve({
         codec: videoStream?.codec_name || 'unknown',
         pixFmt: videoStream?.pix_fmt || 'unknown',
+        duration: metadata.format?.duration ? Number(metadata.format.duration) : 0,
       });
     });
   });
@@ -121,38 +124,28 @@ router.get('/:chatId/:messageId/metadata', async (req, res) => {
     // 1. It is a native format (to check if it needs transcode due to codec/pixFmt)
     // 2. OR we don't have a valid duration yet (duration === 0)
     if (!isNonNative || duration === 0) {
-      const internalStreamUrl = `http://127.0.0.1:${process.env.PORT || 5000}/api/stream/${chatId}/${messageId}`;
-      console.log(`[Probe] ${cacheKey}: Probing via HTTP stream...`);
-
+      console.log(`[Probe] ${cacheKey}: Downloading chunk to probe metadata...`);
       try {
-        const probeData = await new Promise((resolve) => {
-          const timeoutId = setTimeout(() => {
-            console.log(`[Probe] ${cacheKey}: ffprobe timed out`);
-            resolve({ codec: 'unknown', pixFmt: 'unknown', duration });
-          }, 6000);
-
-          ffmpeg.ffprobe(internalStreamUrl, (err, metadata) => {
-            clearTimeout(timeoutId);
-            if (err || !metadata) {
-              console.error(`[Probe] ${cacheKey} error:`, err?.message);
-              return resolve({ codec: 'unknown', pixFmt: 'unknown', duration });
-            }
-            const videoStream = (metadata.streams || []).find(s => s.codec_type === 'video');
-            resolve({
-              codec: videoStream?.codec_name || 'unknown',
-              pixFmt: videoStream?.pix_fmt || 'unknown',
-              duration: metadata.format?.duration ? Number(metadata.format.duration) : duration,
-            });
-          });
+        const fileLocation = new Api.InputDocumentFileLocation({
+          id: document.id,
+          accessHash: document.accessHash,
+          fileReference: document.fileReference,
+          thumbSize: ''
         });
 
-        codec = probeData.codec;
-        pixFmt = probeData.pixFmt;
-        if (probeData.duration > 0) {
-          duration = probeData.duration;
+        // Download first 2MB chunk to probe duration and codec info
+        const chunk = await downloadChunk(fileLocation, 0, 2 * 1024 * 1024);
+        if (chunk && chunk.length > 0) {
+          const probeData = await probeMetadataFromBuffer(chunk);
+          codec = probeData.codec;
+          pixFmt = probeData.pixFmt;
+          if (probeData.duration > 0) {
+            duration = Math.round(probeData.duration);
+            console.log(`[Probe] ${cacheKey}: Probed actual duration = ${duration}s`);
+          }
         }
       } catch (e) {
-        console.error(`[Probe] ${cacheKey} failed:`, e);
+        console.error(`[Probe] ${cacheKey} chunk probe failed:`, e.message);
       }
     }
 
