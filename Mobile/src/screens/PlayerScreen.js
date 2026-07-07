@@ -119,24 +119,21 @@ const PlayerScreen = ({ route, navigation }) => {
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
-      let originalBrightness = null;
 
       (async () => {
         try {
-          originalBrightness = await Brightness.getBrightnessAsync();
-
+          // Apply the user's saved in-app brightness preference
           const savedB = await AsyncStorage.getItem("user_brightness");
           if (savedB !== null && isMounted) {
-            Brightness.setBrightnessAsync(parseFloat(savedB));
+            await Brightness.setBrightnessAsync(parseFloat(savedB));
           }
         } catch (e) { }
       })();
 
       return () => {
         isMounted = false;
-        if (originalBrightness !== null) {
-          Brightness.setBrightnessAsync(originalBrightness).catch(() => { });
-        }
+        // Restore full system brightness control when leaving the player
+        Brightness.useSystemBrightnessAsync().catch(() => { });
       };
     }, []),
   );
