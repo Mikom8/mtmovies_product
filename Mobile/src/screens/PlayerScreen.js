@@ -18,6 +18,7 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import * as Brightness from "expo-brightness";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Slider from "@react-native-community/slider";
 import { useFonts } from "expo-font";
 import { useEvent } from "expo";
@@ -1098,6 +1099,13 @@ const PlayerScreen = ({ route, navigation }) => {
                 </Text>
               )}
               <TouchableOpacity
+                style={styles.videoScale}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name="fit-screen" size={24} color="white" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 style={styles.muteButton}
                 onPress={toggleMute}
                 activeOpacity={0.7}
@@ -1282,7 +1290,7 @@ const styles = StyleSheet.create({
   overlayText: {
     color: "rgba(255,255,255,0.8)",
     fontSize: 14,
-    fontFamily: "TT Medium",
+    fontFamily: "Coolvetica",
   },
   retryBtn: {
     marginTop: 4,
@@ -1319,6 +1327,12 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginRight: 30,
   },
+  videoScale: {
+    backgroundColor: "rgba(0,0,0,0.5)",
+    borderRadius: 20,
+    padding: 6,
+    marginRight: 5,
+  },
   titleText: {
     flex: 1,
     color: "#fff",
@@ -1333,8 +1347,8 @@ const styles = StyleSheet.create({
     top: "50%",
     left: "50%",
     transform: [{ translateX: -75 }, { translateY: -75 }],
-    width: 150,
-    height: 150,
+    width: 130,
+    height: 130,
     backgroundColor: "rgba(0,0,0,0.6)",
     borderRadius: 20,
     justifyContent: "center",
