@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Readable } = require('stream');
-const { client } = require('../services/telegram');
+const { client, getStreamingClient } = require('../services/telegram');
 const { Api } = require('telegram');
 const bigInt = require('big-integer');
 const ffmpeg = require('fluent-ffmpeg');
@@ -102,7 +102,8 @@ async function downloadChunk(fileLocation, offset, size) {
   const chunks = [];
   let downloaded = 0;
   try {
-    for await (const chunk of client.iterDownload({
+    const tgClient = getStreamingClient() || client;
+    for await (const chunk of tgClient.iterDownload({
       file: fileLocation,
       offset: bigInt(offset),
       limit: size,
@@ -311,7 +312,8 @@ router.get('/:chatId/:messageId', async (req, res) => {
         let bytesToSkip = skipBytes;
         console.log(`[Native Stream] Fetching from alignedOffset ${alignedOffset} (skip ${bytesToSkip})`);
 
-        for await (let chunk of client.iterDownload({
+        const tgClient = getStreamingClient() || client;
+        for await (let chunk of tgClient.iterDownload({
           file: fileLocation,
           offset: bigInt(alignedOffset),
           requestSize: chunkSize,
