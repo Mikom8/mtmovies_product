@@ -76,6 +76,14 @@ const PlayerScreen = ({ route, navigation }) => {
   const [polledTime, setPolledTime] = useState(0);
   const [bufferedTime, setBufferedTime] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [contentFit, setContentFit] = useState('contain');
+  const CONTENT_FIT_MODES = ['contain', 'cover', 'fill'];
+  const cycleContentFit = () => {
+    setContentFit(prev => {
+      const idx = CONTENT_FIT_MODES.indexOf(prev);
+      return CONTENT_FIT_MODES[(idx + 1) % CONTENT_FIT_MODES.length];
+    });
+  };
   const [showTimeRemaining, setShowTimeRemaining] = useState(false);
   const controlsTimeoutRef = useRef(null);
 
@@ -898,7 +906,7 @@ const PlayerScreen = ({ route, navigation }) => {
             player={player}
             fullscreenOptions={{ enable: false }}
             allowsPictureInPicture
-            contentFit="contain"
+            contentFit={contentFit}
             nativeControls={false}
           />
 
@@ -1101,6 +1109,7 @@ const PlayerScreen = ({ route, navigation }) => {
               <TouchableOpacity
                 style={styles.videoScale}
                 activeOpacity={0.7}
+                onPress={cycleContentFit}
               >
                 <MaterialIcons name="fit-screen" size={24} color="white" />
               </TouchableOpacity>
