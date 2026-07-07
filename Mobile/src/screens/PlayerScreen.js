@@ -64,6 +64,7 @@ const PlayerScreen = ({ route, navigation }) => {
   const videoRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
+  const [videoReady, setVideoReady] = useState(false);
   const [error, setError] = useState(false);
   const [streamUrl, setStreamUrl] = useState(null);
 
@@ -397,7 +398,6 @@ const PlayerScreen = ({ route, navigation }) => {
     return () => clearTimeout(timeout);
   }, [streamUrl, player]);
 
-  // ── 5. Status & Progress listeners ───────────────────────────────────────
   const { status, error: playerError } = useEvent(player, "statusChange", {
     status: player?.status,
   });
@@ -407,6 +407,16 @@ const PlayerScreen = ({ route, navigation }) => {
   const { duration } = useEvent(player, "sourceLoad", {
     duration: player?.duration ?? 0,
   });
+
+  // When the video actually starts playing for the first time, mark it as ready
+  const hasMarkedReadyRef = useRef(false);
+  useEffect(() => {
+    if (isPlaying && !hasMarkedReadyRef.current) {
+      hasMarkedReadyRef.current = true;
+      setVideoReady(true);
+      setLoading(false);
+    }
+  }, [isPlaying]);
 
   // ── Episode Logic ────────────────────────────────────────────────────────
   const isSeries = !!seriesData;
@@ -540,7 +550,7 @@ const PlayerScreen = ({ route, navigation }) => {
       setLoading(false);
     } else if (status === "readyToPlay") {
       setError(false);
-      setLoading(false);
+      // Don't hide loading yet — wait for first isPlaying=true (first frame rendered)
 
       if (
         user &&
@@ -586,6 +596,8 @@ const PlayerScreen = ({ route, navigation }) => {
   const handleRetry = useCallback(() => {
     setError(false);
     setLoading(true);
+    setVideoReady(false);
+    hasMarkedReadyRef.current = false;
     try {
       if (player && streamUrl) {
         // Appending a timestamp forces the player to treat it as a new URL and actually reload
@@ -936,7 +948,7 @@ const PlayerScreen = ({ route, navigation }) => {
                 <TouchableOpacity
                   onPress={isSeries ? handlePrevEpisode : skipBackward}
                   activeOpacity={0.7}
-                  disabled={isSeries && !prevEp}
+                  disabled={(isSeries && !prevEp) || loading || !videoReady}
                 >
                   <Animated.View
                     style={[
@@ -947,7 +959,8 @@ const PlayerScreen = ({ route, navigation }) => {
                           { rotate: skipBackRotate },
                         ],
                       },
-                      isSeries && !prevEp && { opacity: 0.3 },
+                      isSeries && !prevEp,
+                      (loading || !videoReady),
                     ]}
                   >
                     {isSeries ? (
@@ -963,7 +976,8 @@ const PlayerScreen = ({ route, navigation }) => {
 
                 <TouchableOpacity
                   onPress={togglePlayPause}
-                  style={[styles.controlBtn, styles.playPauseBtn]}
+                  style={[styles.controlBtn, styles.playPauseBtn, (loading || !videoReady) && { opacity: 0 }]}
+                  disabled={loading || !videoReady}
                 >
                   <FontAwesome6
                     name={isPlaying ? "pause" : "play"}
@@ -976,7 +990,7 @@ const PlayerScreen = ({ route, navigation }) => {
                 <TouchableOpacity
                   onPress={isSeries ? handleNextEpisode : skipForward}
                   activeOpacity={0.7}
-                  disabled={isSeries && !nextEp}
+                  disabled={(isSeries && !nextEp) || loading || !videoReady}
                 >
                   <Animated.View
                     style={[
@@ -988,6 +1002,7 @@ const PlayerScreen = ({ route, navigation }) => {
                         ],
                       },
                       isSeries && !nextEp && { opacity: 0.3 },
+                      (loading || !videoReady) && { opacity: 0.3 },
                     ]}
                   >
                     {isSeries ? (
@@ -1119,8 +1134,8 @@ const PlayerScreen = ({ route, navigation }) => {
         <View style={styles.backdrop} />
       )}
 
-      {/* Loading overlay */}
-      {loading && !error && (
+      {/* Loading overlay — stays visible until first frame is painted */}
+      {(loading || !videoReady) && !error && (
         <View style={styles.overlay} pointerEvents="none">
           <ActivityIndicator size="large" color="#E50914" />
           <Text style={styles.overlayText}>Loading…</Text>
