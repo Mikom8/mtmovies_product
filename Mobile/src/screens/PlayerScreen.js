@@ -84,6 +84,7 @@ const PlayerScreen = ({ route, navigation }) => {
       return CONTENT_FIT_MODES[(idx + 1) % CONTENT_FIT_MODES.length];
     });
   };
+  const [isSpeed2x, setIsSpeed2x] = useState(false);
   const [showTimeRemaining, setShowTimeRemaining] = useState(false);
   const controlsTimeoutRef = useRef(null);
 
@@ -170,6 +171,8 @@ const PlayerScreen = ({ route, navigation }) => {
   const panTapSingleTimeoutRef = useRef(null);
   const isActualSwipeRef = useRef(false);
   const lastGestureValueRef = useRef(null);
+  const longPressTimerRef = useRef(null);
+  const isLongPressActiveRef = useRef(false);
 
   // Stable ref so PanResponder (created once) always calls the latest functions
   const panHandlersRef = useRef({});
@@ -179,7 +182,15 @@ const PlayerScreen = ({ route, navigation }) => {
       onStartShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
         isActualSwipeRef.current = false;
+        isLongPressActiveRef.current = false;
         panActionRef.current = null;
+        // Start 2s long press timer
+        longPressTimerRef.current = setTimeout(() => {
+          if (!isActualSwipeRef.current) {
+            isLongPressActiveRef.current = true;
+            panHandlersRef.current.activateSpeed2x?.();
+          }
+        }, 500);
       },
       onPanResponderMove: (evt, gestureState) => {
         const isVertical =
@@ -244,8 +255,23 @@ const PlayerScreen = ({ route, navigation }) => {
               panHandlersRef.current.setIsMuted(false);
           }
         }
+        // Cancel long press if it becomes a swipe
+        if (isActualSwipeRef.current && longPressTimerRef.current) {
+          clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
       },
       onPanResponderRelease: (evt, gestureState) => {
+        // Clear long press timer
+        if (longPressTimerRef.current) {
+          clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+        // Restore normal speed if 2x was active
+        if (isLongPressActiveRef.current) {
+          isLongPressActiveRef.current = false;
+          panHandlersRef.current.deactivateSpeed2x?.();
+        }
         if (!isActualSwipeRef.current) {
           // It was a tap! (Never became a swipe)
           const now = Date.now();
@@ -894,6 +920,14 @@ const PlayerScreen = ({ route, navigation }) => {
   panHandlersRef.current.player = player;
   panHandlersRef.current.isMuted = isMuted;
   panHandlersRef.current.setIsMuted = setIsMuted;
+  panHandlersRef.current.activateSpeed2x = () => {
+    try { player.playbackRate = 2.0; } catch (e) { }
+    setIsSpeed2x(true);
+  };
+  panHandlersRef.current.deactivateSpeed2x = () => {
+    try { player.playbackRate = 1.0; } catch (e) { }
+    setIsSpeed2x(false);
+  };
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -1146,6 +1180,12 @@ const PlayerScreen = ({ route, navigation }) => {
               </View>
             </View>
           )}
+          {/* 2x Speed Badge */}
+          {isSpeed2x && (
+            <View style={styles.speed2xBadge} pointerEvents="none">
+              <Text style={styles.speed2xText}>2x</Text>
+            </View>
+          )}
         </View>
       ) : (
         <View style={styles.backdrop} />
@@ -1295,6 +1335,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(0,0,0,0.75)",
     gap: 14,
+  },
+  speed2xBadge: {
+    position: 'absolute',
+    top: 20,
+    alignSelf: 'center',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    pointerEvents: 'none',
+  },
+  speed2xText: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: 18,
+    paddingVertical: 6,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   overlayText: {
     color: "rgba(255,255,255,0.8)",
