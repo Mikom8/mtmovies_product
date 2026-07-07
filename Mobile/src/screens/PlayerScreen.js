@@ -439,9 +439,17 @@ const PlayerScreen = ({ route, navigation }) => {
   const { isPlaying } = useEvent(player, "playingChange", {
     isPlaying: player?.playing ?? false,
   });
-  const { duration } = useEvent(player, "sourceLoad", {
+  const [duration, setDuration] = useState(0);
+  useEvent(player, "sourceLoad", {
     duration: player?.duration ?? 0,
   });
+  // Also update duration on readyToPlay — AVI files don't have duration in headers
+  // so player.duration is only reliable after the file is fully parsed
+  useEffect(() => {
+    if (player && player.duration > 0) {
+      setDuration(player.duration);
+    }
+  }, [status, isPlaying]);
 
   // When the video actually starts playing for the first time, mark it as ready
   const hasMarkedReadyRef = useRef(false);
