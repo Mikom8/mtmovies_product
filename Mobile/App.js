@@ -41,7 +41,19 @@ const linking = {
   },
 };
 
-function SplashScreen({ onDone }) {
+const navTheme = {
+  dark: true,
+  colors: {
+    primary: '#E50914',
+    background: '#000000',
+    card: '#000000',
+    text: '#ffffff',
+    border: '#000000',
+    notification: '#E50914',
+  },
+};
+
+function SplashScreen({ onDone, fontsLoaded }) {
   const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -63,7 +75,9 @@ function SplashScreen({ onDone }) {
         style={splashStyles.logo}
         resizeMode="contain"
       />
-      <Text style={splashStyles.title}><Text style={{ color: "red" }}>MT</Text>Movies</Text>
+      {fontsLoaded && (
+        <Text style={[splashStyles.title, { fontFamily: "Broche-Cut" }]}><Text style={{ color: "red" }}>MT</Text>Movies</Text>
+      )}
     </Animated.View>
   );
 }
@@ -83,7 +97,6 @@ const splashStyles = StyleSheet.create({
   title: {
     color: '#fff',
     fontSize: 20,
-    fontFamily: "Broche-Cut",
     letterSpacing: 1,
   },
 });
@@ -120,12 +133,12 @@ export default function App() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#000000' }}>
       <AuthProvider>
         <WatchlistProvider>
           <NetworkErrorProvider>
             <MovieProvider>
-              <NavigationContainer ref={navigationRef} linking={linking}>
+              <NavigationContainer ref={navigationRef} linking={linking} theme={navTheme}>
                 <StatusBar style="light" />
                 <AppNavigator />
               </NavigationContainer>
@@ -133,7 +146,7 @@ export default function App() {
           </NetworkErrorProvider>
         </WatchlistProvider>
       </AuthProvider>
-      {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
+      {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} fontsLoaded={fontsLoaded} />}
     </GestureHandlerRootView>
   );
 }
