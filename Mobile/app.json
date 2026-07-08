@@ -7,6 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/img/ic_launcher.png",
     "userInterfaceStyle": "dark",
+    "backgroundColor": "#000000",
     "splash": {
       "image": "./assets/img/ic_launcher.png",
       "resizeMode": "contain",
@@ -18,6 +19,7 @@
     "android": {
       "package": "com.mtmovies.mobile",
       "googleServicesFile": "./google-services.json",
+      "backgroundColor": "#000000",
       "adaptiveIcon": {
         "foregroundImage": "./assets/img/ic_launcher.png",
         "backgroundColor": "#000000"
