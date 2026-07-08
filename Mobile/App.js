@@ -92,6 +92,10 @@ export default function App() {
   const navigationRef = useNavigationContainerRef();
   const [splashDone, setSplashDone] = useState(false);
 
+  const [fontsLoaded] = useFonts({
+    "Broche-Cut": require("./assets/fonts/Broche-Cut.ttf"),
+  });
+
   useEffect(() => {
     // 1. Handle notification tap when app is running (foreground or background)
     const subscription = Notifications.addNotificationResponseReceivedListener(response => {
