@@ -33,6 +33,29 @@ const withLocalProperties = (config) => {
   ]);
 };
 
+// Config plugin: forces Kotlin stdlib to 2.0.21 so incompatible transitive deps are downgrade-resolved.
+const withKotlinResolutionStrategy = (config) => {
+  const { withProjectBuildGradle } = require('@expo/config-plugins');
+  return withProjectBuildGradle(config, (cfg) => {
+    if (cfg.modResults.contents.includes('kotlin-stdlib:2.0.21')) {
+      return cfg;
+    }
+    cfg.modResults.contents = cfg.modResults.contents.replace(
+      /allprojects\s*\{\s*repositories\s*\{/,
+      `allprojects {
+  configurations.all {
+    resolutionStrategy {
+      force "org.jetbrains.kotlin:kotlin-stdlib:2.0.21"
+      force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.21"
+      force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21"
+    }
+  }
+  repositories {`
+    );
+    return cfg;
+  });
+};
+
 module.exports = ({ config }) => {
   return {
     ...config,
@@ -53,6 +76,7 @@ module.exports = ({ config }) => {
       "expo-video",
       "@react-native-google-signin/google-signin",
       withLocalProperties,
+      withKotlinResolutionStrategy,
       [
         "expo-build-properties",
         {
