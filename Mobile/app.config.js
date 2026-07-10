@@ -48,10 +48,21 @@ module.exports = ({ config }) => {
       }
     },
     plugins: [
+      ...(config.plugins || []),
       "expo-font",
       "expo-video",
       "@react-native-google-signin/google-signin",
       withLocalProperties,
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 37,
+            "targetSdkVersion": 37,
+            "kotlinVersion": "2.0.21"
+          }
+        }
+      ]
     ],
 
   };
