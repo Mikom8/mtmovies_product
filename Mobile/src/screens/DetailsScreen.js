@@ -265,6 +265,8 @@ const DetailsScreen = ({ route, navigation }) => {
   const [recommendations, setRecommendations] = useState([]);
   const [resolvedType, setResolvedType] = useState(type);
   const [selectedSeason, setSelectedSeason] = useState(0);
+  const [activeTab, setActiveTab] = useState('episodes'); // 'episodes' | 'moreLikeThis'
+  const [seasonPickerVisible, setSeasonPickerVisible] = useState(false);
   const scrollRef = useRef(null);
   const scrollY = useRef(new Animated.Value(0)).current;
   const insets = useSafeAreaInsets();
@@ -805,38 +807,38 @@ const DetailsScreen = ({ route, navigation }) => {
             </View>
           )}
 
-          {/* ── Series: Season Tabs + Episodes ── */}
-          {isActuallySeries && data.seasons?.length > 0 && (
-            <View style={styles.seasonsSection}>
-              <Text style={styles.sectionHeader}>Episodes</Text>
+          {/* ── Netflix-style Tab Bar (for series) ── */}
+          {isActuallySeries && (
+            <View style={styles.netflixTabBar}>
+              <Pressable
+                style={[styles.netflixTab, activeTab === 'episodes' && styles.netflixTabActive]}
+                onPress={() => setActiveTab('episodes')}
+              >
+                <Text style={[styles.netflixTabText, activeTab === 'episodes' && styles.netflixTabTextActive]}>Episodes</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.netflixTab, activeTab === 'moreLikeThis' && styles.netflixTabActive]}
+                onPress={() => setActiveTab('moreLikeThis')}
+              >
+                <Text style={[styles.netflixTabText, activeTab === 'moreLikeThis' && styles.netflixTabTextActive]}>More Like This</Text>
+              </Pressable>
+            </View>
+          )}
 
-              {/* Season Selector */}
+          {/* ── Episodes Tab ── */}
+          {(!isActuallySeries || activeTab === 'episodes') && isActuallySeries && data.seasons?.length > 0 && (
+            <View style={styles.seasonsSection}>
+              {/* Netflix-style Season Dropdown */}
               {data.seasons.length > 1 && (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.seasonTabRow}
+                <Pressable
+                  style={styles.seasonDropdownBtn}
+                  onPress={() => setSeasonPickerVisible(true)}
                 >
-                  {data.seasons.map((season, idx) => (
-                    <Pressable
-                      key={idx}
-                      style={[
-                        styles.seasonTab,
-                        selectedSeason === idx && styles.seasonTabActive,
-                      ]}
-                      onPress={() => setSelectedSeason(idx)}
-                    >
-                      <Text
-                        style={[
-                          styles.seasonTabText,
-                          selectedSeason === idx && styles.seasonTabTextActive,
-                        ]}
-                      >
-                        Season {season.seasonNumber}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
+                  <Text style={styles.seasonDropdownText}>
+                    Season {data.seasons[selectedSeason]?.seasonNumber}
+                  </Text>
+                  <MaterialIcons name="keyboard-arrow-down" size={20} color="#fff" />
+                </Pressable>
               )}
 
               {/* Episode List */}
@@ -888,17 +890,9 @@ const DetailsScreen = ({ route, navigation }) => {
                     </View>
                     <View style={styles.epPlayBtn}>
                       {!data.isFree && (!user || user.plan === "free") ? (
-                        <Feather
-                          name="lock"
-                          size={18}
-                          color="rgba(255,255,255,0.5)"
-                        />
+                        <Feather name="lock" size={18} color="rgba(255,255,255,0.5)" />
                       ) : (
-                        <MaterialIcons
-                          name="play-arrow"
-                          size={20}
-                          color="#fff"
-                        />
+                        <MaterialIcons name="play-arrow" size={20} color="#fff" />
                       )}
                     </View>
                   </Pressable>
@@ -907,13 +901,14 @@ const DetailsScreen = ({ route, navigation }) => {
             </View>
           )}
 
-          {/* ── More Like This ── */}
-          {recommendations.length > 0 && (
+          {/* ── More Like This Tab (series) or always-on (movies) ── */}
+          {((!isActuallySeries) || (isActuallySeries && activeTab === 'moreLikeThis')) && recommendations.length > 0 && (
             <View style={styles.recSection}>
-              <View style={styles.recHeaderRow}>
-                <Text style={styles.sectionHeader}>You May Also Like</Text>
-              </View>
-
+              {!isActuallySeries && (
+                <View style={styles.recHeaderRow}>
+                  <Text style={styles.sectionHeader}>You May Also Like</Text>
+                </View>
+              )}
               <View style={styles.recGrid}>
                 {recommendations.map((item) => (
                   <RecommendCard
@@ -924,12 +919,40 @@ const DetailsScreen = ({ route, navigation }) => {
                   />
                 ))}
               </View>
-
               <View style={{ marginTop: 24, alignItems: 'center' }}>
                 <StartIoMrecAd />
               </View>
             </View>
           )}
+
+          {/* ── Season Picker Modal ── */}
+          <Modal
+            visible={seasonPickerVisible}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setSeasonPickerVisible(false)}
+          >
+            <Pressable style={styles.seasonModalOverlay} onPress={() => setSeasonPickerVisible(false)}>
+              <View style={styles.seasonModalSheet}>
+                <View style={styles.seasonModalHandle} />
+                <Text style={styles.seasonModalTitle}>Select Season</Text>
+                {data?.seasons?.map((season, idx) => (
+                  <Pressable
+                    key={idx}
+                    style={[styles.seasonModalOption, selectedSeason === idx && styles.seasonModalOptionActive]}
+                    onPress={() => { setSelectedSeason(idx); setSeasonPickerVisible(false); }}
+                  >
+                    <Text style={[styles.seasonModalOptionText, selectedSeason === idx && styles.seasonModalOptionTextActive]}>
+                      Season {season.seasonNumber}
+                    </Text>
+                    {selectedSeason === idx && (
+                      <MaterialIcons name="check" size={18} color="#E50914" />
+                    )}
+                  </Pressable>
+                ))}
+              </View>
+            </Pressable>
+          </Modal>
         </View>
       </Animated.ScrollView>
 
@@ -1286,24 +1309,103 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
 
-  // ── Season tabs ──
+  // ── Netflix Tab Bar ──
+  netflixTabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+    marginBottom: 20,
+  },
+  netflixTab: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
+  },
+  netflixTabActive: {
+    borderBottomColor: '#E50914',
+  },
+  netflixTabText: {
+    color: '#888',
+    fontSize: 14,
+    fontFamily: 'TT Medium',
+    letterSpacing: 0.3,
+  },
+  netflixTabTextActive: {
+    color: '#fff',
+  },
+
+  // ── Season dropdown ──
   seasonsSection: { marginBottom: 24 },
-  seasonTabRow: { marginBottom: 12 },
-  seasonTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.07)",
+  seasonDropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
-    marginRight: 8,
+    borderColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginBottom: 16,
+    gap: 4,
   },
-  seasonTabActive: {
-    backgroundColor: "#E50914",
-    borderColor: "#E50914",
+  seasonDropdownText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'TT Medium',
   },
-  seasonTabText: { color: "#aaa", fontSize: 13, fontFamily: "TT" },
-  seasonTabTextActive: { color: "#fff", fontFamily: "TT Medium" },
+
+  // ── Season Picker Modal ──
+  seasonModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  seasonModalSheet: {
+    backgroundColor: '#1a1a1a',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingBottom: 36,
+    paddingTop: 12,
+  },
+  seasonModalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  seasonModalTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'Coolvetica',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  seasonModalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  seasonModalOptionActive: {
+    backgroundColor: 'rgba(229,9,20,0.08)',
+  },
+  seasonModalOptionText: {
+    color: '#ccc',
+    fontSize: 15,
+    fontFamily: 'TT',
+  },
+  seasonModalOptionTextActive: {
+    color: '#fff',
+    fontFamily: 'TT Medium',
+  },
 
   // ── Episode row ──
   episodeRow: {
