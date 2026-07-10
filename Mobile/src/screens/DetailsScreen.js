@@ -898,6 +898,10 @@ const DetailsScreen = ({ route, navigation }) => {
                   </Pressable>
                 );
               })}
+
+              <View style={{ marginTop: 24, alignItems: 'center' }}>
+                <StartIoMrecAd />
+              </View>
             </View>
           )}
 
@@ -929,29 +933,33 @@ const DetailsScreen = ({ route, navigation }) => {
           <Modal
             visible={seasonPickerVisible}
             transparent
-            animationType="slide"
+            animationType="fade"
             onRequestClose={() => setSeasonPickerVisible(false)}
           >
-            <Pressable style={styles.seasonModalOverlay} onPress={() => setSeasonPickerVisible(false)}>
-              <View style={styles.seasonModalSheet}>
-                <View style={styles.seasonModalHandle} />
-                <Text style={styles.seasonModalTitle}>Select Season</Text>
-                {data?.seasons?.map((season, idx) => (
-                  <Pressable
-                    key={idx}
-                    style={[styles.seasonModalOption, selectedSeason === idx && styles.seasonModalOptionActive]}
-                    onPress={() => { setSelectedSeason(idx); setSeasonPickerVisible(false); }}
-                  >
-                    <Text style={[styles.seasonModalOptionText, selectedSeason === idx && styles.seasonModalOptionTextActive]}>
-                      Season {season.seasonNumber}
-                    </Text>
-                    {selectedSeason === idx && (
-                      <MaterialIcons name="check" size={18} color="#E50914" />
-                    )}
-                  </Pressable>
-                ))}
+            <View style={styles.seasonModalOverlay}>
+              <View style={styles.seasonModalContent}>
+                <Text style={styles.seasonModalTitle}>Seasons</Text>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {data?.seasons?.map((season, idx) => (
+                    <Pressable
+                      key={idx}
+                      style={styles.seasonModalOption}
+                      onPress={() => { setSelectedSeason(idx); setSeasonPickerVisible(false); }}
+                    >
+                      <Text style={[styles.seasonModalOptionText, selectedSeason === idx && styles.seasonModalOptionTextActive]}>
+                        Season {season.seasonNumber}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+                <Pressable
+                  style={styles.seasonModalCloseBtn}
+                  onPress={() => setSeasonPickerVisible(false)}
+                >
+                  <MaterialIcons name="cancel" size={40} color="#fff" />
+                </Pressable>
               </View>
-            </Pressable>
+            </View>
           </Modal>
         </View>
       </Animated.ScrollView>
@@ -1359,52 +1367,50 @@ const styles = StyleSheet.create({
 
   // ── Season Picker Modal ──
   seasonModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    zIndex: 1000,
   },
-  seasonModalSheet: {
-    backgroundColor: '#1a1a1a',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingBottom: 36,
-    paddingTop: 12,
-  },
-  seasonModalHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignSelf: 'center',
-    marginBottom: 16,
+  seasonModalContent: {
+    width: '100%',
+    maxHeight: '80%',
+    backgroundColor: '#16161F',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
   },
   seasonModalTitle: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 22,
     fontFamily: 'Coolvetica',
-    textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 20,
   },
   seasonModalOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
     paddingVertical: 15,
+    width: W * 0.65,
+    alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
-  },
-  seasonModalOptionActive: {
-    backgroundColor: 'rgba(229,9,20,0.08)',
+    borderBottomColor: '#27272A',
   },
   seasonModalOptionText: {
-    color: '#ccc',
-    fontSize: 15,
+    color: '#A0A0AB',
+    fontSize: 18,
     fontFamily: 'TT',
   },
   seasonModalOptionTextActive: {
     color: '#fff',
+    fontSize: 20,
     fontFamily: 'TT Medium',
+  },
+  seasonModalCloseBtn: {
+    marginTop: 20,
   },
 
   // ── Episode row ──
