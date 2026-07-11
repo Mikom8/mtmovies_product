@@ -48,11 +48,11 @@
     "extra": {
       "EXPO_GOOGLE_CLIENT_ID": "1234-your-expo-client-id.apps.googleusercontent.com",
       "IOS_GOOGLE_CLIENT_ID": "5678-your-ios-client-id.apps.googleusercontent.com",
-      "ANDROID_GOOGLE_CLIENT_ID": "9012-your-android-client-id.apps.googleusercontent.com",
-      "WEB_GOOGLE_CLIENT_ID": "3456-your-web-client-id.apps.googleusercontent.com",
+      "ANDROID_GOOGLE_CLIENT_ID": "733179551984-695g0hi3a8c0pl4rk5j7u7ii14seh8l5.apps.googleusercontent.com",
+      "WEB_GOOGLE_CLIENT_ID": "733179551984-0ji089a9lptnkofd0es2jbdkpi6qfeb6.apps.googleusercontent.com",
       "API_BASE_URL": "https://mtmoviesproduct-production.up.railway.app/api",
       "eas": {
-        "projectId": "fdadf6fd-60cc-49ca-9408-78d4ca38bede"
+        "projectId": "d60c5aaa-6677-4577-871a-6ca71484d824"
       }
     },
     "notification": {
@@ -76,6 +76,7 @@
           }
         }
       ]
-    ]
+    ],
+    "owner": "workhard8"
   }
 }

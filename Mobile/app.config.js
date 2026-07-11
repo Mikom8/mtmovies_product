@@ -87,7 +87,7 @@ module.exports = ({ config }) => {
       WEB_GOOGLE_CLIENT_ID: process.env.WEB_GOOGLE_CLIENT_ID || '',
       API_BASE_URL: process.env.API_BASE_URL || (process.env.EAS_BUILD === 'true' ? 'https://mtmoviesproduct-production.up.railway.app/api' : `http://${getLocalIp()}:5000/api`),
       eas: {
-        projectId: "fdadf6fd-60cc-49ca-9408-78d4ca38bede"
+        projectId: "d60c5aaa-6677-4577-871a-6ca71484d824"
       }
     },
     plugins: [
