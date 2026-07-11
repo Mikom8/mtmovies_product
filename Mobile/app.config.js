@@ -36,8 +36,9 @@ const withLocalProperties = (config) => {
 // Config plugin: Configures all projects with Kotlin resolution strategy, 
 // disables AarMetadata tasks, and overrides compileSdk/targetSdk to 36.
 const withAndroidProjectConfiguration = (config) => {
-  const { withProjectBuildGradle } = require('@expo/config-plugins');
-  return withProjectBuildGradle(config, (cfg) => {
+  const { withProjectBuildGradle, withGradleProperties } = require('@expo/config-plugins');
+  
+  config = withProjectBuildGradle(config, (cfg) => {
     if (cfg.modResults.contents.includes('androidProjectConfigurationApplied')) {
       return cfg;
     }
@@ -74,6 +75,20 @@ allprojects {
     );
     return cfg;
   });
+
+  config = withGradleProperties(config, (cfg) => {
+    const hasProp = cfg.modResults.some(prop => prop.key === 'reactNativeArchitectures');
+    if (!hasProp) {
+      cfg.modResults.push({
+        type: 'property',
+        key: 'reactNativeArchitectures',
+        value: 'arm64-v8a'
+      });
+    }
+    return cfg;
+  });
+
+  return config;
 };
 
 module.exports = ({ config }) => {
