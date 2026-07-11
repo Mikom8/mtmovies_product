@@ -19,6 +19,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
+import { LinearGradient } from "expo-linear-gradient";
 import Svg, {
   Defs,
   LinearGradient as SvgGradient,
@@ -30,44 +31,62 @@ import NetworkErrorView from "../components/NetworkErrorView";
 
 const { width, height } = Dimensions.get("window");
 
-const SkeletonLoader = () => {
-  const pulseAnim = React.useRef(new Animated.Value(0.3)).current;
+const ShimmerBlock = ({ width, height, style, borderRadius = 4 }) => {
+  const anim = React.useRef(new Animated.Value(0)).current;
+  const screenWidth = Dimensions.get('window').width;
 
   React.useEffect(() => {
     Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 0.7, duration: 800, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 0.3, duration: 800, useNativeDriver: true })
-      ])
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      })
     ).start();
-  }, [pulseAnim]);
+  }, [anim]);
+
+  const translateX = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-screenWidth, screenWidth],
+  });
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#000000ff", paddingTop: 40 }}>
-      <Animated.View style={{ opacity: pulseAnim }}>
-        {/* Hero Skeleton */}
-        <View style={{ width: "100%", height: height * 0.6, backgroundColor: "#1c1c1c", marginBottom: 30 }} />
-
-        {/* Section Title 1 */}
-        <View style={{ width: 140, height: 24, backgroundColor: "#1c1c1c", borderRadius: 4, marginLeft: 20, marginBottom: 15 }} />
-        {/* Horizontal Scroll 1 */}
-        <View style={{ flexDirection: "row", paddingLeft: 20, marginBottom: 30 }}>
-          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
-          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
-          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
-          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
-        </View>
-
-        {/* Section Title 2 */}
-        <View style={{ width: 180, height: 24, backgroundColor: "#1c1c1c", borderRadius: 4, marginLeft: 20, marginBottom: 15 }} />
-        {/* Horizontal Scroll 2 */}
-        <View style={{ flexDirection: "row", paddingLeft: 20 }}>
-          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
-          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
-          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
-          <View style={{ width: width * 0.28, height: width * 0.42, backgroundColor: "#1c1c1c", borderRadius: 12, marginRight: 12 }} />
-        </View>
+    <View style={[{ width, height, backgroundColor: '#1c1c1c', overflow: 'hidden', borderRadius }, style]}>
+      <Animated.View style={{ ...StyleSheet.absoluteFillObject, transform: [{ translateX }] }}>
+        <LinearGradient
+          colors={['transparent', 'rgba(255, 255, 255, 0.08)', 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={StyleSheet.absoluteFillObject}
+        />
       </Animated.View>
+    </View>
+  );
+};
+
+const SkeletonLoader = () => {
+  return (
+    <View style={{ flex: 1, backgroundColor: "#000000ff" }}>
+      {/* Hero Skeleton */}
+      <ShimmerBlock width="100%" height={height * 0.6} borderRadius={0} style={{ marginBottom: 30 }} />
+
+      {/* Section Title 1 */}
+      <ShimmerBlock width={140} height={24} style={{ marginLeft: 20, marginBottom: 15 }} />
+      {/* Horizontal Scroll 1 */}
+      <View style={{ flexDirection: "row", paddingLeft: 20, marginBottom: 30 }}>
+        {[1, 2, 3, 4].map(i => (
+          <ShimmerBlock key={i} width={width * 0.28} height={width * 0.42} borderRadius={12} style={{ marginRight: 12 }} />
+        ))}
+      </View>
+
+      {/* Section Title 2 */}
+      <ShimmerBlock width={180} height={24} style={{ marginLeft: 20, marginBottom: 15 }} />
+      {/* Horizontal Scroll 2 */}
+      <View style={{ flexDirection: "row", paddingLeft: 20 }}>
+        {[1, 2, 3, 4].map(i => (
+          <ShimmerBlock key={i} width={width * 0.28} height={width * 0.42} borderRadius={12} style={{ marginRight: 12 }} />
+        ))}
+      </View>
     </View>
   );
 };

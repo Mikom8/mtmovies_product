@@ -213,41 +213,62 @@ function getSeriesContinueInfo(data, watchHistory) {
 }
 
 // ── Skeleton Loader ───────────────────────────────────────────────────────────
-const DetailsSkeleton = () => {
-  const anim = useRef(new Animated.Value(0.4)).current;
+const ShimmerBlock = ({ width, height, style, borderRadius = 4 }) => {
+  const anim = useRef(new Animated.Value(0)).current;
+  const screenWidth = Dimensions.get('window').width;
+
   useEffect(() => {
     Animated.loop(
-      Animated.sequence([
-        Animated.timing(anim, { toValue: 1.0, duration: 600, useNativeDriver: true }),
-        Animated.timing(anim, { toValue: 0.4, duration: 600, useNativeDriver: true })
-      ])
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      })
     ).start();
   }, [anim]);
 
-  const baseColor = 'rgba(255, 255, 255, 0.25)'; // Slightly brighter gray for more visibility
+  const translateX = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-screenWidth, screenWidth],
+  });
 
+  return (
+    <View style={[{ width, height, backgroundColor: '#1A1A1A', overflow: 'hidden', borderRadius }, style]}>
+      <Animated.View style={{ ...StyleSheet.absoluteFillObject, transform: [{ translateX }] }}>
+        <LinearGradient
+          colors={['transparent', 'rgba(255, 255, 255, 0.08)', 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={StyleSheet.absoluteFillObject}
+        />
+      </Animated.View>
+    </View>
+  );
+};
+
+const DetailsSkeleton = () => {
   return (
     <View style={styles.root}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      <Animated.View style={{ height: HERO_H, backgroundColor: baseColor, opacity: anim }} />
+      <ShimmerBlock width="100%" height={HERO_H} borderRadius={0} />
       <View style={styles.infoSection}>
-        <Animated.View style={{ height: 32, width: '70%', backgroundColor: baseColor, borderRadius: 4, marginBottom: 16, opacity: anim }} />
+        <ShimmerBlock width="70%" height={32} style={{ marginBottom: 16 }} />
         <View style={styles.metaRow}>
-          <Animated.View style={{ height: 24, width: 60, backgroundColor: baseColor, borderRadius: 12, opacity: anim }} />
-          <Animated.View style={{ height: 24, width: 80, backgroundColor: baseColor, borderRadius: 12, opacity: anim }} />
-          <Animated.View style={{ height: 24, width: 50, backgroundColor: baseColor, borderRadius: 12, opacity: anim }} />
+          <ShimmerBlock width={60} height={24} borderRadius={12} />
+          <ShimmerBlock width={80} height={24} borderRadius={12} />
+          <ShimmerBlock width={50} height={24} borderRadius={12} />
         </View>
-        <Animated.View style={{ height: 48, width: '100%', backgroundColor: baseColor, borderRadius: 8, marginBottom: 24, opacity: anim }} />
-        <Animated.View style={{ height: 16, width: '100%', backgroundColor: baseColor, borderRadius: 4, marginBottom: 10, opacity: anim }} />
-        <Animated.View style={{ height: 16, width: '90%', backgroundColor: baseColor, borderRadius: 4, marginBottom: 10, opacity: anim }} />
-        <Animated.View style={{ height: 16, width: '80%', backgroundColor: baseColor, borderRadius: 4, opacity: anim }} />
+        <ShimmerBlock width="100%" height={48} borderRadius={8} style={{ marginBottom: 24 }} />
+        <ShimmerBlock width="100%" height={16} style={{ marginBottom: 10 }} />
+        <ShimmerBlock width="90%" height={16} style={{ marginBottom: 10 }} />
+        <ShimmerBlock width="80%" height={16} />
 
         {/* Skeleton for More Like This */}
         <View style={{ marginTop: 32 }}>
-          <Animated.View style={{ height: 20, width: 120, backgroundColor: baseColor, borderRadius: 4, marginBottom: 14, opacity: anim }} />
+          <ShimmerBlock width={120} height={20} style={{ marginBottom: 14 }} />
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Animated.View key={i} style={{ width: CARD_W, height: CARD_W * 1.5, backgroundColor: baseColor, borderRadius: 10, opacity: anim }} />
+              <ShimmerBlock key={i} width={CARD_W} height={CARD_W * 1.5} borderRadius={10} />
             ))}
           </View>
         </View>

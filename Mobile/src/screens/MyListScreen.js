@@ -20,6 +20,7 @@ import { useAuth } from "../context/AuthContext";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { LinearGradient } from "expo-linear-gradient";
+import NetworkErrorView from "../components/NetworkErrorView";
 
 const { width } = Dimensions.get("window");
 const COLUMN_COUNT = 3;
@@ -48,7 +49,7 @@ const MyListScreen = ({ navigation }) => {
   });
 
   const { watchlist, loading } = useWatchlist();
-  const { movies, series } = useMovies();
+  const { movies, series, error, refresh } = useMovies();
   const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState("watchlist"); // 'watchlist' | 'history'
   const [playingId, setPlayingId] = useState(null);
@@ -271,6 +272,14 @@ const MyListScreen = ({ navigation }) => {
       </View>
     );
   };
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <NetworkErrorView onRetry={refresh} isRetrying={loading} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
