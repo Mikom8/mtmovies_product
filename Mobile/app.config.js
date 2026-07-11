@@ -69,8 +69,14 @@ const withCompileSdkOverride = (config) => {
       /allprojects\s*\{/,
       `// compileSdkOverrideApplied
 allprojects {
+  // Disable AAR metadata checks so StartApp SDK doesn't complain about compileSdk 36
+  tasks.whenTaskAdded { task ->
+    if (task.name.contains("AarMetadata")) {
+      task.enabled = false
+    }
+  }
+
   // Force all modules to use compileSdk 36 to avoid android-37 hash resolution issue on EAS
-  configurations.all {}
   afterEvaluate {
     if (project.hasProperty('android')) {
       android {
