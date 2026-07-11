@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, Component } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   Animated,
   Modal,
 } from "react-native";
+import Ripple from 'react-native-material-ripple';
 import YoutubePlayer from "react-native-youtube-iframe";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFonts } from "expo-font";
@@ -810,18 +811,24 @@ const DetailsScreen = ({ route, navigation }) => {
           {/* ── Netflix-style Tab Bar (for series) ── */}
           {isActuallySeries && (
             <View style={styles.netflixTabBar}>
-              <Pressable
+              <Ripple
+                rippleColor="#fff"
+                rippleFades={false}
+                rippleOpacity={0.1}
                 style={[styles.netflixTab, activeTab === 'episodes' && styles.netflixTabActive]}
                 onPress={() => setActiveTab('episodes')}
               >
                 <Text style={[styles.netflixTabText, activeTab === 'episodes' && styles.netflixTabTextActive]}>Episodes</Text>
-              </Pressable>
-              <Pressable
+              </Ripple>
+              <Ripple
+                rippleColor="#fff"
+                rippleFades={false}
+                rippleOpacity={0.1}
                 style={[styles.netflixTab, activeTab === 'moreLikeThis' && styles.netflixTabActive]}
                 onPress={() => setActiveTab('moreLikeThis')}
               >
                 <Text style={[styles.netflixTabText, activeTab === 'moreLikeThis' && styles.netflixTabTextActive]}>You May Also Like</Text>
-              </Pressable>
+              </Ripple>
             </View>
           )}
 
@@ -830,7 +837,10 @@ const DetailsScreen = ({ route, navigation }) => {
             <View style={styles.seasonsSection}>
               {/* Netflix-style Season Dropdown */}
               {data.seasons.length > 1 && (
-                <Pressable
+                <Ripple
+                  rippleColor="#fff"
+                  rippleFades={true}
+                  rippleOpacity={0.3}
                   style={styles.seasonDropdownBtn}
                   onPress={() => setSeasonPickerVisible(true)}
                 >
@@ -838,7 +848,7 @@ const DetailsScreen = ({ route, navigation }) => {
                     Season {data.seasons[selectedSeason]?.seasonNumber}
                   </Text>
                   <MaterialIcons name="keyboard-arrow-down" size={20} color="#fff" />
-                </Pressable>
+                </Ripple>
               )}
 
               {/* Episode List */}
