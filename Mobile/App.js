@@ -70,7 +70,7 @@ function SplashScreen({ onDone, fontsLoaded }) {
   return (
     <Animated.View style={[StyleSheet.absoluteFill, splashStyles.container, { opacity }]} pointerEvents="none">
       <Image
-        source={require('./assets/img/unnamed-removebg-preview.png')}
+        source={require('./assets/img/removebgIcon.png')}
         style={splashStyles.logo}
         resizeMode="contain"
       />

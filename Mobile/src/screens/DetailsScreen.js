@@ -148,7 +148,7 @@ const RecommendCard = React.memo(({ item, type, onPress }) => (
   >
     <View style={styles.recPosterContainer}>
       <Image
-        source={require("../../assets/img/unnamed-removebg-preview.png")}
+        source={require("../../assets/img/removebgIcon.png")}
         style={{ position: "absolute", width: "40%", height: "40%", opacity: 0.2 }}
         resizeMode="contain"
       />

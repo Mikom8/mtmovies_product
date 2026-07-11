@@ -119,7 +119,7 @@ const ContentCard = React.memo(({ item, sectionTitle, variant, onPress }) => {
     >
       <View style={{ borderRadius: 7, overflow: "hidden", backgroundColor: "#1c1c1c", justifyContent: "center", alignItems: "center" }}>
         <Image
-          source={require("../../assets/img/unnamed-removebg-preview.png")}
+          source={require("../../assets/img/removebgIcon.png")}
           style={{ position: "absolute", width: "40%", height: "40%", opacity: 0.2 }}
           resizeMode="contain"
         />
@@ -584,7 +584,7 @@ const HomeScreen = () => {
           <View style={styles.topHeader}>
             <View style={styles.headerLeft}>
               <Image
-                source={require("../../assets/img/unnamed-removebg-preview.png")}
+                source={require("../../assets/img/removebgIcon.png")}
                 style={styles.logoImage}
               />
             </View>

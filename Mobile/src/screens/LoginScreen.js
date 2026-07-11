@@ -112,7 +112,7 @@ const LoginScreen = ({ navigation, route }) => {
     // Note: mutating route.params is okay for our simple flow
     try {
       if (route?.params) route.params.mode = undefined;
-    } catch (e) {}
+    } catch (e) { }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -201,277 +201,277 @@ const LoginScreen = ({ navigation, route }) => {
         style={styles.container}
       >
         <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        scrollEnabled={height < 800}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Skip Button */}
-        <Pressable
-          style={({ pressed }) => [
-            styles.skipBtn,
-            pressed && { backgroundColor: "rgba(229, 9, 20, 0.2)" },
-          ]}
-          onPress={() => {
-            if (navigation?.canGoBack && navigation.canGoBack()) {
-              navigation.goBack();
-            } else {
-              navigation?.reset({
-                index: 0,
-                routes: [{ name: "Main" }],
-              });
-            }
-          }}
+          contentContainerStyle={styles.scrollContent}
+          scrollEnabled={height < 800}
+          showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.skipText}>Skip</Text>
-        </Pressable>
+          {/* Skip Button */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.skipBtn,
+              pressed && { backgroundColor: "rgba(229, 9, 20, 0.2)" },
+            ]}
+            onPress={() => {
+              if (navigation?.canGoBack && navigation.canGoBack()) {
+                navigation.goBack();
+              } else {
+                navigation?.reset({
+                  index: 0,
+                  routes: [{ name: "Main" }],
+                });
+              }
+            }}
+          >
+            <Text style={styles.skipText}>Skip</Text>
+          </Pressable>
 
-        {/* Brand */}
-        <View style={styles.brandContainer}>
-          <Image
-            source={require("../../assets/img/unnamed-removebg-preview.png")}
-            style={styles.logo}
-          />
-          <Text style={styles.brandText}>
-            <Text style={styles.brandBold}>MT</Text>
-            <Text style={styles.brandRegular}>Movies</Text>
-          </Text>
-        </View>
-
-        {/* Title & Subtitle */}
-        <View style={styles.headerContainer}>
-          <Text style={styles.title}>
-            {mode === "signup" ? "Create Account" : "Sign In"}
-          </Text>
-          <Text style={styles.subtitle}>
-            {mode === "signup"
-              ? "Join MTMovies — watch English movies in Amharic"
-              : "Welcome back! Sign in to keep watching"}
-          </Text>
-        </View>
-
-        {/* Email Field */}
-        <View style={styles.field}>
-          <View style={styles.inputWrapper}>
-            <Feather
-              name="mail"
-              size={18}
-              color="rgba(255, 255, 255, 1)"
-              style={styles.icon}
+          {/* Brand */}
+          <View style={styles.brandContainer}>
+            <Image
+              source={require("../../assets/img/removebgIcon.png")}
+              style={styles.logo}
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Email Address"
-              placeholderTextColor="rgba(255, 255, 255, 0.7)"
-              value={email}
-              onChangeText={handleEmailChange}
-              onBlur={handleEmailBlur}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              editable={!loading}
-              returnKeyType="next"
-              onSubmitEditing={() => passwordRef.current?.focus()}
-            />
-            {checking && (
-              <ActivityIndicator size="small" color="rgba(255, 255, 255, 1)" />
-            )}
-          </View>
-        </View>
-
-        {/* Password Field */}
-        <View style={styles.field}>
-          <View style={styles.inputWrapper}>
-            <Feather
-              name="lock"
-              size={18}
-              color="rgba(255, 255, 255, 1)"
-              style={styles.icon}
-            />
-            <TextInput
-              ref={passwordRef}
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="rgba(255, 255, 255, 0.7)"
-              value={password}
-              onChangeText={(val) => {
-                setPassword(val);
-                if (mode === "signup") calcStrength(val);
-              }}
-              secureTextEntry={!showPass}
-              maxLength={20}
-              editable={!loading}
-              returnKeyType="go"
-              onSubmitEditing={handleSubmit}
-            />
-            <Pressable
-              onPress={() => setShowPass(!showPass)}
-              style={({ pressed }) => [
-                { padding: 4, borderRadius: 10 },
-                pressed && { backgroundColor: "rgba(255,255,255,0.1)" },
-              ]}
-            >
-              {showPass ? (
-                <Feather
-                  name="eye-off"
-                  size={18}
-                  color="rgba(255, 255, 255, 1)"
-                />
-              ) : (
-                <Feather name="eye" size={18} color="rgba(255, 255, 255, 1)" />
-              )}
-            </Pressable>
+            <Text style={styles.brandText}>
+              <Text style={styles.brandBold}>MT</Text>
+              <Text style={styles.brandRegular}>Movies</Text>
+            </Text>
           </View>
 
-          {/* Strength bar for signup */}
-          {mode === "signup" && password && (
-            <View style={styles.strengthWrap}>
-              <View style={styles.strengthBar}>
-                <View
-                  style={[
-                    styles.strengthFill,
-                    {
-                      width: strength.width,
-                      backgroundColor: strength.color,
-                    },
-                  ]}
-                />
-              </View>
-              {strength.label && (
-                <Text style={[styles.strengthLabel, { color: strength.color }]}>
-                  {strength.label}
-                </Text>
+          {/* Title & Subtitle */}
+          <View style={styles.headerContainer}>
+            <Text style={styles.title}>
+              {mode === "signup" ? "Create Account" : "Sign In"}
+            </Text>
+            <Text style={styles.subtitle}>
+              {mode === "signup"
+                ? "Join MTMovies — watch English movies in Amharic"
+                : "Welcome back! Sign in to keep watching"}
+            </Text>
+          </View>
+
+          {/* Email Field */}
+          <View style={styles.field}>
+            <View style={styles.inputWrapper}>
+              <Feather
+                name="mail"
+                size={18}
+                color="rgba(255, 255, 255, 1)"
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Email Address"
+                placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                value={email}
+                onChangeText={handleEmailChange}
+                onBlur={handleEmailBlur}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!loading}
+                returnKeyType="next"
+                onSubmitEditing={() => passwordRef.current?.focus()}
+              />
+              {checking && (
+                <ActivityIndicator size="small" color="rgba(255, 255, 255, 1)" />
               )}
             </View>
+          </View>
+
+          {/* Password Field */}
+          <View style={styles.field}>
+            <View style={styles.inputWrapper}>
+              <Feather
+                name="lock"
+                size={18}
+                color="rgba(255, 255, 255, 1)"
+                style={styles.icon}
+              />
+              <TextInput
+                ref={passwordRef}
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                value={password}
+                onChangeText={(val) => {
+                  setPassword(val);
+                  if (mode === "signup") calcStrength(val);
+                }}
+                secureTextEntry={!showPass}
+                maxLength={20}
+                editable={!loading}
+                returnKeyType="go"
+                onSubmitEditing={handleSubmit}
+              />
+              <Pressable
+                onPress={() => setShowPass(!showPass)}
+                style={({ pressed }) => [
+                  { padding: 4, borderRadius: 10 },
+                  pressed && { backgroundColor: "rgba(255,255,255,0.1)" },
+                ]}
+              >
+                {showPass ? (
+                  <Feather
+                    name="eye-off"
+                    size={18}
+                    color="rgba(255, 255, 255, 1)"
+                  />
+                ) : (
+                  <Feather name="eye" size={18} color="rgba(255, 255, 255, 1)" />
+                )}
+              </Pressable>
+            </View>
+
+            {/* Strength bar for signup */}
+            {mode === "signup" && password && (
+              <View style={styles.strengthWrap}>
+                <View style={styles.strengthBar}>
+                  <View
+                    style={[
+                      styles.strengthFill,
+                      {
+                        width: strength.width,
+                        backgroundColor: strength.color,
+                      },
+                    ]}
+                  />
+                </View>
+                {strength.label && (
+                  <Text style={[styles.strengthLabel, { color: strength.color }]}>
+                    {strength.label}
+                  </Text>
+                )}
+              </View>
+            )}
+          </View>
+
+          {/* Error Message */}
+          {error ? (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
+
+          {/* Submit Button */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.submitBtn,
+              loading && styles.submitBtnDisabled,
+              pressed && !loading && styles.submitPressed,
+            ]}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            <Text style={styles.submitBtnText}>{btnLabel}</Text>
+            {!loading && <Feather name="chevron-right" size={18} color="#fff" />}
+          </Pressable>
+
+          {/* Forgot Password */}
+          {mode === "signin" && (
+            <View style={styles.forgotWrap}>
+              <Pressable
+                style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+              >
+                <Text style={styles.forgotText}>Forgot Password?</Text>
+              </Pressable>
+            </View>
           )}
-        </View>
 
-        {/* Error Message */}
-        {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error}</Text>
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
           </View>
-        ) : null}
 
-        {/* Submit Button */}
-        <Pressable
-          style={({ pressed }) => [
-            styles.submitBtn,
-            loading && styles.submitBtnDisabled,
-            pressed && !loading && styles.submitPressed,
-          ]}
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          <Text style={styles.submitBtnText}>{btnLabel}</Text>
-          {!loading && <Feather name="chevron-right" size={18} color="#fff" />}
-        </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.googleBtn,
+              pressed && { backgroundColor: "rgba(255,255,255,0.15)" },
+            ]}
+            onPress={async () => {
+              try {
+                await GoogleSignin.hasPlayServices();
+                await GoogleSignin.signIn();
+                // The backend requires an access_token, not an idToken
+                const { accessToken } = await GoogleSignin.getTokens();
 
-        {/* Forgot Password */}
-        {mode === "signin" && (
-          <View style={styles.forgotWrap}>
-            <Pressable
-              style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
-            >
-              <Text style={styles.forgotText}>Forgot Password?</Text>
-            </Pressable>
-          </View>
-        )}
-
-        {/* Divider */}
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.googleBtn,
-            pressed && { backgroundColor: "rgba(255,255,255,0.15)" },
-          ]}
-          onPress={async () => {
-            try {
-              await GoogleSignin.hasPlayServices();
-              await GoogleSignin.signIn();
-              // The backend requires an access_token, not an idToken
-              const { accessToken } = await GoogleSignin.getTokens();
-              
-              if (accessToken) {
-                await handleGoogleBackendLogin(accessToken);
-              } else {
-                setError("Google Sign-In failed: No access token returned");
+                if (accessToken) {
+                  await handleGoogleBackendLogin(accessToken);
+                } else {
+                  setError("Google Sign-In failed: No access token returned");
+                }
+              } catch (error) {
+                if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+                  // user cancelled the login flow, clear any existing error and do nothing
+                  setError("");
+                } else if (error.code === statusCodes.IN_PROGRESS) {
+                  setError("Sign in is already in progress.");
+                } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+                  setError("Google Play Services not available or outdated.");
+                } else {
+                  console.log("Google Sign-In Error:", error);
+                  setError("Google Sign-in failed. Please try again.");
+                }
               }
-            } catch (error) {
-              if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-                // user cancelled the login flow, clear any existing error and do nothing
-                setError("");
-              } else if (error.code === statusCodes.IN_PROGRESS) {
-                setError("Sign in is already in progress.");
-              } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-                setError("Google Play Services not available or outdated.");
-              } else {
-                console.log("Google Sign-In Error:", error);
-                setError("Google Sign-in failed. Please try again.");
-              }
-            }
-          }}
-          disabled={loading}
-        >
-          <Image
-            source={require("../../assets/img/transparent-google-logo-google-logo-in-black-circle-colorful-1710875294177-removebg-preview.png")}
-            style={{ width: 18, height: 18, marginRight: 8 }}
-          />
-          <Text style={styles.googleBtnText}>Continue with Google</Text>
-        </Pressable>
+            }}
+            disabled={loading}
+          >
+            <Image
+              source={require("../../assets/img/transparent-google-logo-google-logo-in-black-circle-colorful-1710875294177-removebg-preview.png")}
+              style={{ width: 18, height: 18, marginRight: 8 }}
+            />
+            <Text style={styles.googleBtnText}>Continue with Google</Text>
+          </Pressable>
 
-        {/* Sign Up Link (when not in signup mode) */}
-        {mode !== "signup" && (
-          <View style={styles.signupWrap}>
-            <Text style={styles.signupText}>
-              Don't have an account?{" "}
-              <Text
-                style={styles.signupLink}
-                onPress={() => {
-                  setEmail("");
-                  setPassword("");
-                  setMode("signup");
-                }}
-              >
-                Sign up
+          {/* Sign Up Link (when not in signup mode) */}
+          {mode !== "signup" && (
+            <View style={styles.signupWrap}>
+              <Text style={styles.signupText}>
+                Don't have an account?{" "}
+                <Text
+                  style={styles.signupLink}
+                  onPress={() => {
+                    setEmail("");
+                    setPassword("");
+                    setMode("signup");
+                  }}
+                >
+                  Sign up
+                </Text>
               </Text>
-            </Text>
-          </View>
-        )}
+            </View>
+          )}
 
-        {/* Sign In Link (when in signup mode) */}
-        {mode === "signup" && (
-          <View style={styles.signupWrap}>
-            <Text style={styles.signupText}>
-              Already have an account?{" "}
-              <Text
-                style={styles.signupLink}
-                onPress={() => {
-                  setEmail("");
-                  setPassword("");
-                  setMode("signin");
-                }}
-              >
-                Sign in
+          {/* Sign In Link (when in signup mode) */}
+          {mode === "signup" && (
+            <View style={styles.signupWrap}>
+              <Text style={styles.signupText}>
+                Already have an account?{" "}
+                <Text
+                  style={styles.signupLink}
+                  onPress={() => {
+                    setEmail("");
+                    setPassword("");
+                    setMode("signin");
+                  }}
+                >
+                  Sign in
+                </Text>
               </Text>
-            </Text>
-          </View>
-        )}
+            </View>
+          )}
 
-        {/* Terms */}
-        <Text style={styles.terms}>
-          By continuing, you agree to our{" "}
-          <Text style={styles.termsLink}>Terms of Use</Text> and{" "}
-          <Text style={styles.termsLink}>Privacy Policy</Text>.
-        </Text>
+          {/* Terms */}
+          <Text style={styles.terms}>
+            By continuing, you agree to our{" "}
+            <Text style={styles.termsLink}>Terms of Use</Text> and{" "}
+            <Text style={styles.termsLink}>Privacy Policy</Text>.
+          </Text>
 
-        {/* Footer */}
-        <Text style={styles.footer}>MTMovies © {new Date().getFullYear()}</Text>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          {/* Footer */}
+          <Text style={styles.footer}>MTMovies © {new Date().getFullYear()}</Text>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };
