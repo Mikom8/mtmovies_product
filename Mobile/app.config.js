@@ -33,16 +33,18 @@ const withLocalProperties = (config) => {
   ]);
 };
 
-// Config plugin: forces Kotlin stdlib to 2.0.21 so incompatible transitive deps are downgrade-resolved.
-const withKotlinResolutionStrategy = (config) => {
+// Config plugin: Configures all projects with Kotlin resolution strategy, 
+// disables AarMetadata tasks, and overrides compileSdk/targetSdk to 36.
+const withAndroidProjectConfiguration = (config) => {
   const { withProjectBuildGradle } = require('@expo/config-plugins');
   return withProjectBuildGradle(config, (cfg) => {
-    if (cfg.modResults.contents.includes('kotlin-stdlib:2.0.21')) {
+    if (cfg.modResults.contents.includes('androidProjectConfigurationApplied')) {
       return cfg;
     }
     cfg.modResults.contents = cfg.modResults.contents.replace(
-      /allprojects\s*\{\s*repositories\s*\{/,
-      `allprojects {
+      /allprojects\s*\{/,
+      `// androidProjectConfigurationApplied
+allprojects {
   configurations.all {
     resolutionStrategy {
       force "org.jetbrains.kotlin:kotlin-stdlib:2.0.21"
@@ -50,25 +52,7 @@ const withKotlinResolutionStrategy = (config) => {
       force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21"
     }
   }
-  repositories {`
-    );
-    return cfg;
-  });
-};
 
-// Config plugin: forces ALL subprojects (including third-party libs like google-signin)
-// to use compileSdk 36. EAS installs android-37 as android-37.0 (preview SDK naming),
-// so any request for android-37 hash fails. Keeping at 36 avoids this entirely.
-const withCompileSdkOverride = (config) => {
-  const { withProjectBuildGradle } = require('@expo/config-plugins');
-  return withProjectBuildGradle(config, (cfg) => {
-    if (cfg.modResults.contents.includes('compileSdkOverrideApplied')) {
-      return cfg;
-    }
-    cfg.modResults.contents = cfg.modResults.contents.replace(
-      /allprojects\s*\{/,
-      `// compileSdkOverrideApplied
-allprojects {
   // Disable AAR metadata checks so StartApp SDK doesn't complain about compileSdk 36
   tasks.whenTaskAdded { task ->
     if (task.name.contains("AarMetadata")) {
@@ -86,7 +70,7 @@ allprojects {
         }
       }
     }
-  }`,
+  }`
     );
     return cfg;
   });
@@ -112,8 +96,7 @@ module.exports = ({ config }) => {
       "expo-video",
       "@react-native-google-signin/google-signin",
       withLocalProperties,
-      withKotlinResolutionStrategy,
-      withCompileSdkOverride,
+      withAndroidProjectConfiguration,
       [
         "expo-build-properties",
         {
