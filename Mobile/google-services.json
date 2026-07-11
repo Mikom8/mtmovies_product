@@ -18,6 +18,14 @@
           "client_type": 1,
           "android_info": {
             "package_name": "com.mtmovies.mobile",
+            "certificate_hash": "6ed4a4f69daea819bdaa8ec435e31d09e9d1849a"
+          }
+        },
+        {
+          "client_id": "733179551984-vmlg66t73bths2g2md7rf40bftg2qhat.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mtmovies.mobile",
             "certificate_hash": "c34aa838ef12a2c3ea6a3db04f80d26d3132d439"
           }
         },
