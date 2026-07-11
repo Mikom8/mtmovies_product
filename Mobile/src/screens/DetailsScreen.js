@@ -26,6 +26,7 @@ import { useWatchlist } from "../context/WatchlistContext";
 import { StartIoBannerAd, StartIoMrecAd, loadAd, showAd, AdType } from "react-native-start-io-sdk";
 import { useAuth } from "../context/AuthContext";
 import Toast from "../components/Toast";
+import NetworkErrorView from "../components/NetworkErrorView";
 import ShareModal from "../components/ShareModal";
 import Svg, { G, Path, Rect, Defs, ClipPath } from "react-native-svg";
 import * as WebBrowser from "expo-web-browser";
@@ -260,6 +261,7 @@ const DetailsScreen = ({ route, navigation }) => {
   const { id, type } = route.params;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { watchlist, isInWatchlist, toggleWatchlist } = useWatchlist();
   const { user, refreshUser } = useAuth();
   const [recommendations, setRecommendations] = useState([]);
@@ -366,6 +368,7 @@ const DetailsScreen = ({ route, navigation }) => {
 
   const fetchAll = async () => {
     setLoading(true);
+    setError(null);
     try {
       // First attempt with the passed type
       let currentType = type;
@@ -412,6 +415,7 @@ const DetailsScreen = ({ route, navigation }) => {
         "DetailsScreen fetch error:",
         e?.response?.data || e.message,
       );
+      setError("Failed to load details. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -532,8 +536,24 @@ const DetailsScreen = ({ route, navigation }) => {
   );
 
   // ── Loading / Error ─────────────────────────────────────────────────────────
-  if (loading || !data) {
+  if (loading) {
     return <DetailsSkeleton />;
+  }
+
+  if (error || !data) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#0A0A0A' }}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <TouchableOpacity
+          style={[styles.fixedBackBtn, { top: insets.top + 10, zIndex: 10 }]}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Feather name="chevron-left" size={26} color="#fff" />
+        </TouchableOpacity>
+        <NetworkErrorView onRetry={fetchAll} isRetrying={loading} />
+      </View>
+    );
   }
 
   const currentSeason = data.seasons?.[selectedSeason];

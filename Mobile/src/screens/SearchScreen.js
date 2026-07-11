@@ -17,6 +17,7 @@ import { useFonts } from "expo-font";
 import { useMovies } from "../context/MovieContext";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import NetworkErrorView from "../components/NetworkErrorView";
 
 const { width } = Dimensions.get("window");
 const COLUMN_COUNT = 3;
@@ -33,7 +34,7 @@ const SearchScreen = ({ navigation }) => {
     "TT Medium": require("../../assets/fonts/TT-Chocolates-Trial-Medium.otf"),
   });
 
-  const { movies, series, loading } = useMovies();
+  const { movies, series, loading, error, refresh } = useMovies();
   const [query, setQuery] = useState("");
 
   // 1. Popular Searches (Trending items sorted by views count)
@@ -144,6 +145,14 @@ const SearchScreen = ({ navigation }) => {
       </Text>
     </View>
   );
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <NetworkErrorView onRetry={refresh} isRetrying={loading} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

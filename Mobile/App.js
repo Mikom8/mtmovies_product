@@ -7,7 +7,6 @@ import { NavigationContainer, useNavigationContainerRef } from '@react-navigatio
 import { AuthProvider } from './src/context/AuthContext';
 import { MovieProvider } from './src/context/MovieContext';
 import { WatchlistProvider } from './src/context/WatchlistContext';
-import { NetworkErrorProvider } from './src/context/NetworkErrorContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
@@ -136,14 +135,12 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#000000' }}>
       <AuthProvider>
         <WatchlistProvider>
-          <NetworkErrorProvider>
-            <MovieProvider>
-              <NavigationContainer ref={navigationRef} linking={linking} theme={navTheme}>
-                <StatusBar style="light" />
-                <AppNavigator />
-              </NavigationContainer>
-            </MovieProvider>
-          </NetworkErrorProvider>
+          <MovieProvider>
+            <NavigationContainer ref={navigationRef} linking={linking} theme={navTheme}>
+              <StatusBar style="light" />
+              <AppNavigator />
+            </NavigationContainer>
+          </MovieProvider>
         </WatchlistProvider>
       </AuthProvider>
       {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} fontsLoaded={fontsLoaded} />}

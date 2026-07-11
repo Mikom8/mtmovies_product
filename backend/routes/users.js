@@ -202,6 +202,14 @@ router.post('/history', async (req, res) => {
       }
     }
 
+    // Keep only latest 20 items
+    if (user.watchHistory && user.watchHistory.length > 0) {
+      user.watchHistory.sort((a, b) => new Date(b.watchedAt) - new Date(a.watchedAt));
+      if (user.watchHistory.length > 20) {
+        user.watchHistory.splice(20);
+      }
+    }
+
     await user.save();
     res.json({ message: 'Progress saved.' });
   } catch (err) {

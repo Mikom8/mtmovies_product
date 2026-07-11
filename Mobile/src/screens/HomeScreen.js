@@ -26,6 +26,7 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 import client from "../api/client";
+import NetworkErrorView from "../components/NetworkErrorView";
 
 const { width, height } = Dimensions.get("window");
 
@@ -193,7 +194,7 @@ const HomeScreen = () => {
     TT: require("../../assets/fonts/TT-Chocolates-Trial-Light.otf"),
   });
 
-  const { movies, series, featuredItems, loading, error } = useMovies();
+  const { movies, series, featuredItems, loading, error, refresh } = useMovies();
   const { user } = useAuth();
   const navigation = useNavigation();
   const [selectedGenre, setSelectedGenre] = useState("All");
@@ -789,7 +790,13 @@ const HomeScreen = () => {
     return <SkeletonLoader />;
   }
 
-
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <NetworkErrorView onRetry={refresh} isRetrying={loading} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

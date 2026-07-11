@@ -7,6 +7,7 @@ const API_BASE_URL = cfg.API_BASE_URL || 'https://mtmoviesproduct-production.up.
 
 const client = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
