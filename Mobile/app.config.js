@@ -56,6 +56,36 @@ const withKotlinResolutionStrategy = (config) => {
   });
 };
 
+// Config plugin: forces ALL subprojects (including third-party libs like google-signin)
+// to use compileSdk 36. EAS installs android-37 as android-37.0 (preview SDK naming),
+// so any request for android-37 hash fails. Keeping at 36 avoids this entirely.
+const withCompileSdkOverride = (config) => {
+  const { withProjectBuildGradle } = require('@expo/config-plugins');
+  return withProjectBuildGradle(config, (cfg) => {
+    if (cfg.modResults.contents.includes('compileSdkOverrideApplied')) {
+      return cfg;
+    }
+    cfg.modResults.contents = cfg.modResults.contents.replace(
+      /allprojects\s*\{/,
+      `// compileSdkOverrideApplied
+allprojects {
+  // Force all modules to use compileSdk 36 to avoid android-37 hash resolution issue on EAS
+  configurations.all {}
+  afterEvaluate {
+    if (project.hasProperty('android')) {
+      android {
+        compileSdkVersion 36
+        if (defaultConfig) {
+          defaultConfig.targetSdkVersion = 36
+        }
+      }
+    }
+  }`,
+    );
+    return cfg;
+  });
+};
+
 module.exports = ({ config }) => {
   return {
     ...config,
@@ -77,6 +107,7 @@ module.exports = ({ config }) => {
       "@react-native-google-signin/google-signin",
       withLocalProperties,
       withKotlinResolutionStrategy,
+      withCompileSdkOverride,
       [
         "expo-build-properties",
         {
