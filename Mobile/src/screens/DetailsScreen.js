@@ -820,7 +820,7 @@ const DetailsScreen = ({ route, navigation }) => {
                 style={[styles.netflixTab, activeTab === 'moreLikeThis' && styles.netflixTabActive]}
                 onPress={() => setActiveTab('moreLikeThis')}
               >
-                <Text style={[styles.netflixTabText, activeTab === 'moreLikeThis' && styles.netflixTabTextActive]}>More Like This</Text>
+                <Text style={[styles.netflixTabText, activeTab === 'moreLikeThis' && styles.netflixTabTextActive]}>You May Also Like</Text>
               </Pressable>
             </View>
           )}
