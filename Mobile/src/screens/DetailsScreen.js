@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, Component } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import {
   Dimensions,
   Pressable,
   StatusBar,
-  FlatList,
   Animated,
   Modal,
 } from "react-native";
@@ -933,9 +932,11 @@ const DetailsScreen = ({ route, navigation }) => {
                   />
                 ))}
               </View>
-              <View style={{ marginTop: 24, alignItems: 'center' }}>
-                <StartIoMrecAd />
-              </View>
+              {!isActuallySeries && (
+                <View style={{ marginTop: 24, alignItems: 'center' }}>
+                  <StartIoMrecAd />
+                </View>
+              )}
             </View>
           )}
 
