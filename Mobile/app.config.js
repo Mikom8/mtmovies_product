@@ -81,8 +81,6 @@ module.exports = ({ config }) => {
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 37,
-            "targetSdkVersion": 37,
             "kotlinVersion": "2.0.21"
           }
         }

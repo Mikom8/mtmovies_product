@@ -56,7 +56,7 @@
       }
     },
     "notification": {
-      "icon": "./assets/img/unnamed-removebg-preview.png",
+      "icon": "./assets/img/ic_launcher.png",
       "color": "#E50914"
     },
     "plugins": [
