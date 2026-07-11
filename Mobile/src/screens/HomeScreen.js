@@ -546,8 +546,9 @@ const HomeScreen = () => {
         });
 
         genreCount++;
-        // Insert a banner ad after the second genre row
-        if (genreCount === 2) {
+        // Insert a banner ad after the second genre row (free users only)
+        const isPremiumUser = user && user.plan && user.plan !== 'free';
+        if (genreCount === 2 && !isPremiumUser) {
           sections.push({
             id: `startio-ad-banner`,
             isAd: true,
@@ -781,13 +782,15 @@ const HomeScreen = () => {
   // Stable renderItem for the outer vertical FlatList — defined once via useCallback
   const renderSectionRow = useCallback(
     ({ item }) => {
-      if (item.isAd) {
+      const isPremiumUser = user && user.plan && user.plan !== 'free';
+      if (item.isAd && !isPremiumUser) {
         return (
           <View style={{ alignItems: "center", marginVertical: 20 }}>
             <StartIoBannerAd adTag="home_banner" />
           </View>
         );
       }
+      if (item.isAd) return null;
       return (
         <Section
           title={item.title}

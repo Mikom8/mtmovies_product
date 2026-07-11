@@ -950,7 +950,7 @@ const DetailsScreen = ({ route, navigation }) => {
               })}
 
               <View style={{ marginTop: 24, alignItems: 'center' }}>
-                <StartIoMrecAd />
+                {(!user || user.plan === 'free') && <StartIoMrecAd />}
               </View>
             </View>
           )}
@@ -975,7 +975,7 @@ const DetailsScreen = ({ route, navigation }) => {
               </View>
               {!isActuallySeries && (
                 <View style={{ marginTop: 24, alignItems: 'center' }}>
-                  <StartIoMrecAd />
+                  {(!user || user.plan === 'free') && <StartIoMrecAd />}
                 </View>
               )}
             </View>
