@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import {
   Modal,
   View,
@@ -14,7 +14,8 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import Feather from '@expo/vector-icons/Feather';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import Svg, { Path, Circle } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
@@ -81,83 +82,92 @@ const ShareModal = ({ visible, onClose, item, type, onShowToast }) => {
     onClose();
   };
 
+  const snapPoints = useMemo(() => ['45%', '45%'], []);
+
   return (
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType="fade"
       onRequestClose={onClose}
     >
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
-          <TouchableWithoutFeedback>
-            <View style={styles.sheetContainer}>
-              {/* Drag Handle indicator */}
-              <View style={styles.handle} />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.overlay} />
+        </TouchableWithoutFeedback>
 
-              {/* Header preview card */}
-              <View style={styles.itemPreview}>
-                <Image
-                  source={{ uri: item.poster || item.backdrop }}
-                  style={styles.previewPoster}
-                  resizeMode="cover"
-                />
-                <View style={styles.previewMeta}>
-                  <Text style={styles.previewTitle} numberOfLines={1}>
-                    {item.title}
-                  </Text>
-                  <Text style={styles.previewSub}>
-                    {type === 'series' ? 'Series' : 'Movie'} • {item.year || '2024'}
-                  </Text>
+        <BottomSheet
+          index={0}
+          snapPoints={snapPoints}
+          enablePanDownToClose
+          onClose={onClose}
+          backgroundStyle={{ backgroundColor: '#141414' }}
+          handleIndicatorStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.3)' }}
+        >
+          <BottomSheetView style={styles.sheetContainer}>
+
+            {/* Header preview card */}
+            <View style={styles.itemPreview}>
+              <Image
+                source={{ uri: item.poster || item.backdrop }}
+                style={styles.previewPoster}
+                resizeMode="cover"
+              />
+              <View style={styles.previewMeta}>
+                <Text style={styles.previewTitle} numberOfLines={1}>
+                  {item.title}
+                </Text>
+                <Text style={styles.previewSub}>
+                  {type === 'series' ? 'Series' : 'Movie'} • {item.year || '2024'}
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.shareHeading}>Share to</Text>
+
+            {/* Share Options Row */}
+            <View style={styles.optionsGrid}>
+              {/* Telegram */}
+              <TouchableOpacity style={styles.optionItem} onPress={handleTelegram} activeOpacity={0.7}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(0, 136, 204, 0.12)' }]}>
+                  <FontAwesome6 name="telegram" size={28} color="#0088cc" />
                 </View>
-              </View>
+                <Text style={styles.optionLabel}>Telegram</Text>
+              </TouchableOpacity>
 
-              <Text style={styles.shareHeading}>Share to</Text>
+              {/* Instagram (Placeholder) */}
+              <TouchableOpacity style={styles.optionItem} onPress={handleInstagram} activeOpacity={0.7}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(225, 48, 108, 0.12)' }]}>
+                  <InstagramIcon size={28} />
+                </View>
+                <Text style={styles.optionLabel}>Instagram</Text>
+              </TouchableOpacity>
 
-              {/* Share Options Row */}
-              <View style={styles.optionsGrid}>
-                {/* Telegram */}
-                <TouchableOpacity style={styles.optionItem} onPress={handleTelegram} activeOpacity={0.7}>
-                  <View style={[styles.iconBox, { backgroundColor: 'rgba(0, 136, 204, 0.12)' }]}>
-                    <FontAwesome6 name="telegram" size={28} color="#0088cc" />
-                  </View>
-                  <Text style={styles.optionLabel}>Telegram</Text>
-                </TouchableOpacity>
+              {/* Copy Link */}
+              <TouchableOpacity style={styles.optionItem} onPress={handleCopyLink} activeOpacity={0.7}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
+                  <Feather name="link" size={22} color="#fff" />
+                </View>
+                <Text style={styles.optionLabel}>Copy Link</Text>
+              </TouchableOpacity>
 
-                {/* Instagram (Placeholder) */}
-                <TouchableOpacity style={styles.optionItem} onPress={handleInstagram} activeOpacity={0.7}>
-                  <View style={[styles.iconBox, { backgroundColor: 'rgba(225, 48, 108, 0.12)' }]}>
-                    <InstagramIcon size={28} />
-                  </View>
-                  <Text style={styles.optionLabel}>Instagram</Text>
-                </TouchableOpacity>
-
-                {/* Copy Link */}
-                <TouchableOpacity style={styles.optionItem} onPress={handleCopyLink} activeOpacity={0.7}>
-                  <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
-                    <Feather name="link" size={22} color="#fff" />
-                  </View>
-                  <Text style={styles.optionLabel}>Copy Link</Text>
-                </TouchableOpacity>
-
-                {/* Download / Native Share */}
-                <TouchableOpacity style={styles.optionItem} onPress={handleDownloadOrShare} activeOpacity={0.7}>
-                  <View style={[styles.iconBox, { backgroundColor: 'rgba(229, 9, 20, 0.15)' }]}>
-                    <Feather name="share" size={22} color="#E50914" />
-                  </View>
-                  <Text style={styles.optionLabel}>More...</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Close Button */}
-              <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.8}>
-                <Text style={styles.closeText}>Cancel</Text>
+              {/* Download / Native Share */}
+              <TouchableOpacity style={styles.optionItem} onPress={handleDownloadOrShare} activeOpacity={0.7}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(229, 9, 20, 0.15)' }]}>
+                  <Feather name="share" size={22} color="#E50914" />
+                </View>
+                <Text style={styles.optionLabel}>More...</Text>
               </TouchableOpacity>
             </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
-    </Modal>
+
+            {/* Close Button */}
+            <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.8}>
+              <Text style={styles.closeText}>Cancel</Text>
+            </TouchableOpacity>
+          </BottomSheetView>
+        </BottomSheet>
+      </GestureHandlerRootView>
+    </Modal >
   );
 };
 
@@ -165,27 +175,13 @@ export default ShareModal;
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    justifyContent: 'flex-end',
   },
   sheetContainer: {
-    backgroundColor: '#141414',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 50,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    alignSelf: 'center',
-    marginBottom: 16,
   },
   itemPreview: {
     flexDirection: 'row',
