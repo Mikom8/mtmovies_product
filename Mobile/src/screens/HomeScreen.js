@@ -389,18 +389,18 @@ const HomeScreen = () => {
         hiddenGems.push(...randoms);
       }
 
-      // Combine and pad to 15 if needed
+      // Combine and pad to 20 if needed
       const combined = [...hook, ...deepCuts, ...hiddenGems];
       const combinedSet = new Set(combined.map((x) => x._id));
       const remainingTotal = unseen.filter((x) => !combinedSet.has(x._id));
 
-      while (combined.length < 15 && remainingTotal.length > 0) {
+      while (combined.length < 20 && remainingTotal.length > 0) {
         const nextItem = remainingTotal.shift();
         seen.add(nextItem._id);
         combined.push(nextItem);
       }
 
-      return { genre, data: combined.slice(0, 15) };
+      return { genre, data: combined.slice(0, 20) };
     });
 
     return { newReleases, trending, genreRows };
