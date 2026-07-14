@@ -37,7 +37,7 @@ const withLocalProperties = (config) => {
 // disables AarMetadata tasks, and overrides compileSdk/targetSdk to 36.
 const withAndroidProjectConfiguration = (config) => {
   const { withProjectBuildGradle, withGradleProperties } = require('@expo/config-plugins');
-  
+
   config = withProjectBuildGradle(config, (cfg) => {
     if (cfg.modResults.contents.includes('androidProjectConfigurationApplied')) {
       return cfg;
@@ -110,6 +110,8 @@ module.exports = ({ config }) => {
       "expo-font",
       "expo-video",
       "@react-native-google-signin/google-signin",
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
       withLocalProperties,
       withAndroidProjectConfiguration,
       [

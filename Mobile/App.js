@@ -9,7 +9,7 @@ import { MovieProvider } from './src/context/MovieContext';
 import { WatchlistProvider } from './src/context/WatchlistContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { StatusBar } from 'expo-status-bar';
-import * as Notifications from 'expo-notifications';
+import messaging from '@react-native-firebase/messaging';
 import { initializeStartIoSdk } from 'react-native-start-io-sdk';
 
 // Initialize Start.io SDK
@@ -23,13 +23,8 @@ try {
   console.log("Start.io SDK init error", e);
 }
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+// Firebase handles its own notification display in the background.
+// To show notifications in the foreground, you could add an onMessage listener here if desired.
 
 const linking = {
   prefixes: ['mtmovies://', 'https://mtmoviess.netlify.app'],
@@ -109,26 +104,45 @@ export default function App() {
   });
 
   useEffect(() => {
-    // 1. Handle notification tap when app is running (foreground or background)
-    const subscription = Notifications.addNotificationResponseReceivedListener(response => {
-      const data = response.notification.request.content.data;
+    // Request permission on app launch and subscribe to topic
+    const requestPermissionAndSubscribe = async () => {
+      try {
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+        if (enabled) {
+          await messaging().subscribeToTopic('all_users');
+          console.log('Subscribed to all_users topic');
+        }
+      } catch (e) {
+        console.log('Firebase messaging permission error', e);
+      }
+    };
+    requestPermissionAndSubscribe();
+
+    // 1. Handle notification tap when app is running in background
+    const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
+      const data = remoteMessage.data;
       if (data?.id) {
         navigationRef.current?.navigate('Details', { id: data.id, type: data.type || 'movie' });
       }
     });
 
     // 2. Handle notification tap when app was completely closed (cold start)
-    Notifications.getLastNotificationResponseAsync().then(response => {
-      const data = response?.notification?.request?.content?.data;
-      if (data?.id) {
-        // Small delay to ensure NavigationContainer is fully mounted before navigating
-        setTimeout(() => {
-          navigationRef.current?.navigate('Details', { id: data.id, type: data.type || 'movie' });
-        }, 500);
+    messaging().getInitialNotification().then(remoteMessage => {
+      if (remoteMessage) {
+        const data = remoteMessage.data;
+        if (data?.id) {
+          setTimeout(() => {
+            navigationRef.current?.navigate('Details', { id: data.id, type: data.type || 'movie' });
+          }, 500);
+        }
       }
     });
 
-    return () => subscription.remove();
+    return unsubscribe;
   }, []);
 
   return (
