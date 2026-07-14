@@ -23,5 +23,9 @@
   },
   "cli": {
     "appVersionSource": "remote"
-  }
+  },
+  "plugins": [
+    "@react-native-firebase/messaging",
+    "@react-native-firebase/app"
+  ]
 }
