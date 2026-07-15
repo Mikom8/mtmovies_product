@@ -9,7 +9,14 @@ import { MovieProvider } from './src/context/MovieContext';
 import { WatchlistProvider } from './src/context/WatchlistContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { StatusBar } from 'expo-status-bar';
-import messaging from '@react-native-firebase/messaging';
+import {
+  getMessaging,
+  requestPermission,
+  AuthorizationStatus,
+  subscribeToTopic,
+  onNotificationOpenedApp,
+  getInitialNotification,
+} from '@react-native-firebase/messaging';
 import { initializeStartIoSdk } from 'react-native-start-io-sdk';
 
 // Initialize Start.io SDK
@@ -118,13 +125,14 @@ export default function App() {
           }
         }
 
-        const authStatus = await messaging().requestPermission();
+        const m = getMessaging();
+        const authStatus = await requestPermission(m);
         const enabled =
-          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+          authStatus === AuthorizationStatus.AUTHORIZED ||
+          authStatus === AuthorizationStatus.PROVISIONAL;
 
         if (enabled) {
-          await messaging().subscribeToTopic('all_users');
+          await subscribeToTopic(m, 'all_users');
           console.log('Subscribed to all_users topic');
         }
       } catch (e) {
@@ -134,7 +142,8 @@ export default function App() {
     requestPermissionAndSubscribe();
 
     // 1. Handle notification tap when app is running in background
-    const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
+    const m = getMessaging();
+    const unsubscribe = onNotificationOpenedApp(m, remoteMessage => {
       const data = remoteMessage.data;
       if (data?.id) {
         navigationRef.current?.navigate('Details', { id: data.id, type: data.type || 'movie' });
@@ -142,7 +151,7 @@ export default function App() {
     });
 
     // 2. Handle notification tap when app was completely closed (cold start)
-    messaging().getInitialNotification().then(remoteMessage => {
+    getInitialNotification(m).then(remoteMessage => {
       if (remoteMessage) {
         const data = remoteMessage.data;
         if (data?.id) {

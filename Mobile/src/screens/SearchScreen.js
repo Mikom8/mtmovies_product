@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Dimensions,
   StatusBar,
-  Platform,
+  Animated,
   Keyboard,
 } from "react-native";
 import { useFonts } from "expo-font";
@@ -25,6 +25,9 @@ const SPACING = 12;
 const CARD_W = (width - SPACING * (COLUMN_COUNT + 1)) / COLUMN_COUNT;
 const CARD_H = CARD_W * 1.5;
 
+// Animated tab indicator
+const TABS = ["All", "Movies", "TV Shows"];
+
 const SearchScreen = ({ navigation }) => {
   const [fontsLoaded] = useFonts({
     "Broche-Cut": require("../../assets/fonts/Broche-Cut.ttf"),
@@ -36,35 +39,60 @@ const SearchScreen = ({ navigation }) => {
 
   const { movies, series, loading, error, refresh } = useMovies();
   const [query, setQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("All");
+  const tabIndicatorX = useRef(new Animated.Value(0)).current;
+  const TAB_W = (width - 32) / TABS.length;
 
-  // 1. Popular Searches (Trending items sorted by views count)
+  const switchTab = (tab) => {
+    const idx = TABS.indexOf(tab);
+    Animated.spring(tabIndicatorX, {
+      toValue: idx * TAB_W,
+      useNativeDriver: true,
+      tension: 120,
+      friction: 10,
+    }).start();
+    setActiveTab(tab);
+  };
+
+  // Popular Searches — no limit
   const popularItems = useMemo(() => {
     if (loading || (!movies.length && !series.length)) return [];
-    return [...movies, ...series]
-      .sort((a, b) => (b.stats?.views || 0) - (a.stats?.views || 0))
-      .slice(0, 10);
+    return [...movies, ...series].sort(
+      (a, b) => (b.stats?.views || 0) - (a.stats?.views || 0)
+    );
   }, [movies, series, loading]);
 
-  // 2. Real-time Search Results Filtering
-  const searchResults = useMemo(() => {
-    if (!query.trim()) return [];
+  // Real-time Search across everything — no limit
+  const allResults = useMemo(() => {
+    if (!query.trim()) return { all: [], movies: [], series: [] };
     const q = query.toLowerCase().trim();
-    return [...movies, ...series].filter((item) => {
+    const match = (item) => {
       const matchTitle = item.title && item.title.toLowerCase().includes(q);
-      const matchDesc =
-        item.description && item.description.toLowerCase().includes(q);
-      const matchGenres =
-        item.genres && item.genres.some((g) => g.toLowerCase().includes(q));
-      const matchTags =
-        item.tags && item.tags.some((t) => t.toLowerCase().includes(q));
+      const matchDesc = item.description && item.description.toLowerCase().includes(q);
+      const matchGenres = item.genres && item.genres.some((g) => g.toLowerCase().includes(q));
+      const matchTags = item.tags && item.tags.some((t) => t.toLowerCase().includes(q));
       return matchTitle || matchDesc || matchGenres || matchTags;
-    });
+    };
+    const matchedMovies = movies.filter(match);
+    const matchedSeries = series.filter(match);
+    return {
+      all: [...matchedMovies, ...matchedSeries],
+      movies: matchedMovies,
+      series: matchedSeries,
+    };
   }, [query, movies, series]);
+
+  const searchResults = useMemo(() => {
+    if (activeTab === "Movies") return allResults.movies;
+    if (activeTab === "TV Shows") return allResults.series;
+    return allResults.all;
+  }, [activeTab, allResults]);
 
   if (!fontsLoaded) return null;
 
   const handleClear = () => {
     setQuery("");
+    setActiveTab("All");
     Keyboard.dismiss();
   };
 
@@ -125,6 +153,11 @@ const SearchScreen = ({ navigation }) => {
             style={styles.poster}
             resizeMode="cover"
           />
+          {isSeries && (
+            <View style={styles.seriesBadge}>
+              <Text style={styles.seriesText}>SERIES</Text>
+            </View>
+          )}
         </View>
         <Text style={styles.itemTitle} numberOfLines={1}>
           {item.title}
@@ -140,8 +173,7 @@ const SearchScreen = ({ navigation }) => {
       </View>
       <Text style={styles.emptyTitle}>No results found</Text>
       <Text style={styles.emptySubtitle}>
-        We couldn't find any matches for "{query}". Try checking the spelling or
-        searching for another title.
+        We couldn't find any {activeTab === "Movies" ? "movies" : activeTab === "TV Shows" ? "TV shows" : "results"} for "{query}".
       </Text>
     </View>
   );
@@ -154,15 +186,13 @@ const SearchScreen = ({ navigation }) => {
     );
   }
 
+  const isSearching = !!query.trim();
+
   return (
     <View style={styles.container}>
-      <StatusBar
-        barStyle="light-content"
-        translucent
-        backgroundColor="transparent"
-      />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* Modern Search Bar */}
+      {/* Search Bar */}
       <View style={styles.searchBarContainer}>
         <View style={styles.inputWrapper}>
           <Feather
@@ -180,6 +210,7 @@ const SearchScreen = ({ navigation }) => {
             keyboardAppearance="dark"
             autoCorrect={false}
             returnKeyType="search"
+            onSubmitEditing={Keyboard.dismiss}
           />
           {!!query && (
             <Pressable onPress={handleClear} style={styles.clearBtn}>
@@ -187,13 +218,50 @@ const SearchScreen = ({ navigation }) => {
             </Pressable>
           )}
         </View>
+
+        {/* Tabs - only shown when searching */}
+        {isSearching && (
+          <View style={styles.tabsContainer}>
+            {TABS.map((tab) => (
+              <Pressable
+                key={tab}
+                style={styles.tabBtn}
+                onPress={() => switchTab(tab)}
+              >
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === tab && styles.tabTextActive,
+                  ]}
+                >
+                  {tab}
+                  {tab === "Movies" && allResults.movies.length > 0 && (
+                    <Text style={styles.tabCount}> {allResults.movies.length}</Text>
+                  )}
+                  {tab === "TV Shows" && allResults.series.length > 0 && (
+                    <Text style={styles.tabCount}> {allResults.series.length}</Text>
+                  )}
+                  {tab === "All" && allResults.all.length > 0 && (
+                    <Text style={styles.tabCount}> {allResults.all.length}</Text>
+                  )}
+                </Text>
+              </Pressable>
+            ))}
+            <Animated.View
+              style={[
+                styles.tabIndicator,
+                { width: TAB_W, transform: [{ translateX: tabIndicatorX }] },
+              ]}
+            />
+          </View>
+        )}
       </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#E50914" />
         </View>
-      ) : !query.trim() ? (
+      ) : !isSearching ? (
         // Popular Searches view
         <View style={{ flex: 1 }}>
           <View style={styles.sectionHeader}>
@@ -209,16 +277,16 @@ const SearchScreen = ({ navigation }) => {
           />
         </View>
       ) : searchResults.length === 0 ? (
-        // No results empty state
         renderEmptyState()
       ) : (
-        // Grid search results
+        // Grid search results with tabs
         <View style={{ flex: 1 }}>
           <FlatList
             data={searchResults}
             renderItem={renderResultItem}
             keyExtractor={(item) => item._id}
             numColumns={COLUMN_COUNT}
+            key={activeTab} // force re-render on tab switch to reset numColumns
             contentContainerStyle={styles.listContainer}
             columnWrapperStyle={styles.columnWrapper}
             showsVerticalScrollIndicator={false}
@@ -237,7 +305,7 @@ const styles = StyleSheet.create({
   },
   searchBarContainer: {
     paddingTop: 60,
-    paddingBottom: 15,
+    paddingBottom: 0,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderColor: "rgba(255,255,255,0.05)",
@@ -251,6 +319,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.08)",
     paddingHorizontal: 12,
     height: 48,
+    marginBottom: 12,
   },
   searchIcon: {
     marginRight: 8,
@@ -263,6 +332,36 @@ const styles = StyleSheet.create({
   },
   clearBtn: {
     padding: 6,
+  },
+  tabsContainer: {
+    flexDirection: "row",
+    position: "relative",
+    marginBottom: 0,
+  },
+  tabBtn: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  tabText: {
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 14,
+    fontFamily: "TT Medium",
+  },
+  tabTextActive: {
+    color: "#fff",
+  },
+  tabCount: {
+    color: "#E50914",
+    fontSize: 12,
+    fontFamily: "Code",
+  },
+  tabIndicator: {
+    position: "absolute",
+    bottom: 0,
+    height: 2,
+    backgroundColor: "#E50914",
+    borderRadius: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -348,22 +447,6 @@ const styles = StyleSheet.create({
   poster: {
     width: "100%",
     height: "100%",
-  },
-  qualityBadge: {
-    position: "absolute",
-    top: 6,
-    right: 6,
-    backgroundColor: "rgba(0, 0, 0, 0.75)",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    borderWidth: 0.5,
-    borderColor: "rgba(33, 226, 65, 0.6)",
-  },
-  qualityText: {
-    color: "#1af03d",
-    fontSize: 9,
-    fontWeight: "800",
   },
   seriesBadge: {
     position: "absolute",
