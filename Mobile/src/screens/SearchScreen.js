@@ -14,6 +14,7 @@ import {
   Keyboard,
 } from "react-native";
 import { useFonts } from "expo-font";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMovies } from "../context/MovieContext";
 import Feather from "@expo/vector-icons/Feather";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -39,9 +40,42 @@ const SearchScreen = ({ navigation }) => {
 
   const { movies, series, loading, error, refresh } = useMovies();
   const [query, setQuery] = useState("");
+  const [submittedQuery, setSubmittedQuery] = useState("");
   const [activeTab, setActiveTab] = useState("All");
+  const [searchHistory, setSearchHistory] = useState([]);
   const tabIndicatorX = useRef(new Animated.Value(0)).current;
   const TAB_W = (width - 32) / TABS.length;
+
+  React.useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const historyStr = await AsyncStorage.getItem("search_history");
+        if (historyStr) {
+          setSearchHistory(JSON.parse(historyStr));
+        }
+      } catch (e) {
+        console.log("Failed to load search history", e);
+      }
+    };
+    loadHistory();
+  }, []);
+
+  const saveHistory = async (newHistory) => {
+    try {
+      setSearchHistory(newHistory);
+      await AsyncStorage.setItem("search_history", JSON.stringify(newHistory));
+    } catch (e) {
+      console.log("Failed to save search history", e);
+    }
+  };
+
+  const addSearchToHistory = (searchTerm) => {
+    const term = searchTerm.trim();
+    if (!term) return;
+    const filtered = searchHistory.filter(h => h.toLowerCase() !== term.toLowerCase());
+    const updated = [term, ...filtered].slice(0, 10);
+    saveHistory(updated);
+  };
 
   const switchTab = (tab) => {
     const idx = TABS.indexOf(tab);
@@ -54,18 +88,10 @@ const SearchScreen = ({ navigation }) => {
     setActiveTab(tab);
   };
 
-  // Popular Searches — no limit
-  const popularItems = useMemo(() => {
-    if (loading || (!movies.length && !series.length)) return [];
-    return [...movies, ...series].sort(
-      (a, b) => (b.stats?.views || 0) - (a.stats?.views || 0)
-    );
-  }, [movies, series, loading]);
-
-  // Real-time Search across everything — no limit
+  // Search executes only when user submits (keyboard search button)
   const allResults = useMemo(() => {
-    if (!query.trim()) return { all: [], movies: [], series: [] };
-    const q = query.toLowerCase().trim();
+    if (!submittedQuery.trim()) return { all: [], movies: [], series: [] };
+    const q = submittedQuery.toLowerCase().trim();
     const match = (item) => {
       const matchTitle = item.title && item.title.toLowerCase().includes(q);
       const matchDesc = item.description && item.description.toLowerCase().includes(q);
@@ -80,7 +106,7 @@ const SearchScreen = ({ navigation }) => {
       movies: matchedMovies,
       series: matchedSeries,
     };
-  }, [query, movies, series]);
+  }, [submittedQuery, movies, series]);
 
   const searchResults = useMemo(() => {
     if (activeTab === "Movies") return allResults.movies;
@@ -92,42 +118,51 @@ const SearchScreen = ({ navigation }) => {
 
   const handleClear = () => {
     setQuery("");
+    setSubmittedQuery("");
     setActiveTab("All");
     Keyboard.dismiss();
   };
 
-  const renderPopularItem = ({ item }) => {
-    const isSeries = !!item.seasons;
+  const handleSubmitSearch = () => {
+    setSubmittedQuery(query);
+    setActiveTab("All");
+    addSearchToHistory(query);
+    Keyboard.dismiss();
+  };
+
+  const handleHistoryPress = (term) => {
+    setQuery(term);
+    setSubmittedQuery(term);
+    setActiveTab("All");
+    addSearchToHistory(term);
+    Keyboard.dismiss();
+  };
+
+  const handleRemoveHistoryItem = (termToRemove) => {
+    const updated = searchHistory.filter(term => term !== termToRemove);
+    saveHistory(updated);
+  };
+
+  const handleClearAllHistory = () => {
+    saveHistory([]);
+  };
+
+  const renderHistoryItem = ({ item }) => {
     return (
       <Pressable
         style={({ pressed }) => [
-          styles.popularRow,
+          styles.historyRow,
           pressed && { backgroundColor: "rgba(255,255,255,0.05)" },
         ]}
-        onPress={() =>
-          navigation.navigate("Details", {
-            id: item._id,
-            type: isSeries ? "series" : "movie",
-          })
-        }
+        onPress={() => handleHistoryPress(item)}
       >
-        <Image
-          source={{ uri: item.mylist || item.backdrop || item.poster }}
-          style={styles.popularBackdrop}
-          resizeMode="cover"
-        />
-        <View style={styles.popularInfo}>
-          <Text style={styles.popularTitle} numberOfLines={1}>
-            {item.title}
-          </Text>
-          <Text style={styles.popularMeta}>
-            {item.year ? item.year : "2024"}
-            {isSeries ? " · Series" : " · Movie"}
-          </Text>
-        </View>
-        <View style={styles.popularPlayBtn}>
-          <MaterialIcons name="play-arrow" size={22} color="#fff" />
-        </View>
+        <Feather name="clock" size={18} color="rgba(255,255,255,0.4)" style={styles.historyIcon} />
+        <Text style={styles.historyText} numberOfLines={1}>
+          {item}
+        </Text>
+        <Pressable onPress={() => handleRemoveHistoryItem(item)} style={styles.historyRemoveBtn}>
+          <Feather name="x" size={18} color="rgba(255,255,255,0.4)" />
+        </Pressable>
       </Pressable>
     );
   };
@@ -173,7 +208,7 @@ const SearchScreen = ({ navigation }) => {
       </View>
       <Text style={styles.emptyTitle}>No results found</Text>
       <Text style={styles.emptySubtitle}>
-        We couldn't find any {activeTab === "Movies" ? "movies" : activeTab === "TV Shows" ? "TV shows" : "results"} for "{query}".
+        We couldn't find any {activeTab === "Movies" ? "movies" : activeTab === "TV Shows" ? "TV shows" : "results"} for "{submittedQuery}".
       </Text>
     </View>
   );
@@ -186,7 +221,7 @@ const SearchScreen = ({ navigation }) => {
     );
   }
 
-  const isSearching = !!query.trim();
+  const isSearching = !!submittedQuery.trim();
 
   return (
     <View style={styles.container}>
@@ -210,7 +245,7 @@ const SearchScreen = ({ navigation }) => {
             keyboardAppearance="dark"
             autoCorrect={false}
             returnKeyType="search"
-            onSubmitEditing={Keyboard.dismiss}
+            onSubmitEditing={handleSubmitSearch}
           />
           {!!query && (
             <Pressable onPress={handleClear} style={styles.clearBtn}>
@@ -219,8 +254,8 @@ const SearchScreen = ({ navigation }) => {
           )}
         </View>
 
-        {/* Tabs - only shown when searching */}
-        {isSearching && (
+        {/* Tabs - only shown when a search has been submitted */}
+        {!!submittedQuery.trim() && (
           <View style={styles.tabsContainer}>
             {TABS.map((tab) => (
               <Pressable
@@ -261,20 +296,31 @@ const SearchScreen = ({ navigation }) => {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#E50914" />
         </View>
-      ) : !isSearching ? (
-        // Popular Searches view
+      ) : !submittedQuery.trim() ? (
+        // Search History view
         <View style={{ flex: 1 }}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Popular Searches</Text>
+            <Text style={styles.sectionTitle}>Recent Searches</Text>
+            {searchHistory.length > 0 && (
+              <Pressable onPress={handleClearAllHistory}>
+                <Text style={styles.clearHistoryText}>Clear All</Text>
+              </Pressable>
+            )}
           </View>
-          <FlatList
-            data={popularItems}
-            renderItem={renderPopularItem}
-            keyExtractor={(item) => item._id}
-            contentContainerStyle={styles.popularList}
-            showsVerticalScrollIndicator={false}
-            keyboardDismissMode="on-drag"
-          />
+          {searchHistory.length === 0 ? (
+            <View style={styles.emptyHistoryContainer}>
+               <Text style={styles.emptyHistoryText}>No recent searches</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={searchHistory}
+              renderItem={renderHistoryItem}
+              keyExtractor={(item, index) => `${item}-${index}`}
+              contentContainerStyle={styles.historyList}
+              showsVerticalScrollIndicator={false}
+              keyboardDismissMode="on-drag"
+            />
+          )}
         </View>
       ) : searchResults.length === 0 ? (
         renderEmptyState()
@@ -372,6 +418,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   sectionTitle: {
     color: "#fff",
@@ -379,48 +428,42 @@ const styles = StyleSheet.create({
     fontFamily: "Coolvetica",
     letterSpacing: 0.5,
   },
-  popularList: {
+  clearHistoryText: {
+    color: "#E50914",
+    fontSize: 13,
+    fontFamily: "TT Medium",
+  },
+  emptyHistoryContainer: {
+    paddingTop: 40,
+    alignItems: "center",
+  },
+  emptyHistoryText: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 14,
+    fontFamily: "TT",
+  },
+  historyList: {
     paddingHorizontal: 16,
     paddingBottom: 100,
   },
-  popularRow: {
+  historyRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: SPACING,
+    paddingVertical: 14,
     borderBottomWidth: 1,
     borderColor: "rgba(255,255,255,0.04)",
   },
-  popularBackdrop: {
-    width: 110,
-    height: 62,
-    borderRadius: 6,
-    backgroundColor: "#1a1a1a",
+  historyIcon: {
+    marginRight: 14,
   },
-  popularInfo: {
+  historyText: {
     flex: 1,
-    marginLeft: 14,
-    justifyContent: "center",
-  },
-  popularTitle: {
     color: "#fff",
     fontSize: 15,
-    fontFamily: "TT Medium",
-  },
-  popularMeta: {
-    color: "rgba(255,255,255,0.4)",
-    fontSize: 12,
     fontFamily: "TT",
-    marginTop: 4,
   },
-  popularPlayBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.05)",
+  historyRemoveBtn: {
+    padding: 8,
   },
   listContainer: {
     padding: SPACING,

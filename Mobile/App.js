@@ -133,7 +133,6 @@ export default function App() {
 
         if (enabled) {
           await subscribeToTopic(m, 'all_users');
-          console.log('Subscribed to all_users topic');
         }
       } catch (e) {
         console.log('Firebase messaging permission error', e);
