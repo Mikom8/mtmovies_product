@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Image, Text, Animated, StyleSheet } from 'react-native';
+import { View, Image, Text, Animated, StyleSheet, Platform, PermissionsAndroid } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from "expo-font";
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
@@ -107,6 +107,17 @@ export default function App() {
     // Request permission on app launch and subscribe to topic
     const requestPermissionAndSubscribe = async () => {
       try {
+        // Android 13+ (API 33+) requires explicit POST_NOTIFICATIONS permission
+        if (Platform.OS === 'android' && Platform.Version >= 33) {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+          );
+          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+            console.log('Notification permission denied by user');
+            return;
+          }
+        }
+
         const authStatus = await messaging().requestPermission();
         const enabled =
           authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
