@@ -993,7 +993,10 @@ const DetailsScreen = ({ route, navigation }) => {
                 <Text style={styles.seasonModalTitle}>Seasons</Text>
                 <ScrollView showsVerticalScrollIndicator={false}>
                   {data?.seasons?.map((season, idx) => (
-                    <Pressable
+                    <Ripple
+                      rippleColor="#fff"
+                      rippleFades={false}
+                      rippleOpacity={0.2}
                       key={idx}
                       style={styles.seasonModalOption}
                       onPress={() => { setSelectedSeason(idx); setSeasonPickerVisible(false); }}
@@ -1001,15 +1004,18 @@ const DetailsScreen = ({ route, navigation }) => {
                       <Text style={[styles.seasonModalOptionText, selectedSeason === idx && styles.seasonModalOptionTextActive]}>
                         Season {season.seasonNumber}
                       </Text>
-                    </Pressable>
+                    </Ripple>
                   ))}
                 </ScrollView>
-                <Pressable
+                <Ripple
+                  rippleColor="#000"
+                  rippleFades={false}
+                  rippleOpacity={0.3}
                   style={styles.seasonModalCloseBtn}
                   onPress={() => setSeasonPickerVisible(false)}
                 >
                   <MaterialIcons name="cancel" size={40} color="#fff" />
-                </Pressable>
+                </Ripple>
               </View>
             </View>
           </Modal>
@@ -1400,8 +1406,10 @@ const styles = StyleSheet.create({
   seasonsSection: { marginBottom: 24 },
   seasonDropdownBtn: {
     flexDirection: 'row',
+    width: '100%',
     alignItems: 'center',
-    alignSelf: 'flex-start',
+    // alignSelf: 'center',
+    justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
@@ -1413,7 +1421,7 @@ const styles = StyleSheet.create({
   },
   seasonDropdownText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'TT Medium',
   },
 

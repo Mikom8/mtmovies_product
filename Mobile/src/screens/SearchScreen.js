@@ -17,7 +17,7 @@ import { useFonts } from "expo-font";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMovies } from "../context/MovieContext";
 import Feather from "@expo/vector-icons/Feather";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Ripple from 'react-native-material-ripple';
 import NetworkErrorView from "../components/NetworkErrorView";
 
 const { width } = Dimensions.get("window");
@@ -258,7 +258,10 @@ const SearchScreen = ({ navigation }) => {
         {!!submittedQuery.trim() && (
           <View style={styles.tabsContainer}>
             {TABS.map((tab) => (
-              <Pressable
+              <Ripple
+                rippleColor="#fff"
+                rippleFades={true}
+                rippleOpacity={0.3}
                 key={tab}
                 style={styles.tabBtn}
                 onPress={() => switchTab(tab)}
@@ -280,7 +283,7 @@ const SearchScreen = ({ navigation }) => {
                     <Text style={styles.tabCount}> {allResults.all.length}</Text>
                   )}
                 </Text>
-              </Pressable>
+              </Ripple>
             ))}
             <Animated.View
               style={[
@@ -309,7 +312,7 @@ const SearchScreen = ({ navigation }) => {
           </View>
           {searchHistory.length === 0 ? (
             <View style={styles.emptyHistoryContainer}>
-               <Text style={styles.emptyHistoryText}>No recent searches</Text>
+              <Text style={styles.emptyHistoryText}>No recent searches</Text>
             </View>
           ) : (
             <FlatList
