@@ -11,6 +11,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from "react-native";
+import Ripple from 'react-native-material-ripple';
 import { useFonts } from "expo-font";
 import { useAuth } from "../context/AuthContext";
 import Feather from "@expo/vector-icons/Feather";
@@ -18,9 +19,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
-/* ------------------------------------------------------------------ */
-/*  AnimatedPressable — reusable spring "press" feel, no dependencies  */
-/* ------------------------------------------------------------------ */
 const AnimatedPressable = ({
   children,
   style,
@@ -461,13 +459,19 @@ const ProfileScreen = ({ navigation }) => {
                 <Text style={styles.modalSubtitle}>Are you sure you want to log out?</Text>
 
                 <View style={styles.modalActionRow}>
-                  <AnimatedPressable style={styles.modalCancelBtn} onPress={closeModal}>
+                  <Ripple
+                    rippleColor="#fff"
+                    rippleFades={false}
+                    rippleOpacity={0.1} style={styles.modalCancelBtn} onPress={closeModal}>
                     <Text style={styles.modalCancelText}>Stay</Text>
-                  </AnimatedPressable>
+                  </Ripple>
 
-                  <AnimatedPressable style={styles.modalConfirmBtn} onPress={handleLogout}>
+                  <Ripple
+                    rippleColor="#fff"
+                    rippleFades={false}
+                    rippleOpacity={0.1} style={styles.modalConfirmBtn} onPress={handleLogout}>
                     <Text style={styles.modalConfirmText}>Sign Out</Text>
-                  </AnimatedPressable>
+                  </Ripple>
                 </View>
               </Animated.View>
             </TouchableWithoutFeedback>
