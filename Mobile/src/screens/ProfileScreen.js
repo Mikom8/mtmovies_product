@@ -226,9 +226,15 @@ const ProfileScreen = ({ navigation }) => {
               fontFamily="Coolvetica"
             />
             <SettingRow
-              icon="help-circle"
-              title="Help Center"
-              color="#adb5bd"
+              icon="info"
+              title="About MTMovies"
+              color="#845ef7"
+              fontFamily="Coolvetica"
+            />
+            <SettingRow
+              icon="message-circle"
+              title="Contact Us"
+              color="#845ef7"
               fontFamily="Coolvetica"
             />
           </View>
