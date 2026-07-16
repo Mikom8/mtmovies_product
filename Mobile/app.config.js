@@ -48,9 +48,9 @@ const withAndroidProjectConfiguration = (config) => {
 allprojects {
   configurations.all {
     resolutionStrategy {
-      force "org.jetbrains.kotlin:kotlin-stdlib:2.0.21"
-      force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.21"
-      force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21"
+      force "org.jetbrains.kotlin:kotlin-stdlib:2.1.20"
+      force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.20"
+      force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.20"
     }
   }
 
@@ -83,6 +83,15 @@ allprojects {
         type: 'property',
         key: 'reactNativeArchitectures',
         value: 'arm64-v8a'
+      });
+    }
+    // Upgrade KSP to match Kotlin 2.1.20 (required by expo-updates 29.x)
+    const hasKsp = cfg.modResults.some(prop => prop.key === 'kotlin.ksp.version');
+    if (!hasKsp) {
+      cfg.modResults.push({
+        type: 'property',
+        key: 'kotlin.ksp.version',
+        value: '2.1.20-1.0.32'
       });
     }
     return cfg;
@@ -118,7 +127,7 @@ module.exports = ({ config }) => {
         "expo-build-properties",
         {
           "android": {
-            "kotlinVersion": "2.0.21",
+            "kotlinVersion": "2.1.20",
             "compileSdkVersion": 36,
             "targetSdkVersion": 36
           }

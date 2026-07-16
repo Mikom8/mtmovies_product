@@ -5,6 +5,7 @@
       "distribution": "internal"
     },
     "preview": {
+      "channel": "preview",
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease"
@@ -12,6 +13,7 @@
       "prebuildCommand": "npx expo prebuild --clean --platform android"
     },
     "production": {
+      "channel": "production",
       "android": {
         "gradleCommand": ":app:bundleRelease"
       },
