@@ -410,6 +410,7 @@ const PlayerScreen = ({ route, navigation }) => {
   const player = useVideoPlayer(null, (p) => {
     p.loop = false;
     p.timeUpdateEventInterval = 1; // Emit time updates every 1 second
+    p.preservesPitch = true; // Fix robot voice on 2x speed
   });
 
   // ── 4. Load + play when URL is ready ─────────────────────────────────────
