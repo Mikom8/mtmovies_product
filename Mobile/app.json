@@ -4,9 +4,7 @@
     "slug": "mtmovies-mobile",
     "scheme": "mtmovies",
     "version": "1.8.2",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.8.2",
     "updates": {
       "url": "https://u.expo.dev/d60c5aaa-6677-4577-871a-6ca71484d824"
     },
