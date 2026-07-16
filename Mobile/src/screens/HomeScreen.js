@@ -650,7 +650,7 @@ const HomeScreen = () => {
               <View style={styles.metaDivider} />
               <View style={styles.heroRating}>
                 <MaterialIcons name="star" size={14} color="#FFD700" />
-                <Text style={styles.heroMetaText}>{heroItem.rating || "8.5"}</Text>
+                <Text style={styles.heroMetaText}>{heroItem.rating ? (!isNaN(heroItem.rating) ? Number(heroItem.rating).toFixed(1) : heroItem.rating) : "8.5"}</Text>
               </View>
               <View style={styles.metaDivider} />
               <Text style={styles.heroMetaTergum}>{"በትርጉም"}</Text>

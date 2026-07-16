@@ -708,7 +708,7 @@ const DetailsScreen = ({ route, navigation }) => {
           {/* Meta Row */}
           <View style={styles.metaRow}>
             {data.year && <MetaBadge label={String(data.year)} />}
-            {data.rating ? <MetaBadge label={`★ ${data.rating}`} /> : null}
+            {data.rating ? <MetaBadge label={`★ ${!isNaN(data.rating) ? Number(data.rating).toFixed(1) : data.rating}`} /> : null}
             {data.duration && (
               <MetaBadge label={data.duration} icon="schedule" />
             )}
