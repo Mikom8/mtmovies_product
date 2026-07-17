@@ -597,6 +597,8 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 16,
     gap: 2,
+    borderWidth: 1,
+    borderColor: "rgb(224, 224, 224)",
     backgroundColor: "rgba(10,10,10,0.85)",
   },
   stickyAvatar: {
