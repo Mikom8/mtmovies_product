@@ -29,6 +29,14 @@ const protect = async (req, res, next) => {
     if (decoded.tokenVersion !== undefined && decoded.tokenVersion !== (req.user.tokenVersion ?? 0)) {
       return res.status(401).json({ error: 'Session expired. Please log in again.' });
     }
+
+    // Auto-downgrade expired plans
+    if (req.user.plan && req.user.plan !== 'free' && req.user.planExpiresAt && new Date() > new Date(req.user.planExpiresAt)) {
+      req.user.plan = 'free';
+      req.user.planExpiresAt = null;
+      await User.findByIdAndUpdate(req.user._id, { plan: 'free', planExpiresAt: null });
+    }
+
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Invalid or expired token.' });
@@ -38,7 +46,14 @@ const protect = async (req, res, next) => {
 // Middleware: check if user has a valid subscription
 const requirePlan = (requiredPlan) => {
   const planLevels = { free: 0, basic: 1, popular: 2, family: 3 };
-  return (req, res, next) => {
+  return async (req, res, next) => {
+    // Auto-downgrade expired plans
+    if (req.user.plan && req.user.plan !== 'free' && req.user.planExpiresAt && new Date() > new Date(req.user.planExpiresAt)) {
+      req.user.plan = 'free';
+      req.user.planExpiresAt = null;
+      await User.findByIdAndUpdate(req.user._id, { plan: 'free', planExpiresAt: null });
+    }
+
     const userLevel = planLevels[req.user.plan] || 0;
     const required = planLevels[requiredPlan] || 0;
 
@@ -47,11 +62,6 @@ const requirePlan = (requiredPlan) => {
         error: 'Upgrade your plan to access this content.',
         requiredPlan
       });
-    }
-
-    // Check plan hasn't expired
-    if (req.user.planExpiresAt && new Date() > req.user.planExpiresAt) {
-      return res.status(403).json({ error: 'Your subscription has expired. Please renew.' });
     }
 
     next();

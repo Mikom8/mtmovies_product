@@ -47,6 +47,12 @@ router.post('/google', async (req, res) => {
       await user.save();
     }
 
+    if (user.plan && user.plan !== 'free' && user.planExpiresAt && new Date() > new Date(user.planExpiresAt)) {
+      user.plan = 'free';
+      user.planExpiresAt = null;
+      await user.save();
+    }
+
     res.json({
       message: 'Google login successful!',
       token: generateToken(user._id),
@@ -56,6 +62,7 @@ router.post('/google', async (req, res) => {
         name: user.name,
         email: user.email,
         plan: user.plan,
+        planExpiresAt: user.planExpiresAt,
         avatar: user.avatar,
         watchHistory: user.watchHistory,
         watchlist: user.watchlist
@@ -105,6 +112,7 @@ router.post('/register', async (req, res) => {
         name: user.name,
         email: user.email,
         plan: user.plan,
+        planExpiresAt: user.planExpiresAt,
         avatar: user.avatar,
         watchHistory: user.watchHistory,
         watchlist: user.watchlist
@@ -134,6 +142,12 @@ router.post('/login', async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ error: 'Incorrect password or email.' });
 
+    if (user.plan && user.plan !== 'free' && user.planExpiresAt && new Date() > new Date(user.planExpiresAt)) {
+      user.plan = 'free';
+      user.planExpiresAt = null;
+      await user.save();
+    }
+
     res.json({
       message: 'Login successful!',
       token: generateToken(user._id),
@@ -142,6 +156,7 @@ router.post('/login', async (req, res) => {
         name: user.name,
         email: user.email,
         plan: user.plan,
+        planExpiresAt: user.planExpiresAt,
         avatar: user.avatar,
         watchHistory: user.watchHistory,
         watchlist: user.watchlist

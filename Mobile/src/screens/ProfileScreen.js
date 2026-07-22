@@ -211,12 +211,13 @@ const ProfileScreen = ({ navigation }) => {
     family: { label: "FAMILY PLAN", price: "350 Birr/mo" },
   };
 
-  const currentPlan = planInfo[user.plan] || {
+  const isExpired = user.plan && user.plan !== "free" && user.planExpiresAt && new Date() > new Date(user.planExpiresAt);
+  const isFree = user.plan === "free" || !user.plan || isExpired;
+
+  const currentPlan = planInfo[isFree ? "free" : user.plan] || {
     label: (user.plan || "FREE").toUpperCase() + " PLAN",
     price: "Custom",
   };
-
-  const isFree = user.plan === "free" || !user.plan;
 
   const SettingRow = ({
     icon,
@@ -369,8 +370,8 @@ const ProfileScreen = ({ navigation }) => {
             <SettingRow
               icon="credit-card"
               title="Plan Details"
-              meta={`${user.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) : "Free"} Plan`}
-              color="#62980c"
+              meta={`${!isFree ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + " Plan" : isExpired ? "Expired" : "Free Plan"}`}
+              color={isFree ? (isExpired ? "#E50914" : "#888") : "#62980c"}
               fontFamily="Coolvetica"
               isLast
               onPress={() => {

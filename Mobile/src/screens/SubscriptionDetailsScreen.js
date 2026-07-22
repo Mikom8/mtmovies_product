@@ -13,16 +13,23 @@ const SubscriptionDetailsScreen = ({ navigation }) => {
     family: { label: "FAMILY PLAN", price: "350 Birr/mo" },
   };
 
-  const currentPlan = planInfo[user?.plan] || {
+  const isExpired = user?.plan && user?.plan !== "free" && user?.planExpiresAt && new Date() > new Date(user.planExpiresAt);
+  const isFree = !user?.plan || user?.plan === "free" || isExpired;
+
+  const currentPlan = planInfo[isFree ? "free" : user?.plan] || {
     label: (user?.plan || "FREE").toUpperCase() + " PLAN",
     price: "Custom",
   };
 
-  const expiresAtDate = user?.planExpiresAt ? new Date(user.planExpiresAt).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }) : "Never";
+  const expiresAtDate = isFree
+    ? (isExpired ? "Expired" : "N/A")
+    : user?.planExpiresAt
+      ? new Date(user.planExpiresAt).toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      : "Never";
 
   return (
     <View style={styles.root}>
@@ -37,16 +44,18 @@ const SubscriptionDetailsScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Feather name="star" size={24} color="#FFD700" style={{ marginRight: 8 }} />
-            <Text style={styles.cardTitle}>{currentPlan.label}</Text>
+            <Feather name="star" size={24} color={isFree ? "#888" : "#FFD700"} style={{ marginRight: 8 }} />
+            <Text style={[styles.cardTitle, isFree && { color: "#fff" }]}>{currentPlan.label}</Text>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Status</Text>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>Active</Text>
+            <View style={[styles.statusBadge, isFree && { backgroundColor: "rgba(229, 9, 20, 0.2)" }]}>
+              <Text style={[styles.statusText, isFree && { color: "#E50914" }]}>
+                {isExpired ? "Expired" : isFree ? "Free" : "Active"}
+              </Text>
             </View>
           </View>
 
@@ -61,8 +70,16 @@ const SubscriptionDetailsScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Next Payment Due</Text>
-            <Text style={styles.infoValue}>{expiresAtDate}</Text>
+            <Text style={styles.infoLabel}>{isExpired ? "Expired On" : "Next Payment Due"}</Text>
+            <Text style={[styles.infoValue, isExpired && { color: "#E50914" }]}>
+              {isExpired && user?.planExpiresAt
+                ? new Date(user.planExpiresAt).toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })
+                : expiresAtDate}
+            </Text>
           </View>
         </View>
 
