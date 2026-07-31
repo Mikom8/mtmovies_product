@@ -20,8 +20,29 @@ const adminRoutes = require('./routes/admin');
 const recommendationRoutes = require('./routes/recommendations');
 const { initTelegramClient } = require('./services/telegram');
 const { requireApiKey } = require('./middleware/apiKey');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
+
+// Trust proxy if behind a reverse proxy (e.g. Railway, Heroku)
+app.set('trust proxy', 1);
+
+// ── Rate Limiters ──
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300, // Limit each IP to 300 requests per 15 minutes
+  message: { error: 'Too many requests from this IP, please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // Limit each IP to 30 auth requests per 15 minutes
+  message: { error: 'Too many authentication attempts, please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // ── Middleware ──
 app.use(cors({
@@ -54,10 +75,10 @@ app.use('/api/stream', streamRoutes);
 
 // ── API Key Protection Middleware ──
 // All routes below this will require the x-api-key header or api_key query param.
-app.use('/api', requireApiKey);
+app.use('/api', requireApiKey, apiLimiter);
 
 // ── Routes (registered BEFORE static so dynamic segment-wait routes take priority) ──
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/series', seriesRoutes);
 app.use('/api/users', userRoutes);
