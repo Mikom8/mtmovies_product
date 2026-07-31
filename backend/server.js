@@ -49,6 +49,9 @@ app.use('/api/stream/hls', (req, res, next) => {
   next();
 }, express.static(hlsDir));
 
+// Exempt the dynamic stream routes as well, since video players cannot send custom headers
+app.use('/api/stream', streamRoutes);
+
 // ── API Key Protection Middleware ──
 // All routes below this will require the x-api-key header or api_key query param.
 app.use('/api', requireApiKey);
@@ -58,7 +61,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/series', seriesRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/stream', streamRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/recommendations', recommendationRoutes);
