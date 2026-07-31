@@ -19,6 +19,7 @@ const paymentRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/admin');
 const recommendationRoutes = require('./routes/recommendations');
 const { initTelegramClient } = require('./services/telegram');
+const { requireApiKey } = require('./middleware/apiKey');
 
 const app = express();
 
@@ -31,6 +32,27 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ── Uptime Robot & Root Check ──
+app.get('/', (req, res) => {
+  res.status(200).send('MT Movies API is awake and running!');
+});
+
+// ── Health check (Exempt from API Key) ──
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'MT Movies API is running', timestamp: new Date() });
+});
+
+// Serve already-transcoded HLS segments statically (Exempt from API Key)
+app.use('/api/stream/hls', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'no-cache');
+  next();
+}, express.static(hlsDir));
+
+// ── API Key Protection Middleware ──
+// All routes below this will require the x-api-key header or api_key query param.
+app.use('/api', requireApiKey);
+
 // ── Routes (registered BEFORE static so dynamic segment-wait routes take priority) ──
 app.use('/api/auth', authRoutes);
 app.use('/api/movies', movieRoutes);
@@ -40,24 +62,6 @@ app.use('/api/stream', streamRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/recommendations', recommendationRoutes);
-
-// Serve already-transcoded HLS segments statically (fallback after dynamic routes)
-app.use('/api/stream/hls', (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cache-Control', 'no-cache');
-  next();
-}, express.static(hlsDir));
-
-
-// ── Uptime Robot & Root Check ──
-app.get('/', (req, res) => {
-  res.status(200).send('MT Movies API is awake and running!');
-});
-
-// ── Health check ──
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'MT Movies API is running', timestamp: new Date() });
-});
 
 // ── 404 handler ──
 app.use((req, res) => {

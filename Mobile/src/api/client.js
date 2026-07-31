@@ -18,6 +18,9 @@ client.interceptors.request.use(async (config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  if (process.env.EXPO_PUBLIC_API_KEY) {
+    config.headers['x-api-key'] = process.env.EXPO_PUBLIC_API_KEY;
+  }
   return config;
 }, (error) => {
   return Promise.reject(error);
