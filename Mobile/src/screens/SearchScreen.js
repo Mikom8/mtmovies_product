@@ -19,6 +19,7 @@ import { useMovies } from "../context/MovieContext";
 import Feather from "@expo/vector-icons/Feather";
 import Ripple from 'react-native-material-ripple';
 import NetworkErrorView from "../components/NetworkErrorView";
+import client from "../api/client";
 
 const { width } = Dimensions.get("window");
 const COLUMN_COUNT = 3;
@@ -88,25 +89,36 @@ const SearchScreen = ({ navigation }) => {
     setActiveTab(tab);
   };
 
-  // Search executes only when user submits (keyboard search button)
-  const allResults = useMemo(() => {
-    if (!submittedQuery.trim()) return { all: [], movies: [], series: [] };
-    const q = submittedQuery.toLowerCase().trim();
-    const match = (item) => {
-      const matchTitle = item.title && item.title.toLowerCase().includes(q);
-      const matchDesc = item.description && item.description.toLowerCase().includes(q);
-      const matchGenres = item.genres && item.genres.some((g) => g.toLowerCase().includes(q));
-      const matchTags = item.tags && item.tags.some((t) => t.toLowerCase().includes(q));
-      return matchTitle || matchDesc || matchGenres || matchTags;
-    };
-    const matchedMovies = movies.filter(match);
-    const matchedSeries = series.filter(match);
-    return {
-      all: [...matchedMovies, ...matchedSeries],
-      movies: matchedMovies,
-      series: matchedSeries,
-    };
-  }, [submittedQuery, movies, series]);
+  const [allResults, setAllResults] = useState({ all: [], movies: [], series: [] });
+  const [isSearching, setIsSearching] = useState(false);
+
+  const fetchSearchResults = async (searchTerm) => {
+    if (!searchTerm.trim()) {
+      setAllResults({ all: [], movies: [], series: [] });
+      return;
+    }
+    
+    setIsSearching(true);
+    try {
+      const [moviesRes, seriesRes] = await Promise.all([
+        client.get(`/movies?search=${encodeURIComponent(searchTerm)}&limit=50`),
+        client.get(`/series?search=${encodeURIComponent(searchTerm)}&limit=50`),
+      ]);
+      
+      const matchedMovies = moviesRes.data?.movies || [];
+      const matchedSeries = seriesRes.data?.series || [];
+      
+      setAllResults({
+        all: [...matchedMovies, ...matchedSeries],
+        movies: matchedMovies,
+        series: matchedSeries
+      });
+    } catch (e) {
+      console.log("Search API Error:", e);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const searchResults = useMemo(() => {
     if (activeTab === "Movies") return allResults.movies;
@@ -120,6 +132,7 @@ const SearchScreen = ({ navigation }) => {
     setQuery("");
     setSubmittedQuery("");
     setActiveTab("All");
+    setAllResults({ all: [], movies: [], series: [] });
     Keyboard.dismiss();
   };
 
@@ -127,6 +140,7 @@ const SearchScreen = ({ navigation }) => {
     setSubmittedQuery(query);
     setActiveTab("All");
     addSearchToHistory(query);
+    fetchSearchResults(query);
     Keyboard.dismiss();
   };
 
@@ -135,6 +149,7 @@ const SearchScreen = ({ navigation }) => {
     setSubmittedQuery(term);
     setActiveTab("All");
     addSearchToHistory(term);
+    fetchSearchResults(term);
     Keyboard.dismiss();
   };
 
@@ -295,7 +310,7 @@ const SearchScreen = ({ navigation }) => {
         )}
       </View>
 
-      {loading ? (
+      {(loading || isSearching) ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#E50914" />
         </View>

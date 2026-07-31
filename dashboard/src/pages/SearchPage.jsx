@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useMovies } from '../context/MovieContext';
+import { API_BASE_URL } from '../config';
 import { FiArrowLeft, FiSearch, FiX } from 'react-icons/fi';
 import { FaPlay } from 'react-icons/fa';
 import PageSkeleton from '../components/PageSkeleton';
@@ -17,23 +17,61 @@ function matchesQuery(item, q) {
 
 export default function SearchPage() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const { movies: MOVIES, series: SERIES, loading } = useMovies();
   const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
     if (inputRef.current) inputRef.current.focus();
   }, []);
 
-  if (loading) return <PageSkeleton />;
+  useEffect(() => {
+    const searchTerm = query.trim();
+    if (!searchTerm) {
+      setResults([]);
+      setIsSearching(false);
+      return;
+    }
 
-  const ALL = [
-    ...MOVIES.map(m => ({ ...m, type: 'movie' })),
-    ...SERIES.map(s => ({ ...s, type: 'series' })),
-  ];
+    setIsSearching(true);
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const [moviesRes, seriesRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/movies?search=${encodeURIComponent(searchTerm)}&limit=50`),
+          fetch(`${API_BASE_URL}/series?search=${encodeURIComponent(searchTerm)}&limit=50`)
+        ]);
 
-  const results = query.trim() ? ALL.filter(i => matchesQuery(i, query.trim())) : [];
+        let mData = { movies: [] };
+        let sData = { series: [] };
+
+        if (moviesRes.ok) mData = await moviesRes.json();
+        if (seriesRes.ok) sData = await seriesRes.json();
+
+        const formattedMovies = (mData.movies || []).map(m => ({
+          ...m,
+          id: m._id,
+          type: 'movie',
+          genre: m.genres ? m.genres.join(' • ') : '',
+        }));
+
+        const formattedSeries = (sData.series || []).map(s => ({
+          ...s,
+          id: s._id,
+          type: 'series',
+          genre: s.genres ? s.genres.join(' • ') : '',
+        }));
+
+        setResults([...formattedMovies, ...formattedSeries]);
+      } catch (err) {
+        console.error("Search failed:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [query]);
 
   return (
     <div className={styles.page}>
@@ -80,13 +118,20 @@ export default function SearchPage() {
           </div>
         )}
 
-        {query.trim() && results.length === 0 && (
+        {query.trim() && isSearching && (
+          <div className={styles.empty}>
+            <div className={styles.spinner} style={{ borderColor: 'rgba(255,255,255,0.1)', borderTopColor: '#E50914', borderRadius: '50%', width: 40, height: 40, animation: 'spin 1s linear infinite' }}></div>
+            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+          </div>
+        )}
+
+        {query.trim() && !isSearching && results.length === 0 && (
           <div className={styles.empty}>
             <p className={styles.noResult}>No results for "{query}"</p>
           </div>
         )}
 
-        {results.length > 0 && (
+        {!isSearching && results.length > 0 && (
           <div className={styles.grid}>
             {results.map(item => (
               <div
