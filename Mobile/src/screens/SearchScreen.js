@@ -236,8 +236,6 @@ const SearchScreen = ({ navigation }) => {
     );
   }
 
-  const isSearching = !!submittedQuery.trim();
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
