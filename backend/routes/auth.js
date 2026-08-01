@@ -183,4 +183,129 @@ router.get('/me', protect, async (req, res) => {
   });
 });
 
+// ── POST /api/auth/forgot-password ──
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required.' });
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(404).json({ error: 'No account found with this email.' });
+
+    // Generate a 6-digit verification code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Set code and expiration (15 minutes from now)
+    user.resetPasswordCode = code;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+    await user.save();
+
+    // Send email using Resend API (via native fetch)
+    const apiKey = process.env.RESEND_API || process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.error('Resend API key missing.');
+      return res.status(500).json({ error: 'Email service is not configured.' });
+    }
+
+    const emailRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        from: 'MTMovies <onboarding@resend.dev>', // Resend demands onboarding@resend.dev for free accounts
+        to: email.toLowerCase(),
+        subject: 'Reset Your MTMovies Password',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px; background-color: #0a0a0a; color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h2 style="color: #E50914; margin: 0;">MTMovies</h2>
+              <p style="font-size: 14px; color: #888;">Password Recovery</p>
+            </div>
+            <p>Hello,</p>
+            <p>You requested a password reset. Use the 6-digit recovery code below to reset your password. This code will expire in 15 minutes.</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #E50914; background-color: #1a1a1a; padding: 10px 20px; border-radius: 5px; border: 1px dashed #E50914;">${code}</span>
+            </div>
+            <p style="font-size: 12px; color: #555;">If you did not request this, you can safely ignore this email.</p>
+          </div>
+        `
+      })
+    });
+
+    const emailData = await emailRes.json();
+    if (!emailRes.ok) {
+      console.error('Resend Email Error:', emailData);
+      return res.status(500).json({ error: 'Failed to send recovery email.' });
+    }
+
+    res.json({ message: 'Recovery code sent successfully!' });
+  } catch (err) {
+    res.status(500).json({ error: 'Forgot password request failed.', message: err.message });
+  }
+});
+
+// ── POST /api/auth/verify-reset-code ──
+router.post('/verify-reset-code', async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    if (!email || !code) return res.status(400).json({ error: 'Email and verification code are required.' });
+
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+      resetPasswordCode: code,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired verification code.' });
+    }
+
+    res.json({ message: 'Code verified successfully!' });
+  } catch (err) {
+    res.status(500).json({ error: 'Code verification failed.', message: err.message });
+  }
+});
+
+// ── POST /api/auth/reset-password ──
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ error: 'Email, code, and new password are required.' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    }
+
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+      resetPasswordCode: code,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired verification code.' });
+    }
+
+    // Set new password
+    user.password = newPassword;
+    
+    // Clear code and expiry
+    user.resetPasswordCode = null;
+    user.resetPasswordExpires = null;
+    
+    // Invalidate other tokens
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
+    
+    await user.save();
+
+    res.json({ message: 'Password reset successfully! You can now log in.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Password reset failed.', message: err.message });
+  }
+});
+
 module.exports = router;

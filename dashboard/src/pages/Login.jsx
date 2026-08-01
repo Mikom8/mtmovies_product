@@ -26,6 +26,13 @@ export default function Login() {
   const [error, setError] = useState('');
   const emailTimer = useRef(null);
 
+  // Recovery Flow State
+  const [forgotStep, setForgotStep] = useState(null); // null | 'email' | 'verify' | 'reset'
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
@@ -135,6 +142,81 @@ export default function Login() {
     }
   };
 
+  const handleRequestCode = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
+    if (!email) { setError('Please enter your email.'); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Failed to send recovery code.'); return; }
+      setSuccessMsg('Recovery code sent to your email!');
+      setForgotStep('verify');
+    } catch {
+      setError('Cannot reach server. Is the backend running?');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
+    if (!resetCode) { setError('Please enter the 6-digit code.'); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/auth/verify-reset-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: resetCode })
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Invalid or expired code.'); return; }
+      setForgotStep('reset');
+    } catch {
+      setError('Cannot reach server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
+    if (!newPassword || !confirmPassword) { setError('Please fill in both password fields.'); return; }
+    if (newPassword.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (newPassword !== confirmPassword) { setError('Passwords do not match.'); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: resetCode, newPassword })
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Failed to reset password.'); return; }
+      setSuccessMsg('Password updated successfully! You can now log in.');
+      setForgotStep(null);
+      setMode('signin');
+      setPassword('');
+      setResetCode('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch {
+      setError('Cannot reach server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const btnLabel = loading
     ? (mode === 'signup' ? 'Creating Account…' : 'Signing In…')
     : (mode === 'signup' ? 'Sign Up' : 'Sign In');
@@ -156,95 +238,225 @@ export default function Login() {
         {/* Card */}
         <div className={styles.card}>
           <h1 className={styles.title}>
-            {mode === 'signup' ? 'Create Account' : 'Sign In'}
+            {forgotStep ? 'Reset Password' : (mode === 'signup' ? 'Create Account' : 'Sign In')}
           </h1>
           <p className={styles.subtitle}>
-            {mode === 'signup'
+            {forgotStep ? '' : (mode === 'signup'
               ? 'Join MT Movies — watch English movies in Amharic'
-              : 'Welcome back! Sign in to keep watching'}
+              : 'Welcome back! Sign in to keep watching')}
           </p>
 
-          <form onSubmit={handleSubmit} noValidate>
-            {/* Email */}
-            <div className={styles.field}>
-              <div className={styles.fieldLabel}>
-                <span className={styles.fieldIcon}><FiMail /></span>
-                <input
-                  type="email"
-                  placeholder="Email Address"
-                  value={email}
-                  onChange={handleEmailChange}
-                  onBlur={handleEmailBlur}
-                  required
-                  autoComplete="email"
-                  className={styles.input}
-                />
-                {checking && <span className={styles.checking}><BiLoaderAlt /></span>}
+          {successMsg && !forgotStep && (
+            <p style={{ color: '#00cc66', fontSize: '14px', textAlign: 'center', marginBottom: '15px', padding: '10px', borderRadius: '6px', background: 'rgba(0, 204, 102, 0.1)' }}>
+              {successMsg}
+            </p>
+          )}
+
+          {!forgotStep && (
+            <form onSubmit={handleSubmit} noValidate>
+              {/* Email */}
+              <div className={styles.field}>
+                <div className={styles.fieldLabel}>
+                  <span className={styles.fieldIcon}><FiMail /></span>
+                  <input
+                    type="email"
+                    placeholder="Email Address"
+                    value={email}
+                    onChange={handleEmailChange}
+                    onBlur={handleEmailBlur}
+                    required
+                    autoComplete="email"
+                    className={styles.input}
+                  />
+                  {checking && <span className={styles.checking}><BiLoaderAlt /></span>}
+                </div>
               </div>
 
-            </div>
+              {/* Password */}
+              <div className={styles.field}>
+                <div className={styles.fieldLabel}>
+                  <span className={styles.fieldIcon}><FiLock /></span>
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    placeholder="Password"
+                    value={password}
+                    onChange={e => { setPassword(e.target.value); if (mode === 'signup') calcStrength(e.target.value); }}
+                    required
+                    maxLength={20}
+                    autoComplete="new-password"
+                    className={styles.input}
+                  />
+                  <button type="button" className={styles.eyeBtn} onClick={() => setShowPass(p => !p)}>
+                    {showPass ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </div>
 
-            {/* Password */}
-            <div className={styles.field}>
-              <div className={styles.fieldLabel}>
-                <span className={styles.fieldIcon}><FiLock /></span>
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  placeholder="Password"
-                  value={password}
-                  onChange={e => { setPassword(e.target.value); if (mode === 'signup') calcStrength(e.target.value); }}
-                  required
-                  maxLength={20}
-                  autoComplete="new-password"
-                  className={styles.input}
-                />
-                <button type="button" className={styles.eyeBtn} onClick={() => setShowPass(p => !p)}>
-                  {showPass ? <FiEyeOff /> : <FiEye />}
-                </button>
-              </div>
-
-              {/* Strength bar — only for signup */}
-              {mode === 'signup' && password && (
-                <div className={styles.strengthWrap}>
-                  <div className={styles.strengthBar}>
-                    <div className={styles.strengthFill} style={{ width: strength.width, background: strength.color }} />
+                {/* Strength bar — only for signup */}
+                {mode === 'signup' && password && (
+                  <div className={styles.strengthWrap}>
+                    <div className={styles.strengthBar}>
+                      <div className={styles.strengthFill} style={{ width: strength.width, background: strength.color }} />
+                    </div>
+                    {strength.label && (
+                      <span className={styles.strengthLabel} style={{ color: strength.color }}>{strength.label}</span>
+                    )}
                   </div>
-                  {strength.label && (
-                    <span className={styles.strengthLabel} style={{ color: strength.color }}>{strength.label}</span>
-                  )}
+                )}
+              </div>
+
+              {/* Error */}
+              {error && <p className={styles.error} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><BiErrorCircle size={16} /> {error}</p>}
+
+              {/* Submit */}
+              <button
+                type="submit"
+                className={styles.submitBtn}
+                disabled={loading}
+              >
+                {btnLabel}
+                {!loading && <span style={{ display: 'flex', alignItems: 'center' }}><FiArrowRight /></span>}
+              </button>
+
+              {/* Forgot password */}
+              {mode === 'signin' && (
+                <div className={styles.forgotWrap}>
+                  <button type="button" onClick={() => { setForgotStep('email'); setError(''); setSuccessMsg(''); }} className={styles.forgot} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    Forgot Password?
+                  </button>
                 </div>
               )}
-            </div>
+            </form>
+          )}
 
-            {/* Error */}
-            {error && <p className={styles.error} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><BiErrorCircle size={16} /> {error}</p>}
-
-            {/* Submit */}
-            <button
-              type="submit"
-              className={styles.submitBtn}
-              disabled={loading}
-            >
-              {btnLabel}
-              {!loading && <span style={{ display: 'flex', alignItems: 'center' }}><FiArrowRight /></span>}
-            </button>
-
-            {/* Forgot password */}
-            {mode === 'signin' && (
-              <div className={styles.forgotWrap}>
-                <a href="#" className={styles.forgot}>Forgot Password?</a>
+          {forgotStep === 'email' && (
+            <form onSubmit={handleRequestCode} noValidate>
+              <p className={styles.subtitle} style={{ marginBottom: '20px', color: '#aaa', fontSize: '14px' }}>
+                Enter your email address and we'll send you a 6-digit recovery code.
+              </p>
+              <div className={styles.field}>
+                <div className={styles.fieldLabel}>
+                  <span className={styles.fieldIcon}><FiMail /></span>
+                  <input
+                    type="email"
+                    placeholder="Email Address"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    className={styles.input}
+                  />
+                </div>
               </div>
-            )}
-          </form>
+              {error && <p className={styles.error} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><BiErrorCircle size={16} /> {error}</p>}
+              <button type="submit" className={styles.submitBtn} disabled={loading}>
+                {loading ? 'Sending Code...' : 'Send Recovery Code'}
+                {!loading && <span style={{ display: 'flex', alignItems: 'center' }}><FiArrowRight /></span>}
+              </button>
+              <div className={styles.forgotWrap} style={{ marginTop: '15px', justifyContent: 'center' }}>
+                <button type="button" onClick={() => { setForgotStep(null); setError(''); }} className={styles.forgot} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  Back to Sign In
+                </button>
+              </div>
+            </form>
+          )}
+
+          {forgotStep === 'verify' && (
+            <form onSubmit={handleVerifyCode} noValidate>
+              <p className={styles.subtitle} style={{ marginBottom: '20px', color: '#aaa', fontSize: '14px' }}>
+                Please enter the 6-digit verification code sent to <strong style={{ color: '#E50914' }}>{email}</strong>.
+              </p>
+              <div className={styles.field}>
+                <div className={styles.fieldLabel}>
+                  <span className={styles.fieldIcon}><FiLock /></span>
+                  <input
+                    type="text"
+                    placeholder="6-Digit Code"
+                    value={resetCode}
+                    onChange={e => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    required
+                    maxLength={6}
+                    style={{ letterSpacing: '4px', textAlign: 'center', fontWeight: 'bold' }}
+                    className={styles.input}
+                  />
+                </div>
+              </div>
+              {error && <p className={styles.error} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><BiErrorCircle size={16} /> {error}</p>}
+              {successMsg && <p style={{ color: '#00cc66', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>{successMsg}</p>}
+              <button type="submit" className={styles.submitBtn} disabled={loading}>
+                {loading ? 'Verifying...' : 'Verify Code'}
+                {!loading && <span style={{ display: 'flex', alignItems: 'center' }}><FiArrowRight /></span>}
+              </button>
+              <div className={styles.forgotWrap} style={{ marginTop: '15px', justifyContent: 'center' }}>
+                <button type="button" onClick={() => { setForgotStep('email'); setError(''); setSuccessMsg(''); }} className={styles.forgot} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  Change Email
+                </button>
+              </div>
+            </form>
+          )}
+
+          {forgotStep === 'reset' && (
+            <form onSubmit={handleResetPassword} noValidate>
+              <p className={styles.subtitle} style={{ marginBottom: '20px', color: '#aaa', fontSize: '14px' }}>
+                Enter your new password below.
+              </p>
+              <div className={styles.field}>
+                <div className={styles.fieldLabel}>
+                  <span className={styles.fieldIcon}><FiLock /></span>
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    placeholder="New Password"
+                    value={newPassword}
+                    onChange={e => { setNewPassword(e.target.value); calcStrength(e.target.value); }}
+                    required
+                    className={styles.input}
+                  />
+                  <button type="button" className={styles.eyeBtn} onClick={() => setShowPass(p => !p)}>
+                    {showPass ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </div>
+                {newPassword && (
+                  <div className={styles.strengthWrap}>
+                    <div className={styles.strengthBar}>
+                      <div className={styles.strengthFill} style={{ width: strength.width, background: strength.color }} />
+                    </div>
+                    {strength.label && (
+                      <span className={styles.strengthLabel} style={{ color: strength.color }}>{strength.label}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className={styles.field}>
+                <div className={styles.fieldLabel}>
+                  <span className={styles.fieldIcon}><FiLock /></span>
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    placeholder="Confirm New Password"
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    required
+                    className={styles.input}
+                  />
+                </div>
+              </div>
+              {error && <p className={styles.error} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><BiErrorCircle size={16} /> {error}</p>}
+              <button type="submit" className={styles.submitBtn} disabled={loading}>
+                {loading ? 'Updating Password...' : 'Reset Password'}
+                {!loading && <span style={{ display: 'flex', alignItems: 'center' }}><FiArrowRight /></span>}
+              </button>
+            </form>
+          )}
 
           {/* Divider */}
-          <div className={styles.divider}><span>or</span></div>
+          {!forgotStep && (
+            <>
+              <div className={styles.divider}><span>or</span></div>
 
-          {/* Google */}
-          <button type="button" className={styles.googleBtn} onClick={() => googleLogin()}>
-            <FcGoogle size={20} />
-            Continue with Google
-          </button>
+              {/* Google */}
+              <button type="button" className={styles.googleBtn} onClick={() => googleLogin()}>
+                <FcGoogle size={20} />
+                Continue with Google
+              </button>
+            </>
+          )}
 
           <p className={styles.terms}>
             By continuing, you agree to our <a href="#">Terms of Use</a> and <a href="#">Privacy Policy</a>.
