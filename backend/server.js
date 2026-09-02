@@ -54,6 +54,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ── Uptime Robot & Root Check ──
+app.all('/head', (req, res) => {
+  res.status(200).send('OK');
+});
+
 app.get('/', (req, res) => {
   res.status(200).send('MT Movies API is awake and running!');
 });
@@ -103,6 +107,24 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 MT Movies server running on port ${PORT}`);
 });
+
+// ── Self-pinging interval for Render free tier (every 13 minutes) ──
+const THIRTEEN_MINUTES = 13 * 60 * 1000;
+setInterval(async () => {
+  try {
+    const baseUrl = process.env.RENDER_EXTERNAL_URL || process.env.SERVER_URL || `http://localhost:${PORT}`;
+    const targetUrl = baseUrl.endsWith('/head') ? baseUrl : `${baseUrl.replace(/\/$/, '')}/head`;
+    if (typeof fetch === 'function') {
+      await fetch(targetUrl);
+    } else {
+      const axios = require('axios');
+      await axios.get(targetUrl);
+    }
+    console.log(`[Self-Ping] Pinged ${targetUrl} successfully at ${new Date().toISOString()}`);
+  } catch (err) {
+    console.error('[Self-Ping] Failed to ping server:', err.message);
+  }
+}, THIRTEEN_MINUTES);
 
 // ── Connect to MongoDB ──
 if (!process.env.MONGODB_URI) {
