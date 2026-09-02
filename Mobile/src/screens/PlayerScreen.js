@@ -36,7 +36,7 @@ const cfg =
   (Constants.manifest && Constants.manifest.extra) ||
   {};
 const API_BASE =
-  cfg.API_BASE_URL || "https://mtmoviesproduct-production.up.railway.app/api";
+  cfg.API_BASE_URL || "https://mtmovies-product-ea3t.onrender.com/api";
 
 const formatTime = (seconds) => {
   if (isNaN(seconds) || seconds < 0) return "00:00";

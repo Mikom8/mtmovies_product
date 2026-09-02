@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 10000;
 // Enable CORS for Railway backend
 app.use(cors({
   origin: [
-    'https://mtmoviesproduct-production.up.railway.app',
+    'https://mtmovies-product-ea3t.onrender.com',
     'http://localhost:5000',
     'http://localhost:3000'
   ],
@@ -45,9 +45,9 @@ app.get('/ping', (req, res) => {
 // Proxy endpoint to fetch Telebirr receipt
 app.get('/fetch/:transactionId', async (req, res) => {
   const { transactionId } = req.params;
-  
+
   console.log(`[Proxy] Fetching receipt for: ${transactionId}`);
-  
+
   if (!transactionId || !/^[A-Z0-9]{6,20}$/i.test(transactionId)) {
     return res.status(400).json({
       error: 'Invalid transaction ID format'
@@ -58,7 +58,7 @@ app.get('/fetch/:transactionId', async (req, res) => {
 
   try {
     const htmlContent = await fetchTelebirrReceipt(normalizedTxId);
-    
+
     // Return HTML content
     res.set('Content-Type', 'text/html');
     res.send(htmlContent);
@@ -97,10 +97,10 @@ function fetchTelebirrReceipt(transactionId) {
       // Handle redirects
       if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
         response.resume();
-        
+
         try {
           const nextUrl = new URL(response.headers.location, 'https://transactioninfo.ethiotelecom.et');
-          
+
           const redirectReq = https.request({
             hostname: nextUrl.hostname,
             port: nextUrl.port || 443,
@@ -111,11 +111,11 @@ function fetchTelebirrReceipt(transactionId) {
             headers: options.headers
           }, (redirectRes) => {
             let data = '';
-            
+
             redirectRes.on('data', (chunk) => {
               data += chunk;
             });
-            
+
             redirectRes.on('end', () => {
               if (redirectRes.statusCode >= 400) {
                 reject(new Error(`Telebirr returned HTTP ${redirectRes.statusCode}`));
@@ -128,16 +128,16 @@ function fetchTelebirrReceipt(transactionId) {
               resolve(data);
             });
           });
-          
+
           redirectReq.on('timeout', () => {
             redirectReq.destroy();
             reject(new Error('Redirect request timed out'));
           });
-          
+
           redirectReq.on('error', (err) => {
             reject(new Error(`Redirect request failed: ${err.message}`));
           });
-          
+
           redirectReq.end();
         } catch (e) {
           reject(new Error(`Redirect processing failed: ${e.message}`));
@@ -146,11 +146,11 @@ function fetchTelebirrReceipt(transactionId) {
       }
 
       let data = '';
-      
+
       response.on('data', (chunk) => {
         data += chunk;
       });
-      
+
       response.on('end', () => {
         if (response.statusCode >= 400) {
           reject(new Error(`Telebirr returned HTTP ${response.statusCode}`));
@@ -168,11 +168,11 @@ function fetchTelebirrReceipt(transactionId) {
       req.destroy();
       reject(new Error('Request timed out after 30 seconds'));
     });
-    
+
     req.on('error', (err) => {
       reject(new Error(`Network error: ${err.message}`));
     });
-    
+
     req.end();
   });
 }
@@ -180,7 +180,7 @@ function fetchTelebirrReceipt(transactionId) {
 app.listen(PORT, () => {
   console.log(`🚀 Telebirr Proxy Server running on port ${PORT}`);
   console.log(`📡 Ready to fetch receipts from Ethio Telecom`);
-  
+
   // Keep-alive: Ping self every 10 minutes to prevent Render sleep
   setInterval(async () => {
     try {
@@ -192,6 +192,6 @@ app.listen(PORT, () => {
       console.log(`⚠️ [KeepAlive] Self-ping failed (normal if just starting)`);
     }
   }, 10 * 60 * 1000); // Every 10 minutes
-  
+
   console.log(`🔄 Keep-alive enabled: Self-pinging every 10 minutes to prevent sleep`);
 });

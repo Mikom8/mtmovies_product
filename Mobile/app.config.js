@@ -109,7 +109,7 @@ module.exports = ({ config }) => {
       IOS_GOOGLE_CLIENT_ID: process.env.IOS_GOOGLE_CLIENT_ID || '',
       ANDROID_GOOGLE_CLIENT_ID: process.env.ANDROID_GOOGLE_CLIENT_ID || '',
       WEB_GOOGLE_CLIENT_ID: process.env.WEB_GOOGLE_CLIENT_ID || '',
-      API_BASE_URL: process.env.API_BASE_URL || (process.env.EAS_BUILD === 'true' ? 'https://mtmoviesproduct-production.up.railway.app/api' : `http://${getLocalIp()}:5000/api`),
+      API_BASE_URL: process.env.API_BASE_URL || (process.env.EAS_BUILD === 'true' ? 'https://mtmovies-product-ea3t.onrender.com/api' : `http://${getLocalIp()}:5000/api`),
       eas: {
         projectId: "d60c5aaa-6677-4577-871a-6ca71484d824"
       }

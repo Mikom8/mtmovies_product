@@ -26,7 +26,7 @@ const cfg =
   (Constants.manifest && Constants.manifest.extra) ||
   {};
 const API_BASE =
-  cfg.API_BASE_URL || "https://mtmoviesproduct-production.up.railway.app/api";
+  cfg.API_BASE_URL || "https://mtmovies-product-ea3t.onrender.com/api";
 
 const LoginScreen = ({ navigation, route }) => {
   const { login, register, googleLogin } = useAuth();
